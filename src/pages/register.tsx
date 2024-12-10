@@ -1,7 +1,7 @@
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/outfit";
 import "../stylesheets/common.css";
-import "../stylesheets/index.css";
+import "../stylesheets/register.css";
 
 import { HeadFC, Link, PageProps } from "gatsby";
 import * as React from "react";
@@ -14,7 +14,7 @@ const isBrowser = typeof window !== "undefined";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
 
-const IndexPage: React.FC<PageProps> = () => {
+const RegisterPage: React.FC<PageProps> = () => {
   const theme = createTheme({
     typography: {
       fontFamily: "Fraunces Variable",
@@ -49,13 +49,13 @@ const IndexPage: React.FC<PageProps> = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Paper square>
-        <h1>administration</h1>
-        <Link to="/register">
-          <Button>Register</Button>
+        <h1>Register</h1>
+        <Link to="/">
+          <Button>Home</Button>
         </Link>
       </Paper>
     </ThemeProvider>
   );
 };
 
-export default IndexPage;
+export default RegisterPage;
