@@ -5,17 +5,61 @@ import "../stylesheets/register.css";
 
 import { HeadFC, Link, PageProps } from "gatsby";
 import * as React from "react";
+import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
+import ThemeToggle from "squarecomponents/components/ThemeToggle";
+import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import { Button, Paper } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import {
+  createTheme,
+  StyledEngineProvider,
+  ThemeProvider,
+} from "@mui/material/styles";
+
+import localStorageKeysConfig from "../config/localStorageKeys";
+import uiConfig from "../config/ui";
 
 const isBrowser = typeof window !== "undefined";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
 
 const RegisterPage: React.FC<PageProps> = () => {
-  const theme = createTheme({
+  // get stuff from local storage
+  let localStorageTheme;
+  if (isBrowser) {
+    localStorageTheme = window.localStorage.getItem(
+      localStorageKeysConfig.theme
+    );
+  } else {
+    localStorageTheme = null;
+  }
+  let defaultThemeState: "dark" | "light";
+  if (localStorageTheme !== null) {
+    defaultThemeState = localStorageTheme === "dark" ? "dark" : "light";
+  } else {
+    defaultThemeState = uiConfig.defaultThemeState;
+    if (isBrowser) {
+      window.localStorage.setItem("theme", uiConfig.defaultThemeState);
+    }
+  }
+  // state
+  const [themeState, changeThemeState] = React.useState(defaultThemeState);
+  const [snackbarState, changeSnackbarState] =
+    React.useState<CustomSnackbarStateType>({
+      isOpen: false,
+      message: "",
+      severity: "error",
+    });
+  // functions
+
+  const customChangeThemeState = (newThemeState: "dark" | "light") => {
+    changeThemeState(newThemeState);
+    if (isBrowser) {
+      window.localStorage.setItem("theme", newThemeState);
+    }
+  };
+  const currentTheme = createTheme({
     typography: {
       fontFamily: "Fraunces Variable",
       h1: {
@@ -41,19 +85,40 @@ const RegisterPage: React.FC<PageProps> = () => {
       },
     },
     palette: {
-      mode: "dark",
+      mode: themeState,
     },
   });
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Paper square>
-        <h1>Register</h1>
-        <Link to="/">
-          <Button>Home</Button>
-        </Link>
-      </Paper>
+    <ThemeProvider theme={currentTheme}>
+      <StyledEngineProvider injectFirst>
+        <CssBaseline />
+        <Paper square>
+          <h1>Register</h1>
+          <Link to="/">
+            <Button>Home</Button>
+          </Link>
+          <Button
+            onClick={() => {
+              changeSnackbarState({
+                isOpen: true,
+                message: "test",
+                severity: "error",
+              });
+            }}
+          >
+            Open snackbar
+          </Button>
+          <ThemeToggle
+            themeState={themeState}
+            customChangeThemeState={customChangeThemeState}
+          />
+          <CustomSnackbar
+            snackbarState={snackbarState}
+            changeSnackbarState={changeSnackbarState}
+          />
+        </Paper>
+      </StyledEngineProvider>
     </ThemeProvider>
   );
 };
