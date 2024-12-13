@@ -1,4 +1,2 @@
-interface BrandConfig {
-  administrationBLBaseURL: string;
-}
+interface BrandConfig {}
 export default BrandConfig;

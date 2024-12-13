@@ -1,8 +1,8 @@
 import { AuthenticationAdministrationBL } from "squareadministration";
 
-import brandConfig from "../config/brand";
+import squareConfig from "../config/square";
 
 let authenticationAdministrationBL = new AuthenticationAdministrationBL(
-  brandConfig.administrationBLBaseURL
+  squareConfig.administrationBLBaseURL
 );
 export { authenticationAdministrationBL };
