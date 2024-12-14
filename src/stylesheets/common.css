@@ -17,3 +17,8 @@ a {
   text-decoration: none;
   color: inherit;
 }
+.theme-toggle-container {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+}
