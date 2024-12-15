@@ -1,6 +1,6 @@
 import "../stylesheets/register.css";
 
-import { HeadFC, Link, PageProps } from "gatsby";
+import { HeadFC, Link, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
@@ -39,11 +39,8 @@ const RegisterPage: React.FC<PageProps> = () => {
         password,
         adminPassword
       );
-      changeSnackbarState({
-        isOpen: true,
-        message: response["message"] ? response["message"] : "",
-        severity: "success",
-      });
+
+      await navigate("/", { state: { user: response["data"]["main"] } });
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
