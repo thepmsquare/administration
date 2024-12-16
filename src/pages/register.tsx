@@ -8,6 +8,7 @@ import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateT
 
 import { Button, Paper, TextField } from "@mui/material";
 
+import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { authenticationAdministrationBL } from "../utils/initialiser";
 
@@ -53,6 +54,7 @@ const RegisterPage: React.FC<PageProps> = () => {
 
   return (
     <Page>
+      <CustomAppBar user={null} />
       <main className="register-main">
         <Paper className="register-content">
           <h1>register</h1>
