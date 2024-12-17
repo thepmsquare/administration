@@ -55,7 +55,7 @@ const RegisterPage: React.FC<PageProps> = () => {
   return (
     <Page>
       <CustomAppBar user={null} />
-      <main className="register-main">
+      <Paper className="register-main">
         <Paper className="register-content">
           <h1>register</h1>
           <form className="register-form" onSubmit={handleRegister}>
@@ -105,7 +105,7 @@ const RegisterPage: React.FC<PageProps> = () => {
           snackbarState={snackbarState}
           changeSnackbarState={changeSnackbarState}
         />
-      </main>
+      </Paper>
     </Page>
   );
 };
