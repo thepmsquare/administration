@@ -49,7 +49,7 @@ const LoginPage: React.FC<PageProps> = () => {
   return (
     <Page>
       <CustomAppBar user={null} />
-      <main className="login-main">
+      <Paper className="login-main">
         <Paper className="login-content">
           <h1>login</h1>
           <form className="login-form" onSubmit={handleLogin}>
@@ -84,7 +84,7 @@ const LoginPage: React.FC<PageProps> = () => {
           snackbarState={snackbarState}
           changeSnackbarState={changeSnackbarState}
         />
-      </main>
+      </Paper>
     </Page>
   );
 };
