@@ -18,9 +18,14 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         {props.user ? (
           "Log out"
         ) : (
-          <Link to="/register">
-            <Button color="inherit">Register</Button>
-          </Link>
+          <>
+            <Link to="/register">
+              <Button color="inherit">register</Button>
+            </Link>
+            <Link to="/login">
+              <Button color="inherit">login</Button>
+            </Link>
+          </>
         )}
       </Toolbar>
     </AppBar>
