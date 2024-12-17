@@ -1,4 +1,4 @@
-import { Link } from "gatsby";
+import { Link, navigate } from "gatsby";
 import * as React from "react";
 
 import AppBar from "@mui/material/AppBar";
@@ -7,8 +7,16 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
 import { CustomAppBarProps } from "../types/components/CustomAppBar";
+import { authenticationCommonBL } from "../utils/initialiser";
 
 export default function CustomAppBar(props: CustomAppBarProps) {
+  let handleLogout = async () => {
+    if (!props.user) {
+      return;
+    }
+    await authenticationCommonBL.logoutV0(props.user.refresh_token);
+    await navigate("/");
+  };
   return (
     <AppBar position="sticky">
       <Toolbar>
@@ -16,7 +24,11 @@ export default function CustomAppBar(props: CustomAppBarProps) {
           <Link to="/"> administration </Link>
         </Typography>
         {props.user ? (
-          "Log out"
+          <>
+            <Button color="inherit" onClick={handleLogout}>
+              log out
+            </Button>
+          </>
         ) : (
           <>
             <Link to="/register">
