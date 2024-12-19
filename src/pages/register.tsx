@@ -54,7 +54,7 @@ const RegisterPage: React.FC<PageProps> = () => {
 
   return (
     <Page>
-      <CustomAppBar user={null} />
+      <CustomAppBar user={null} changeSnackbarState={changeSnackbarState} />
       <Paper className="register-main">
         <Paper className="register-content">
           <h1>register</h1>

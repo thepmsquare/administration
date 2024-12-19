@@ -48,7 +48,7 @@ const LoginPage: React.FC<PageProps> = () => {
 
   return (
     <Page>
-      <CustomAppBar user={null} />
+      <CustomAppBar user={null} changeSnackbarState={changeSnackbarState} />
       <Paper className="login-main">
         <Paper className="login-content">
           <h1>login</h1>

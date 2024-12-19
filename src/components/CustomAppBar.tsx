@@ -11,11 +11,19 @@ import { authenticationCommonBL } from "../utils/initialiser";
 
 export default function CustomAppBar(props: CustomAppBarProps) {
   let handleLogout = async () => {
-    if (!props.user) {
-      return;
+    try {
+      if (!props.user) {
+        return;
+      }
+      await authenticationCommonBL.logoutV0(props.user.refresh_token);
+      await navigate("/");
+    } catch (error) {
+      props.changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
     }
-    await authenticationCommonBL.logoutV0(props.user.refresh_token);
-    await navigate("/");
   };
   return (
     <AppBar position="sticky">
