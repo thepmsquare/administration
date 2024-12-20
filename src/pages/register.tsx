@@ -92,7 +92,7 @@ const RegisterPage: React.FC<PageProps> = () => {
             />
             <div className="register-form-action">
               <Button color="inherit">
-                <Link to="/">cancel </Link>
+                <Link to="/">cancel</Link>
               </Button>
               <Button type="submit" variant="contained">
                 submit
