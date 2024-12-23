@@ -27,7 +27,10 @@ const IndexPage: React.FC<PageProps> = (props) => {
   return (
     <Page>
       <Paper square>
-        <CustomAppBar user={state ? state.user : null} />
+        <CustomAppBar
+          user={state ? state.user : null}
+          changeSnackbarState={changeSnackbarState}
+        />
         <Button
           onClick={() => {
             changeSnackbarState({
