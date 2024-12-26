@@ -12,7 +12,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
 } from "@mui/material";
 
 import CustomAppBar from "../components/CustomAppBar";
@@ -62,15 +62,17 @@ const IndexPage: React.FC<PageProps> = (props) => {
               <TableHead>
                 <TableRow>
                   {Object.keys(greetings[0]).map((key) => (
-                    <TableCell>{key}</TableCell>
+                    <TableCell key={key}>{key}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {greetings.map((row) => (
-                  <TableRow key={row?.greeting_id}>
+                  <TableRow key={row.greeting_id}>
                     {Object.keys(row).map((key) => (
-                      <TableCell>{row[key]}</TableCell>
+                      <TableCell key={row.greeting_id + " " + key}>
+                        {row[key]}
+                      </TableCell>
                     ))}
                   </TableRow>
                 ))}
