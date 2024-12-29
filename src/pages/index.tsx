@@ -6,6 +6,8 @@ import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import {
+  CircularProgress,
+  Pagination,
   Paper,
   Table,
   TableBody,
@@ -34,17 +36,34 @@ const IndexPage: React.FC<PageProps> = (props) => {
     });
   // todo: fix the type for this
   const [greetings, changeGreetings] = React.useState<any[]>([]);
+  const [greetingsCount, changeGreetingsCount] = React.useState<number>(0);
+  const [pageSize, changePageSize] = React.useState<number>(10);
+  const [currentPage, changeCurrentPage] = React.useState<number>(1);
+  const [isLoading, changeIsLoading] = React.useState<boolean>(false);
   // functions
   const getGreetings = async () => {
     if (state) {
+      changeIsLoading(true);
+      // todo: remove this hack to display spinner.
+      changeGreetings([{}]);
       let response = await coreAdministrationBL.getAllGreetingsV0(
-        state.user.access_token
+        state.user.access_token,
+        [],
+        pageSize,
+        (currentPage - 1) * pageSize
       );
+      changeIsLoading(false);
       changeGreetings(response.data.main);
-      console.log(response.data.main);
+      changeGreetingsCount(response.data.total_count);
     }
   };
-
+  const handleChangePage = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    changeCurrentPage(value);
+    getGreetings();
+  };
   // useEffect
   React.useEffect(() => {
     getGreetings();
@@ -57,28 +76,41 @@ const IndexPage: React.FC<PageProps> = (props) => {
           changeSnackbarState={changeSnackbarState}
         />
         {greetings && greetings.length > 0 && (
-          <TableContainer component={Paper}>
-            <Table aria-label="greetings table">
-              <TableHead>
-                <TableRow>
-                  {Object.keys(greetings[0]).map((key) => (
-                    <TableCell key={key}>{key}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {greetings.map((row) => (
-                  <TableRow key={row.greeting_id}>
-                    {Object.keys(row).map((key) => (
-                      <TableCell key={row.greeting_id + " " + key}>
-                        {row[key]}
-                      </TableCell>
+          <>
+            {isLoading ? (
+              <CircularProgress />
+            ) : (
+              <TableContainer component={Paper}>
+                <Table aria-label="greetings table">
+                  <TableHead>
+                    <TableRow>
+                      {Object.keys(greetings[0]).map((key) => (
+                        <TableCell key={key}>{key}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {greetings.map((row) => (
+                      <TableRow key={row.greeting_id}>
+                        {Object.keys(row).map((key) => (
+                          <TableCell key={row.greeting_id + " " + key}>
+                            {row[key]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+            <Pagination
+              count={Math.ceil(greetingsCount / pageSize)}
+              showFirstButton
+              showLastButton
+              page={currentPage}
+              onChange={handleChangePage}
+            />
+          </>
         )}
 
         <CustomSnackbar
