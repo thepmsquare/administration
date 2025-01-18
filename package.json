@@ -28,9 +28,10 @@
     "gatsby-plugin-sitemap": "^6.14.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "squareadministration": "^1.0.0",
-    "squarecommonblhelper": "^1.1.0",
-    "squarecomponents": "^1.0.8"
+    "squareadministration": "^1.4.0",
+    "squarecommonblhelper": "^2.0.0",
+    "squarecommons": "^2.1.0",
+    "squarecomponents": "^1.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
