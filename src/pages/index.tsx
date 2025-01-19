@@ -1,7 +1,8 @@
 import "../stylesheets/index.css";
 
-import { HeadFC, Link, PageProps } from "gatsby";
+import { HeadFC, PageProps } from "gatsby";
 import * as React from "react";
+import { GetAllGreetingsV0Response } from "squareadministration";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
@@ -39,8 +40,9 @@ const IndexPage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
-  // todo: fix the type for this
-  const [greetings, changeGreetings] = React.useState<any[]>([]);
+  const [greetings, changeGreetings] = React.useState<
+    GetAllGreetingsV0Response["data"]["main"]
+  >([]);
   const [greetingsCount, changeGreetingsCount] = React.useState<number>(0);
   const [pageSize, changePageSize] = React.useState<number>(10);
   const [currentPage, changeCurrentPage] = React.useState<number>(1);
@@ -49,8 +51,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
   const getGreetings = async () => {
     if (state) {
       changeIsLoading(true);
-      // todo: remove this hack to display spinner.
-      changeGreetings([{}]);
+
       let response = await coreAdministrationBL.getAllGreetingsV0(
         state.user.access_token,
         [],
@@ -97,9 +98,9 @@ const IndexPage: React.FC<PageProps> = (props) => {
                   <TableBody>
                     {greetings.map((row) => (
                       <TableRow key={row.greeting_id}>
-                        {Object.keys(row).map((key) => (
+                        {Object.entries(row).map(([key, value]) => (
                           <TableCell key={row.greeting_id + " " + key}>
-                            {row[key]}
+                            {value}
                           </TableCell>
                         ))}
                       </TableRow>
