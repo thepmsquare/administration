@@ -1,9 +1,12 @@
-interface User {
-  user_id: string;
-  username: string;
-  app_id: number;
-  access_token: string;
-  refresh_token: string;
-}
+import { z } from "zod";
 
-export { User };
+const UserZ = z.object({
+  user_id: z.string(),
+  username: z.string(),
+  access_token: z.string(),
+  refresh_token: z.string(),
+});
+
+type User = z.infer<typeof UserZ>;
+
+export { UserZ, User };

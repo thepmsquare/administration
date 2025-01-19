@@ -1,7 +1,11 @@
-import { User } from "../Common";
+import { z } from "zod";
 
-interface IndexState {
-  user: User;
-}
+import { UserZ } from "../Common";
 
-export { IndexState };
+const IndexStateZ = z.object({
+  user: UserZ,
+});
+
+type IndexState = z.infer<typeof IndexStateZ>;
+
+export { IndexStateZ, IndexState };
