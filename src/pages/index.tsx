@@ -19,13 +19,18 @@ import {
 
 import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
-import { IndexState } from "../types/pages/Index";
+import { IndexState, IndexStateZ } from "../types/pages/Index";
 import { coreAdministrationBL } from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
 
 const IndexPage: React.FC<PageProps> = (props) => {
-  let state = props.location.state as IndexState | null;
+  let state: IndexState | null = null;
+  try {
+    state = IndexStateZ.parse(props.location.state);
+  } catch (e) {
+    state = null;
+  }
 
   // state
   const [snackbarState, changeSnackbarState] =

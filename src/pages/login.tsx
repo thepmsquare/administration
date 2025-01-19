@@ -35,7 +35,9 @@ const LoginPage: React.FC<PageProps> = () => {
         password
       );
 
-      await navigate("/", { state: { user: response["data"]["main"] } });
+      await navigate("/", {
+        state: { user: { ...response["data"]["main"], username } },
+      });
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
