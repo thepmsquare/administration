@@ -4,7 +4,6 @@ const UserZ = z.object({
   user_id: z.string(),
   username: z.string(),
   access_token: z.string(),
-  refresh_token: z.string(),
 });
 
 type User = z.infer<typeof UserZ>;

@@ -9,7 +9,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
 import { CustomAppBarProps } from "../types/components/CustomAppBar";
-import { authenticationCommonBL } from "../utils/initialiser";
+import { authenticationAdministrationBL } from "../utils/initialiser";
 
 export default function CustomAppBar(props: CustomAppBarProps) {
   let handleLogout = async () => {
@@ -17,7 +17,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
       if (!props.user) {
         return;
       }
-      await authenticationCommonBL.logoutV0(props.user.refresh_token);
+      await authenticationAdministrationBL.logoutV0();
       await navigate("/");
     } catch (error) {
       props.changeSnackbarState({
