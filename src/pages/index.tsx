@@ -15,7 +15,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
 } from "@mui/material";
 
 import CustomAppBar from "../components/CustomAppBar";
@@ -24,15 +24,16 @@ import { IndexState, IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
   authenticationCommonBL,
-  coreAdministrationBL
+  coreAdministrationBL,
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
 
 const IndexPage: React.FC<PageProps> = (props) => {
+  const { location } = props;
   let state: IndexState | null = null;
   try {
-    state = IndexStateZ.parse(props.location.state);
+    state = IndexStateZ.parse(location.state);
   } catch (e) {
     state = null;
   }
@@ -56,17 +57,29 @@ const IndexPage: React.FC<PageProps> = (props) => {
     if (!state) {
       return;
     }
+    await getGreetingsWithState(state);
+  };
+  const getGreetingsWithState = async (currentState: IndexState) => {
     changeIsLoading(true);
-
-    let response = await coreAdministrationBL.getAllGreetingsV0(
-      state.user.access_token,
-      [],
-      pageSize,
-      (currentPage - 1) * pageSize
-    );
-    changeIsLoading(false);
-    changeGreetings(response.data.main);
-    changeGreetingsCount(response.data.total_count);
+    try {
+      const response = await coreAdministrationBL.getAllGreetingsV0(
+        currentState.user.access_token,
+        [],
+        pageSize,
+        (currentPage - 1) * pageSize
+      );
+      changeGreetings(response.data.main);
+      changeGreetingsCount(response.data.total_count);
+    } catch (error) {
+      console.error("Error fetching greetings:", error);
+      changeSnackbarState({
+        isOpen: true,
+        message: "Failed to load greetings.",
+        severity: "error",
+      });
+    } finally {
+      changeIsLoading(false);
+    }
   };
   const handleChangePage = (
     event: React.ChangeEvent<unknown>,
@@ -90,7 +103,6 @@ const IndexPage: React.FC<PageProps> = (props) => {
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
       state = newState;
-      getGreetings();
       navigate("/", { state: newState });
     } catch (e) {
       console.log("user not logged in.");
@@ -100,6 +112,11 @@ const IndexPage: React.FC<PageProps> = (props) => {
   React.useEffect(() => {
     checkForAccessToken();
   }, []);
+
+  React.useEffect(() => {
+    getGreetings();
+  }, [location.state]);
+
   // misc
 
   return (
