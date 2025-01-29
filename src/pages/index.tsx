@@ -1,6 +1,6 @@
 import "../stylesheets/index.css";
 
-import { HeadFC, PageProps } from "gatsby";
+import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { GetAllGreetingsV0Response } from "squareadministration";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
@@ -15,13 +15,17 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
+  TableRow
 } from "@mui/material";
 
 import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { IndexState, IndexStateZ } from "../types/pages/Index";
-import { coreAdministrationBL } from "../utils/initialiser";
+import {
+  authenticationAdministrationBL,
+  authenticationCommonBL,
+  coreAdministrationBL
+} from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
 
@@ -49,19 +53,20 @@ const IndexPage: React.FC<PageProps> = (props) => {
   const [isLoading, changeIsLoading] = React.useState<boolean>(false);
   // functions
   const getGreetings = async () => {
-    if (state) {
-      changeIsLoading(true);
-
-      let response = await coreAdministrationBL.getAllGreetingsV0(
-        state.user.access_token,
-        [],
-        pageSize,
-        (currentPage - 1) * pageSize
-      );
-      changeIsLoading(false);
-      changeGreetings(response.data.main);
-      changeGreetingsCount(response.data.total_count);
+    if (!state) {
+      return;
     }
+    changeIsLoading(true);
+
+    let response = await coreAdministrationBL.getAllGreetingsV0(
+      state.user.access_token,
+      [],
+      pageSize,
+      (currentPage - 1) * pageSize
+    );
+    changeIsLoading(false);
+    changeGreetings(response.data.main);
+    changeGreetingsCount(response.data.total_count);
   };
   const handleChangePage = (
     event: React.ChangeEvent<unknown>,
@@ -70,10 +75,33 @@ const IndexPage: React.FC<PageProps> = (props) => {
     changeCurrentPage(value);
     getGreetings();
   };
+  const checkForAccessToken = async () => {
+    if (state) {
+      return;
+    }
+    try {
+      let accessTokenResponse =
+        await authenticationAdministrationBL.generateAccessTokenV0();
+      let accessToken = accessTokenResponse.data.main.access_token;
+      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+        accessToken
+      );
+      let username = userDetailsResponse.data.main.credentials.username;
+      let user_id = userDetailsResponse.data.main.user_id;
+      let newState = { user: { user_id, username, access_token: accessToken } };
+      state = newState;
+      getGreetings();
+      navigate("/", { state: newState });
+    } catch (e) {
+      console.log("user not logged in.");
+    }
+  };
   // useEffect
   React.useEffect(() => {
-    getGreetings();
+    checkForAccessToken();
   }, []);
+  // misc
+
   return (
     <Page>
       <Paper square>
