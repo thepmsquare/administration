@@ -86,7 +86,6 @@ const IndexPage: React.FC<PageProps> = (props) => {
     value: number
   ) => {
     changeCurrentPage(value);
-    getGreetings();
   };
   const checkForAccessToken = async () => {
     if (state) {
@@ -116,6 +115,10 @@ const IndexPage: React.FC<PageProps> = (props) => {
   React.useEffect(() => {
     getGreetings();
   }, [location.state]);
+
+  React.useEffect(() => {
+    getGreetings();
+  }, [currentPage]);
 
   // misc
 
