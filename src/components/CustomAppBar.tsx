@@ -36,7 +36,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         {props.user ? (
           <>
             <IconButton>
-              <AccountBoxIcon />
+              <AccountBoxIcon color="inherit" />
             </IconButton>
             <Button color="inherit" onClick={handleLogout}>
               log out
