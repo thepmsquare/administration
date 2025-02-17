@@ -27,6 +27,14 @@ export default function CustomAppBar(props: CustomAppBarProps) {
       });
     }
   };
+  let handleProfileNavigation = () => {
+    if (props.user) {
+      navigate("/profile", { state: { user: props.user } });
+    } else {
+      // todo: will never happen
+      navigate("/login");
+    }
+  };
   return (
     <AppBar position="sticky">
       <Toolbar>
@@ -35,8 +43,8 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         </Typography>
         {props.user ? (
           <>
-            <IconButton>
-              <AccountBoxIcon color="inherit" />
+            <IconButton color="inherit" onClick={handleProfileNavigation}>
+              <AccountBoxIcon />
             </IconButton>
             <Button color="inherit" onClick={handleLogout}>
               log out
