@@ -1,12 +1,19 @@
 import "../stylesheets/profile.css";
 
+import { stat } from "fs";
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Alert, Button, Paper } from "@mui/material";
+import {
+  Alert,
+  Button,
+  CircularProgress,
+  Paper,
+  TextField,
+} from "@mui/material";
 
 import AlertDialog from "../components/AlertDialog";
 import CustomAppBar from "../components/CustomAppBar";
@@ -41,6 +48,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const [isDeleteAccountLoading, setIsDeleteAccountLoading] =
     React.useState<boolean>(false);
   const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
+    React.useState<boolean>(false);
+  const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
+    React.useState<string>(state ? state.user.username : "");
+  const [isUpdateUsernameLoading, setIsUpdateUsernameLoading] =
     React.useState<boolean>(false);
   // functions
 
@@ -99,7 +110,44 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       closeDeleteAccountDialog();
     }
   };
-
+  const updateUsername = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!state) {
+      return;
+    }
+    if (updateUsernameNewUsername === state.user.username) {
+      changeSnackbarState({
+        isOpen: true,
+        message: "Username is same as current username.",
+        severity: "error",
+      });
+      return;
+    }
+    try {
+      setIsUpdateUsernameLoading(true);
+      await authenticationCommonBL.updateUsernameV0(
+        state.user.access_token,
+        updateUsernameNewUsername
+      );
+      setIsUpdateUsernameLoading(false);
+      changeSnackbarState({
+        isOpen: true,
+        message: "Username updated successfully.",
+        severity: "success",
+      });
+      let newState = {
+        user: { ...state.user, username: updateUsernameNewUsername },
+      };
+      navigate("/profile", { state: newState });
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+      setIsUpdateUsernameLoading(false);
+    }
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -115,6 +163,28 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           changeSnackbarState={changeSnackbarState}
         />
         hi {state ? state.user.username : "user"}
+        <Paper>
+          <form onSubmit={updateUsername}>
+            <TextField
+              value={updateUsernameNewUsername}
+              onChange={(e) => setUpdateUsernameNewUsername(e.target.value)}
+              disabled={isUpdateUsernameLoading}
+              label="Enter New Username"
+              required
+            />
+            <Button
+              color="primary"
+              type="submit"
+              disabled={isUpdateUsernameLoading}
+            >
+              {isUpdateUsernameLoading ? (
+                <CircularProgress />
+              ) : (
+                "update username"
+              )}
+            </Button>
+          </form>
+        </Paper>
         <Paper>
           <form onSubmit={openDeleteAccountDialog}>
             <PasswordInput
