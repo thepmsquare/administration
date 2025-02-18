@@ -6,14 +6,15 @@ import { PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Button, Paper } from "@mui/material";
+import { Alert, Button, Paper } from "@mui/material";
 
+import AlertDialog from "../components/AlertDialog";
 import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { ProfileState, ProfileStateZ } from "../types/pages/Profile";
 import {
   authenticationAdministrationBL,
-  authenticationCommonBL
+  authenticationCommonBL,
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
@@ -34,9 +35,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+
   const [deleteAccountPassword, setDeleteAccountPassword] =
     React.useState<string>("");
-
+  const [isDeleteAccountLoading, setIsDeleteAccountLoading] =
+    React.useState<boolean>(false);
+  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
+    React.useState<boolean>(false);
   // functions
 
   const checkForAccessToken = async () => {
@@ -61,33 +66,44 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
   };
 
-  const deleteAccount = async (e: React.FormEvent) => {
+  const openDeleteAccountDialog = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsDeleteAccountDialogOpen(true);
+  };
+  const closeDeleteAccountDialog = () => {
+    if (isDeleteAccountLoading) {
+      return;
+    }
+    setIsDeleteAccountLoading(false);
+    setIsDeleteAccountDialogOpen(false);
+  };
+  const deleteAccount = async () => {
     if (!state) {
       return;
     }
     try {
-      console.log(state);
+      setIsDeleteAccountLoading(true);
       await authenticationCommonBL.deleteUserV0(
-        deleteAccountPassword,
-        state.user.access_token
+        state.user.access_token,
+        deleteAccountPassword
       );
+      setIsDeleteAccountLoading(false);
       navigate("/login");
     } catch (error) {
-      console.log("error deleting account");
       changeSnackbarState({
         isOpen: true,
         message: (error as any).message,
         severity: "error",
       });
+      setIsDeleteAccountLoading(false);
+      closeDeleteAccountDialog();
     }
   };
+
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
   }, []);
-
-  React.useEffect(() => {}, [location.state]);
 
   // misc
 
@@ -100,7 +116,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         />
         hi {state ? state.user.username : "user"}
         <Paper>
-          <form onSubmit={deleteAccount}>
+          <form onSubmit={openDeleteAccountDialog}>
             <PasswordInput
               value={deleteAccountPassword}
               onChange={(e) => {
@@ -115,6 +131,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             </Button>
           </form>
         </Paper>
+        <AlertDialog
+          open={isDeleteAccountDialogOpen}
+          handleClose={closeDeleteAccountDialog}
+          handleSuccess={deleteAccount}
+          title="delete account"
+          confirmButtonColor="error"
+          isLoading={isDeleteAccountLoading}
+        />
         <CustomSnackbar
           snackbarState={snackbarState}
           changeSnackbarState={changeSnackbarState}
