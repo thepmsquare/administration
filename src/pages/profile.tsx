@@ -2,17 +2,18 @@ import "../stylesheets/profile.css";
 
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
+import { PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Paper } from "@mui/material";
+import { Button, Paper } from "@mui/material";
 
 import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { ProfileState, ProfileStateZ } from "../types/pages/Profile";
 import {
   authenticationAdministrationBL,
-  authenticationCommonBL,
+  authenticationCommonBL
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
@@ -33,6 +34,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+  const [deleteAccountPassword, setDeleteAccountPassword] =
+    React.useState<string>("");
 
   // functions
 
@@ -57,6 +60,28 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       navigate("/login");
     }
   };
+
+  const deleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!state) {
+      return;
+    }
+    try {
+      console.log(state);
+      await authenticationCommonBL.deleteUserV0(
+        deleteAccountPassword,
+        state.user.access_token
+      );
+      navigate("/login");
+    } catch (error) {
+      console.log("error deleting account");
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -74,6 +99,22 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           changeSnackbarState={changeSnackbarState}
         />
         hi {state ? state.user.username : "user"}
+        <Paper>
+          <form onSubmit={deleteAccount}>
+            <PasswordInput
+              value={deleteAccountPassword}
+              onChange={(e) => {
+                setDeleteAccountPassword(e.target.value);
+              }}
+              label="Enter Password to Delete Account"
+              uniqueIdForARIA="delete-account-password"
+              others={{ required: true }}
+            />
+            <Button color="error" type="submit">
+              Delete Account
+            </Button>
+          </form>
+        </Paper>
         <CustomSnackbar
           snackbarState={snackbarState}
           changeSnackbarState={changeSnackbarState}
