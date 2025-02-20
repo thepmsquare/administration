@@ -1,19 +1,12 @@
 import "../stylesheets/profile.css";
 
-import { stat } from "fs";
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import {
-  Alert,
-  Button,
-  CircularProgress,
-  Paper,
-  TextField,
-} from "@mui/material";
+import { Button, CircularProgress, Paper, TextField } from "@mui/material";
 
 import AlertDialog from "../components/AlertDialog";
 import CustomAppBar from "../components/CustomAppBar";
@@ -42,16 +35,26 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
-
+  // delete account
   const [deleteAccountPassword, setDeleteAccountPassword] =
     React.useState<string>("");
   const [isDeleteAccountLoading, setIsDeleteAccountLoading] =
     React.useState<boolean>(false);
   const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
     React.useState<boolean>(false);
+  // update username
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
   const [isUpdateUsernameLoading, setIsUpdateUsernameLoading] =
+    React.useState<boolean>(false);
+  //update password
+  const [updatePasswordOldPassword, setUpdatePasswordOldPassword] =
+    React.useState<string>("");
+  const [updatePasswordNewPassword, setUpdatePasswordNewPassword] =
+    React.useState<string>("");
+  const [updatePasswordConfirmPassword, setUpdatePasswordConfirmPassword] =
+    React.useState<string>("");
+  const [isUpdatePasswordLoading, setIsUpdatePasswordLoading] =
     React.useState<boolean>(false);
   // functions
 
@@ -148,6 +151,59 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsUpdateUsernameLoading(false);
     }
   };
+
+  const updatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!state) {
+      return;
+    }
+    if (!updatePasswordNewPassword) {
+      return;
+    }
+    if (!updatePasswordOldPassword) {
+      return;
+    }
+    if (!updatePasswordConfirmPassword) {
+      return;
+    }
+    if (updatePasswordNewPassword !== updatePasswordConfirmPassword) {
+      changeSnackbarState({
+        isOpen: true,
+        message: "confirmation of desired password failed.",
+        severity: "error",
+      });
+      return;
+    }
+    if (updatePasswordNewPassword === updatePasswordOldPassword) {
+      changeSnackbarState({
+        isOpen: true,
+        message: "desired password is same as the existing password.",
+        severity: "error",
+      });
+      return;
+    }
+    try {
+      setIsUpdatePasswordLoading(true);
+      await authenticationCommonBL.updatePasswordV0(
+        state.user.access_token,
+        updatePasswordOldPassword,
+        updatePasswordNewPassword
+      );
+      setIsUpdatePasswordLoading(false);
+      changeSnackbarState({
+        isOpen: true,
+        message: "password updated successfully.",
+        severity: "success",
+      });
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+      setIsUpdatePasswordLoading(false);
+    }
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -186,6 +242,42 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </form>
         </Paper>
         <Paper>
+          <form onSubmit={updatePassword}>
+            <PasswordInput
+              value={updatePasswordOldPassword}
+              onChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
+              label="enter existing password"
+              uniqueIdForARIA="update-password-old"
+              others={{ required: true, disabled: isUpdatePasswordLoading }}
+            />
+            <PasswordInput
+              value={updatePasswordNewPassword}
+              onChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
+              label="enter desired password"
+              uniqueIdForARIA="update-password-new"
+              others={{ required: true, disabled: isUpdatePasswordLoading }}
+            />
+            <PasswordInput
+              value={updatePasswordConfirmPassword}
+              onChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
+              label="confirm desired password"
+              uniqueIdForARIA="update-password-confirm"
+              others={{ required: true, disabled: isUpdatePasswordLoading }}
+            />
+            <Button
+              color="primary"
+              type="submit"
+              disabled={isUpdatePasswordLoading}
+            >
+              {isUpdatePasswordLoading ? (
+                <CircularProgress />
+              ) : (
+                "update password"
+              )}
+            </Button>
+          </form>
+        </Paper>
+        <Paper>
           <form onSubmit={openDeleteAccountDialog}>
             <PasswordInput
               value={deleteAccountPassword}
@@ -194,9 +286,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
               }}
               label="Enter Password to Delete Account"
               uniqueIdForARIA="delete-account-password"
-              others={{ required: true }}
+              others={{ required: true, disabled: isDeleteAccountLoading }}
             />
-            <Button color="error" type="submit">
+            <Button
+              color="error"
+              type="submit"
+              disabled={isDeleteAccountLoading}
+            >
               Delete Account
             </Button>
           </form>
