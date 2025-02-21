@@ -2,11 +2,24 @@ import "../stylesheets/profile.css";
 
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
+import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
 import { PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
+import { z } from "zod";
 
-import { Button, CircularProgress, Paper, TextField } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+} from "@mui/material";
 
 import AlertDialog from "../components/AlertDialog";
 import CustomAppBar from "../components/CustomAppBar";
@@ -56,10 +69,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     React.useState<string>("");
   const [isUpdatePasswordLoading, setIsUpdatePasswordLoading] =
     React.useState<boolean>(false);
+  // user details
+  const [userDetails, setUserDetails] = React.useState<z.infer<
+    typeof GetUserDetailsV0ResponseZ.shape.data.shape.main
+  > | null>(null);
   // functions
 
   const checkForAccessToken = async () => {
     if (state) {
+      await getUserDetails();
       return;
     }
     try {
@@ -151,7 +169,6 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsUpdateUsernameLoading(false);
     }
   };
-
   const updatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!state) {
@@ -204,6 +221,24 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsUpdatePasswordLoading(false);
     }
   };
+  const getUserDetails = async () => {
+    if (!state) {
+      return;
+    }
+    try {
+      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+        state.user.access_token
+      );
+      setUserDetails(userDetailsResponse.data.main);
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
+
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -219,6 +254,37 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           changeSnackbarState={changeSnackbarState}
         />
         hi {state ? state.user.username : "user"}
+        <TableContainer component={Paper}>
+          {userDetails ? (
+            <Table>
+              <caption>your active sessions across apps</caption>
+              <TableHead>
+                <TableRow>
+                  <TableCell>app id</TableCell>
+                  <TableCell align="right">number of sessions</TableCell>
+                  <TableCell align="right">
+                    <Button color="error">logout</Button>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {userDetails.sessions.map((row, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell component="th" scope="row">
+                      {row.app_id}
+                    </TableCell>
+                    <TableCell align="right">{row.active_sessions}</TableCell>
+                    <TableCell align="right">
+                      <Button color="error">logout</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <CircularProgress />
+          )}
+        </TableContainer>
         <Paper>
           <form onSubmit={updateUsername}>
             <TextField
