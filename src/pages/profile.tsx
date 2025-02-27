@@ -271,7 +271,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 {userDetails.sessions.map((row, idx) => (
                   <TableRow key={idx}>
                     <TableCell component="th" scope="row">
-                      {row.app_id}
+                      {row.app_name}
                     </TableCell>
                     <TableCell align="right">{row.active_sessions}</TableCell>
                     <TableCell align="right">
