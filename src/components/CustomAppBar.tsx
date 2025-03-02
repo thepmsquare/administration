@@ -18,7 +18,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         return;
       }
       await authenticationAdministrationBL.logoutV0();
-      await navigate("/");
+      await navigate("/", { state: null });
     } catch (error) {
       props.changeSnackbarState({
         isOpen: true,

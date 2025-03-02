@@ -55,6 +55,8 @@ const IndexPage: React.FC<PageProps> = (props) => {
   // functions
   const getGreetings = async () => {
     if (!state) {
+      changeGreetings([]);
+      changeGreetingsCount(0);
       return;
     }
     await getGreetingsWithState(state);
