@@ -1,6 +1,6 @@
 import "../stylesheets/index.css";
 
-import { HeadFC, navigate, PageProps } from "gatsby";
+import { HeadFC, PageProps } from "gatsby";
 import * as React from "react";
 import { GetAllGreetingsV0Response } from "squareadministration";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
@@ -45,6 +45,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+  const [pageState, setPageState] = React.useState<IndexState | null>(state);
   const [greetings, changeGreetings] = React.useState<
     GetAllGreetingsV0Response["data"]["main"]
   >([]);
@@ -54,18 +55,21 @@ const IndexPage: React.FC<PageProps> = (props) => {
   const [isLoading, changeIsLoading] = React.useState<boolean>(false);
   // functions
   const getGreetings = async () => {
-    if (!state) {
+    if (!pageState) {
       changeGreetings([]);
       changeGreetingsCount(0);
       return;
     }
-    await getGreetingsWithState(state);
+    await getGreetingsWithState();
   };
-  const getGreetingsWithState = async (currentState: IndexState) => {
+  const getGreetingsWithState = async () => {
+    if (!pageState) {
+      return;
+    }
     changeIsLoading(true);
     try {
       const response = await coreAdministrationBL.getAllGreetingsV0(
-        currentState.user.access_token,
+        pageState.user.access_token,
         [],
         pageSize,
         (currentPage - 1) * pageSize
@@ -90,7 +94,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     changeCurrentPage(value);
   };
   const checkForAccessToken = async () => {
-    if (state) {
+    if (pageState) {
       return;
     }
     try {
@@ -103,22 +107,24 @@ const IndexPage: React.FC<PageProps> = (props) => {
       let username = userDetailsResponse.data.main.credentials.username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
-      state = newState;
-      navigate("/", { state: newState });
+      setPageState(newState);
     } catch (e) {
       console.log("user not logged in.");
     }
   };
   // useEffect
   React.useEffect(() => {
+    console.log(pageState);
     checkForAccessToken();
   }, []);
 
   React.useEffect(() => {
+    console.log(pageState);
     getGreetings();
-  }, [location.state]);
+  }, [pageState]);
 
   React.useEffect(() => {
+    console.log(pageState);
     getGreetings();
   }, [currentPage]);
 
@@ -128,7 +134,8 @@ const IndexPage: React.FC<PageProps> = (props) => {
     <Page>
       <Paper square>
         <CustomAppBar
-          user={state ? state.user : null}
+          pageState={pageState}
+          setPageState={setPageState}
           changeSnackbarState={changeSnackbarState}
         />
         {greetings && greetings.length > 0 && (

@@ -14,11 +14,14 @@ import { authenticationAdministrationBL } from "../utils/initialiser";
 export default function CustomAppBar(props: CustomAppBarProps) {
   let handleLogout = async () => {
     try {
-      if (!props.user) {
+      if (!props.pageState || !props.pageState.user) {
         return;
       }
       await authenticationAdministrationBL.logoutV0();
-      await navigate("/", { state: null });
+      if (!props.setPageState) {
+        return;
+      }
+      props.setPageState(null);
     } catch (error) {
       props.changeSnackbarState({
         isOpen: true,
@@ -28,12 +31,10 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     }
   };
   let handleProfileNavigation = () => {
-    if (props.user) {
-      navigate("/profile", { state: { user: props.user } });
-    } else {
-      // todo: will never happen
-      navigate("/login");
+    if (!props.pageState || !props.pageState.user) {
+      return;
     }
+    navigate("/profile", { state: { user: props.pageState.user } });
   };
   return (
     <AppBar position="sticky">
@@ -41,7 +42,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           <Link to="/"> administration </Link>
         </Typography>
-        {props.user ? (
+        {props.pageState && props.pageState.user ? (
           <>
             <IconButton color="inherit" onClick={handleProfileNavigation}>
               <AccountBoxIcon />

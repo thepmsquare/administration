@@ -268,7 +268,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     <Page>
       <Paper square>
         <CustomAppBar
-          user={pageState ? pageState.user : null}
+          pageState={pageState}
+          setPageState={setPageState}
           changeSnackbarState={changeSnackbarState}
         />
         hi {pageState ? pageState.user.username : "user"}

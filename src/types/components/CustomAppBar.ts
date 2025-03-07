@@ -1,9 +1,13 @@
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { User } from "../Common";
+import { IndexState } from "../pages/Index";
+import { ProfileState } from "../pages/Profile";
 
 interface CustomAppBarProps {
-  user: User | null;
+  pageState: IndexState | ProfileState | null;
+  setPageState: React.Dispatch<
+    React.SetStateAction<IndexState | ProfileState | null>
+  > | null;
   changeSnackbarState: React.Dispatch<
     React.SetStateAction<CustomSnackbarStateType>
   >;
