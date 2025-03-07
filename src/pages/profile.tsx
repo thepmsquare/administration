@@ -48,6 +48,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+  const [pageState, setPageState] = React.useState<ProfileState | null>(state);
   // delete account
   const [deleteAccountPassword, setDeleteAccountPassword] =
     React.useState<string>("");
@@ -76,7 +77,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   // functions
 
   const checkForAccessToken = async () => {
-    if (state) {
+    if (pageState) {
       await getUserDetails();
       return;
     }
@@ -90,8 +91,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       let username = userDetailsResponse.data.main.credentials.username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
-      state = newState;
-      navigate("/profile", { state: newState });
+      setPageState(newState);
     } catch (e) {
       console.log("user not logged in.");
       navigate("/login");
@@ -110,13 +110,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setIsDeleteAccountDialogOpen(false);
   };
   const deleteAccount = async () => {
-    if (!state) {
+    if (!pageState) {
       return;
     }
     try {
       setIsDeleteAccountLoading(true);
       await authenticationCommonBL.deleteUserV0(
-        state.user.access_token,
+        pageState.user.access_token,
         deleteAccountPassword
       );
       setIsDeleteAccountLoading(false);
@@ -133,10 +133,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
   const updateUsername = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!state) {
+    if (!pageState) {
       return;
     }
-    if (updateUsernameNewUsername === state.user.username) {
+    if (updateUsernameNewUsername === pageState.user.username) {
       changeSnackbarState({
         isOpen: true,
         message: "Username is same as current username.",
@@ -147,7 +147,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     try {
       setIsUpdateUsernameLoading(true);
       await authenticationCommonBL.updateUsernameV0(
-        state.user.access_token,
+        pageState.user.access_token,
         updateUsernameNewUsername
       );
       setIsUpdateUsernameLoading(false);
@@ -157,9 +157,9 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         severity: "success",
       });
       let newState = {
-        user: { ...state.user, username: updateUsernameNewUsername },
+        user: { ...pageState.user, username: updateUsernameNewUsername },
       };
-      navigate("/profile", { state: newState });
+      setPageState(newState);
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
@@ -171,7 +171,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
   const updatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!state) {
+    if (!pageState) {
       return;
     }
     if (!updatePasswordNewPassword) {
@@ -202,7 +202,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     try {
       setIsUpdatePasswordLoading(true);
       await authenticationCommonBL.updatePasswordV0(
-        state.user.access_token,
+        pageState.user.access_token,
         updatePasswordOldPassword,
         updatePasswordNewPassword
       );
@@ -222,12 +222,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
   };
   const getUserDetails = async () => {
-    if (!state) {
+    if (!pageState) {
       return;
     }
     try {
       let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        state.user.access_token
+        pageState.user.access_token
       );
       setUserDetails(userDetailsResponse.data.main);
     } catch (error) {
@@ -238,22 +238,40 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
-
+  const logoutFromApp = async (app_name: string) => {
+    if (!pageState) {
+      return;
+    }
+    try {
+      await authenticationCommonBL.logoutAppsV0(pageState.user.access_token, [
+        app_name,
+      ]);
+      setPageState(null);
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
   }, []);
-
+  React.useEffect(() => {
+    checkForAccessToken();
+  }, [pageState]);
   // misc
 
   return (
     <Page>
       <Paper square>
         <CustomAppBar
-          user={state ? state.user : null}
+          user={pageState ? pageState.user : null}
           changeSnackbarState={changeSnackbarState}
         />
-        hi {state ? state.user.username : "user"}
+        hi {pageState ? pageState.user.username : "user"}
         <TableContainer component={Paper}>
           {userDetails ? (
             <Table>
@@ -275,7 +293,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                     </TableCell>
                     <TableCell align="right">{row.active_sessions}</TableCell>
                     <TableCell align="right">
-                      <Button color="error">logout</Button>
+                      <Button
+                        color="error"
+                        onClick={() => {
+                          logoutFromApp(row.app_name);
+                        }}
+                      >
+                        logout
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
