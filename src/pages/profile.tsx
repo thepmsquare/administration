@@ -6,7 +6,7 @@ import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
 import { PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
-import { z } from "zod";
+import { set, z } from "zod";
 
 import {
   Button,
@@ -74,6 +74,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const [userDetails, setUserDetails] = React.useState<z.infer<
     typeof GetUserDetailsV0ResponseZ.shape.data.shape.main
   > | null>(null);
+  // logout apps
+  const [isLogoutAppsDialogOpen, setIsLogoutAppsDialogOpen] =
+    React.useState<boolean>(false);
+  const [logoutAppName, setLogoutAppName] = React.useState<string | null>(null);
+  // logout all
+  const [isLogoutAllDialogOpen, setIsLogoutAllDialogOpen] =
+    React.useState<boolean>(false);
   // functions
 
   const checkForAccessToken = async () => {
@@ -247,6 +254,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         app_name,
       ]);
       setPageState(null);
+      setIsLogoutAppsDialogOpen(false);
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
@@ -254,6 +262,28 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         severity: "error",
       });
     }
+  };
+  const logoutAll = async () => {
+    if (!pageState) {
+      return;
+    }
+    try {
+      await authenticationCommonBL.logoutAllV0(pageState.user.access_token);
+      setPageState(null);
+      closeLogoutAllDialog();
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
+  const closeLogoutAppsDialog = () => {
+    setIsLogoutAppsDialogOpen(false);
+  };
+  const closeLogoutAllDialog = () => {
+    setIsLogoutAllDialogOpen(false);
   };
   // useEffect
   React.useEffect(() => {
@@ -282,7 +312,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                   <TableCell>app id</TableCell>
                   <TableCell align="right">number of sessions</TableCell>
                   <TableCell align="right">
-                    <Button color="error">logout</Button>
+                    <Button
+                      color="error"
+                      onClick={() => setIsLogoutAllDialogOpen(true)}
+                    >
+                      logout
+                    </Button>
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -297,7 +332,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                       <Button
                         color="error"
                         onClick={() => {
-                          logoutFromApp(row.app_name);
+                          setIsLogoutAppsDialogOpen(true);
+                          setLogoutAppName(row.app_name);
                         }}
                       >
                         logout
@@ -396,6 +432,20 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           title="delete account"
           confirmButtonColor="error"
           isLoading={isDeleteAccountLoading}
+        />
+        <AlertDialog
+          open={isLogoutAppsDialogOpen}
+          handleClose={closeLogoutAppsDialog}
+          handleSuccess={() => logoutFromApp(logoutAppName as string)}
+          title={`log out all devices from ${logoutAppName}`}
+          confirmButtonColor="error"
+        />
+        <AlertDialog
+          open={isLogoutAllDialogOpen}
+          handleClose={closeLogoutAllDialog}
+          handleSuccess={logoutAll}
+          title="log out all devices for all apps"
+          confirmButtonColor="error"
         />
         <CustomSnackbar
           snackbarState={snackbarState}
