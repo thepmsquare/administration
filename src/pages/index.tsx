@@ -4,6 +4,7 @@ import { HeadFC, PageProps } from "gatsby";
 import * as React from "react";
 import { GetAllGreetingsV0Response } from "squareadministration";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
+import PaginatedTable from "squarecomponents/components/PaginatedTable";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import {
@@ -138,44 +139,14 @@ const IndexPage: React.FC<PageProps> = (props) => {
           setPageState={setPageState}
           changeSnackbarState={changeSnackbarState}
         />
-        {greetings && greetings.length > 0 && (
-          <>
-            {isLoading ? (
-              <CircularProgress />
-            ) : (
-              <TableContainer component={Paper}>
-                <Table aria-label="greetings table">
-                  <TableHead>
-                    <TableRow>
-                      {Object.keys(greetings[0]).map((key) => (
-                        <TableCell key={key}>{key}</TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {greetings.map((row) => (
-                      <TableRow key={row.greeting_id}>
-                        {Object.entries(row).map(([key, value]) => (
-                          <TableCell key={row.greeting_id + " " + key}>
-                            {value}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-            <Pagination
-              count={Math.ceil(greetingsCount / pageSize)}
-              showFirstButton
-              showLastButton
-              page={currentPage}
-              onChange={handleChangePage}
-            />
-          </>
-        )}
-
+        <PaginatedTable
+          tableAriaLabel="greetings table"
+          currentPageNumber={currentPage}
+          handlePageChange={handleChangePage}
+          totalRowsCount={greetingsCount}
+          isLoading={isLoading}
+          rows={greetings}
+        />
         <CustomSnackbar
           snackbarState={snackbarState}
           changeSnackbarState={changeSnackbarState}
