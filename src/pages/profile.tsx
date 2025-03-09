@@ -56,6 +56,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     React.useState<boolean>(false);
   const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
     React.useState<boolean>(false);
+  // remove app
+  const [removeAppPassword, setRemoveAppPassword] = React.useState<string>("");
+  const [isRemoveAppLoading, setIsRemoveAppLoading] =
+    React.useState<boolean>(false);
+  const [isRemoveAppDialogOpen, setIsRemoveAppDialogOpen] =
+    React.useState<boolean>(false);
   // update username
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
@@ -285,6 +291,39 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const closeLogoutAllDialog = () => {
     setIsLogoutAllDialogOpen(false);
   };
+  const openRemoveAppDialog = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsRemoveAppDialogOpen(true);
+  };
+  const closeRemoveAppDialog = () => {
+    if (isRemoveAppLoading) {
+      return;
+    }
+    setIsRemoveAppLoading(false);
+    setIsRemoveAppDialogOpen(false);
+  };
+  const removeApp = async () => {
+    if (!pageState) {
+      return;
+    }
+    try {
+      setIsRemoveAppLoading(true);
+      await authenticationAdministrationBL.removeAppForSelfV0(
+        pageState.user.access_token,
+        removeAppPassword
+      );
+      setIsRemoveAppLoading(false);
+      navigate("/login");
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+      setIsRemoveAppLoading(false);
+      closeRemoveAppDialog();
+    }
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -406,6 +445,22 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </form>
         </Paper>
         <Paper>
+          <form onSubmit={openRemoveAppDialog}>
+            <PasswordInput
+              value={removeAppPassword}
+              onChange={(e) => {
+                setRemoveAppPassword(e.target.value);
+              }}
+              label="Enter Password to Remove App from account."
+              uniqueIdForARIA="remove-app-password"
+              others={{ required: true, disabled: isRemoveAppLoading }}
+            />
+            <Button color="error" type="submit" disabled={isRemoveAppLoading}>
+              Remove App
+            </Button>
+          </form>
+        </Paper>
+        <Paper>
           <form onSubmit={openDeleteAccountDialog}>
             <PasswordInput
               value={deleteAccountPassword}
@@ -446,6 +501,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           handleSuccess={logoutAll}
           title="log out all devices for all apps"
           confirmButtonColor="error"
+        />
+        <AlertDialog
+          open={isRemoveAppDialogOpen}
+          handleClose={closeRemoveAppDialog}
+          handleSuccess={removeApp}
+          title="remove app from account"
+          confirmButtonColor="error"
+          isLoading={isRemoveAppLoading}
         />
         <CustomSnackbar
           snackbarState={snackbarState}
