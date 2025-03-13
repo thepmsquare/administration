@@ -3,10 +3,10 @@ import "../stylesheets/profile.css";
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
-import { PasswordInput } from "squarecomponents";
+import { AlertDialog, PasswordInput } from "squarecomponents";
 import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
-import { set, z } from "zod";
+import { z } from "zod";
 
 import {
   Button,
@@ -21,7 +21,6 @@ import {
   TextField,
 } from "@mui/material";
 
-import AlertDialog from "../components/AlertDialog";
 import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { ProfileState, ProfileStateZ } from "../types/pages/Profile";

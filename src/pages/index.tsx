@@ -7,17 +7,7 @@ import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import PaginatedTable from "squarecomponents/components/PaginatedTable";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import {
-  CircularProgress,
-  Pagination,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from "@mui/material";
+import { Paper } from "@mui/material";
 
 import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
@@ -146,6 +136,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
           totalRowsCount={greetingsCount}
           isLoading={isLoading}
           rows={greetings}
+          pageSize={pageSize}
         />
         <CustomSnackbar
           snackbarState={snackbarState}
