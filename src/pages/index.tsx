@@ -7,7 +7,7 @@ import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import PaginatedTable from "squarecomponents/components/PaginatedTable";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Paper } from "@mui/material";
+import { Paper, Typography } from "@mui/material";
 
 import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
@@ -15,7 +15,7 @@ import { IndexState, IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
   authenticationCommonBL,
-  coreAdministrationBL,
+  coreAdministrationBL
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
@@ -105,44 +105,46 @@ const IndexPage: React.FC<PageProps> = (props) => {
   };
   // useEffect
   React.useEffect(() => {
-    console.log(pageState);
     checkForAccessToken();
   }, []);
 
   React.useEffect(() => {
-    console.log(pageState);
     getGreetings();
   }, [pageState]);
 
   React.useEffect(() => {
-    console.log(pageState);
     getGreetings();
   }, [currentPage]);
 
   // misc
-
+  let display_rows = greetings.map((row) => {
+    return {
+      date: new Date(row.greeting_datetime).toLocaleDateString(),
+      time: new Date(row.greeting_datetime).toLocaleTimeString(),
+      name: row.greeting_anonymous_sender_name,
+      greeting: row.greeting_text,
+    };
+  });
   return (
-    <Page>
-      <Paper square>
-        <CustomAppBar
-          pageState={pageState}
-          setPageState={setPageState}
-          changeSnackbarState={changeSnackbarState}
-        />
-        <PaginatedTable
-          tableAriaLabel="greetings table"
-          currentPageNumber={currentPage}
-          handlePageChange={handleChangePage}
-          totalRowsCount={greetingsCount}
-          isLoading={isLoading}
-          rows={greetings}
-          pageSize={pageSize}
-        />
-        <CustomSnackbar
-          snackbarState={snackbarState}
-          changeSnackbarState={changeSnackbarState}
-        />
-      </Paper>
+    <Page
+      className="index-page"
+      pageState={pageState}
+      setPageState={setPageState}
+      snackbarState={snackbarState}
+      changeSnackbarState={changeSnackbarState}
+    >
+      <Typography variant="h4" component="h1" className="page-title">
+        Greetings
+      </Typography>
+      <PaginatedTable
+        tableAriaLabel="greetings table"
+        currentPageNumber={currentPage}
+        handlePageChange={handleChangePage}
+        totalRowsCount={greetingsCount}
+        isLoading={isLoading}
+        rows={display_rows}
+        pageSize={pageSize}
+      />
     </Page>
   );
 };
