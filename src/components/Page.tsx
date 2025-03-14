@@ -7,11 +7,12 @@ import * as React from "react";
 import { CustomSnackbar, ThemeToggle } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
+import { Paper } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import {
   createTheme,
   StyledEngineProvider,
-  ThemeProvider
+  ThemeProvider,
 } from "@mui/material/styles";
 
 import localStorageKeysConfig from "../config/localStorageKeys";
@@ -113,7 +114,7 @@ const Page: React.FC<Props> = ({
             setPageState={setPageState}
             changeSnackbarState={changeSnackbarState}
           />
-          <div className={`parent ${className}`}>{children}</div>
+          <Paper className={`parent ${className}`}>{children}</Paper>
 
           <div className="theme-toggle-container">
             <ThemeToggle
