@@ -4,7 +4,8 @@ import "../stylesheets/common.css";
 import "../stylesheets/components/page.css";
 
 import * as React from "react";
-import { ThemeToggle } from "squarecomponents";
+import { CustomSnackbar, ThemeToggle } from "squarecomponents";
+import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import CssBaseline from "@mui/material/CssBaseline";
 import {
@@ -15,11 +16,29 @@ import {
 
 import localStorageKeysConfig from "../config/localStorageKeys";
 import uiConfig from "../config/ui";
+import { CustomAppBarProps } from "../types/components/CustomAppBar";
+import CustomAppBar from "./CustomAppBar";
 
 const isBrowser = typeof window !== "undefined";
-type Props = { children: React.ReactNode };
+type Props = {
+  children: React.ReactNode;
+  className?: string;
+  pageState: CustomAppBarProps["pageState"];
+  setPageState: CustomAppBarProps["setPageState"];
+  changeSnackbarState: React.Dispatch<
+    React.SetStateAction<CustomSnackbarStateType>
+  >;
+  snackbarState: CustomSnackbarStateType;
+};
 
-const Page: React.FC<Props> = ({ children }) => {
+const Page: React.FC<Props> = ({
+  children,
+  className,
+  pageState,
+  setPageState,
+  changeSnackbarState,
+  snackbarState,
+}) => {
   // get stuff from local storage
   let localStorageTheme;
   if (isBrowser) {
@@ -89,7 +108,12 @@ const Page: React.FC<Props> = ({ children }) => {
       <ThemeProvider theme={currentTheme}>
         <StyledEngineProvider injectFirst>
           <CssBaseline />
-          <div className="parent">{children}</div>
+          <CustomAppBar
+            pageState={pageState}
+            setPageState={setPageState}
+            changeSnackbarState={changeSnackbarState}
+          />
+          <div className={`parent ${className}`}>{children}</div>
 
           <div className="theme-toggle-container">
             <ThemeToggle
@@ -99,6 +123,10 @@ const Page: React.FC<Props> = ({ children }) => {
               customChangeThemeState={customChangeThemeState}
             />
           </div>
+          <CustomSnackbar
+            snackbarState={snackbarState}
+            changeSnackbarState={changeSnackbarState}
+          />
         </StyledEngineProvider>
       </ThemeProvider>
     </React.StrictMode>
