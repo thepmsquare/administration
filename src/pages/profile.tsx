@@ -4,7 +4,6 @@ import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
 import { AlertDialog, PasswordInput } from "squarecomponents";
-import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { z } from "zod";
 
@@ -18,15 +17,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
+  TextField
 } from "@mui/material";
 
-import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { ProfileState, ProfileStateZ } from "../types/pages/Profile";
 import {
   authenticationAdministrationBL,
-  authenticationCommonBL,
+  authenticationCommonBL
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
@@ -333,13 +331,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   // misc
 
   return (
-    <Page>
+    <Page
+      pageState={pageState}
+      setPageState={setPageState}
+      snackbarState={snackbarState}
+      changeSnackbarState={changeSnackbarState}
+    >
       <Paper square>
-        <CustomAppBar
-          pageState={pageState}
-          setPageState={setPageState}
-          changeSnackbarState={changeSnackbarState}
-        />
         hi {pageState ? pageState.user.username : "user"}
         <TableContainer component={Paper}>
           {userDetails ? (
@@ -508,10 +506,6 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           title="remove app from account"
           confirmButtonColor="error"
           isLoading={isRemoveAppLoading}
-        />
-        <CustomSnackbar
-          snackbarState={snackbarState}
-          changeSnackbarState={changeSnackbarState}
         />
       </Paper>
     </Page>

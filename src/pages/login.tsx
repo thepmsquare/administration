@@ -3,12 +3,10 @@ import "../stylesheets/login.css";
 import { HeadFC, Link, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { PasswordInput } from "squarecomponents";
-import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import { Button, Paper, TextField } from "@mui/material";
 
-import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { authenticationAdministrationBL } from "../utils/initialiser";
 
@@ -49,12 +47,12 @@ const LoginPage: React.FC<PageProps> = () => {
   // misc
 
   return (
-    <Page>
-      <CustomAppBar
-        pageState={null}
-        setPageState={null}
-        changeSnackbarState={changeSnackbarState}
-      />
+    <Page
+      pageState={null}
+      setPageState={null}
+      snackbarState={snackbarState}
+      changeSnackbarState={changeSnackbarState}
+    >
       <Paper className="login-main">
         <Paper className="login-content">
           <h1>login</h1>
@@ -85,11 +83,6 @@ const LoginPage: React.FC<PageProps> = () => {
             </div>
           </form>
         </Paper>
-
-        <CustomSnackbar
-          snackbarState={snackbarState}
-          changeSnackbarState={changeSnackbarState}
-        />
       </Paper>
     </Page>
   );

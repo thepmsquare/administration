@@ -3,12 +3,10 @@ import "../stylesheets/register.css";
 import { HeadFC, Link, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { PasswordInput } from "squarecomponents";
-import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import { Button, Paper, TextField } from "@mui/material";
 
-import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
 import { authenticationAdministrationBL } from "../utils/initialiser";
 
@@ -53,12 +51,12 @@ const RegisterPage: React.FC<PageProps> = () => {
   // misc
 
   return (
-    <Page>
-      <CustomAppBar
-        pageState={null}
-        setPageState={null}
-        changeSnackbarState={changeSnackbarState}
-      />
+    <Page
+      pageState={null}
+      setPageState={null}
+      snackbarState={snackbarState}
+      changeSnackbarState={changeSnackbarState}
+    >
       <Paper className="register-main">
         <Paper className="register-content">
           <h1>register</h1>
@@ -104,11 +102,6 @@ const RegisterPage: React.FC<PageProps> = () => {
             </div>
           </form>
         </Paper>
-
-        <CustomSnackbar
-          snackbarState={snackbarState}
-          changeSnackbarState={changeSnackbarState}
-        />
       </Paper>
     </Page>
   );
