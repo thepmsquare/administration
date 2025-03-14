@@ -114,7 +114,9 @@ const Page: React.FC<Props> = ({
             setPageState={setPageState}
             changeSnackbarState={changeSnackbarState}
           />
-          <Paper className={`parent ${className}`}>{children}</Paper>
+          <Paper className={`parent ${className}`} square>
+            {children}
+          </Paper>
 
           <div className="theme-toggle-container">
             <ThemeToggle
