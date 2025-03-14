@@ -1,6 +1,7 @@
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/outfit";
 import "../stylesheets/common.css";
+import "../stylesheets/components/page.css";
 
 import * as React from "react";
 import { ThemeToggle } from "squarecomponents";
@@ -9,7 +10,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import {
   createTheme,
   StyledEngineProvider,
-  ThemeProvider,
+  ThemeProvider
 } from "@mui/material/styles";
 
 import localStorageKeysConfig from "../config/localStorageKeys";
@@ -88,8 +89,8 @@ const Page: React.FC<Props> = ({ children }) => {
       <ThemeProvider theme={currentTheme}>
         <StyledEngineProvider injectFirst>
           <CssBaseline />
+          <div className="parent">{children}</div>
 
-          {children}
           <div className="theme-toggle-container">
             <ThemeToggle
               variant="contained"
