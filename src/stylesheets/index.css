@@ -1,8 +1,6 @@
 .index-page {
   display: flex;
   flex-direction: column;
-
   padding: 1rem 20%;
-
   gap: 1rem;
 }

@@ -15,7 +15,7 @@ import { IndexState, IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
   authenticationCommonBL,
-  coreAdministrationBL
+  coreAdministrationBL,
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
@@ -79,7 +79,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     }
   };
   const handleChangePage = (
-    event: React.ChangeEvent<unknown>,
+    _: React.MouseEvent<HTMLButtonElement> | null,
     value: number
   ) => {
     changeCurrentPage(value);
