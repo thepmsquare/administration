@@ -1,6 +1,19 @@
 .index-page {
   display: flex;
   flex-direction: column;
-  padding: 1rem 20%;
+  padding: 1rem 10%;
   gap: 1rem;
+}
+.index-guest {
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+.index-guest-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }

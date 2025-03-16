@@ -17,17 +17,20 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField
+  TextField,
 } from "@mui/material";
 
 import Page from "../components/Page";
+import brandConfig from "../config/brand";
 import { ProfileState, ProfileStateZ } from "../types/pages/Profile";
 import {
   authenticationAdministrationBL,
-  authenticationCommonBL
+  authenticationCommonBL,
 } from "../utils/initialiser";
 
-export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
+export const Head: HeadFC = () => (
+  <title>{brandConfig.appName} | profile</title>
+);
 
 const ProfilePage: React.FC<PageProps> = (props) => {
   const { location } = props;

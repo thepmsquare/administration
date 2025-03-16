@@ -8,9 +8,12 @@ import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateT
 import { Button, Paper, TextField } from "@mui/material";
 
 import Page from "../components/Page";
+import brandConfig from "../config/brand";
 import { authenticationAdministrationBL } from "../utils/initialiser";
 
-export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
+export const Head: HeadFC = () => (
+  <title>{brandConfig.appName} | register</title>
+);
 
 const RegisterPage: React.FC<PageProps> = () => {
   // state

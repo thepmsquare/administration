@@ -1,16 +1,15 @@
 import "../stylesheets/index.css";
 
-import { HeadFC, PageProps } from "gatsby";
+import { HeadFC, Link, PageProps } from "gatsby";
 import * as React from "react";
 import { GetAllGreetingsV0Response } from "squareadministration";
-import CustomSnackbar from "squarecomponents/components/CustomSnackbar";
 import PaginatedTable from "squarecomponents/components/PaginatedTable";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Paper, Typography } from "@mui/material";
+import { Button, Divider, Typography } from "@mui/material";
 
-import CustomAppBar from "../components/CustomAppBar";
 import Page from "../components/Page";
+import brandConfig from "../config/brand";
 import { IndexState, IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
@@ -18,7 +17,7 @@ import {
   coreAdministrationBL,
 } from "../utils/initialiser";
 
-export const Head: HeadFC = () => <title>thePmSquare | administration</title>;
+export const Head: HeadFC = () => <title>{brandConfig.appName}</title>;
 
 const IndexPage: React.FC<PageProps> = (props) => {
   const { location } = props;
@@ -133,18 +132,41 @@ const IndexPage: React.FC<PageProps> = (props) => {
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
     >
-      <Typography variant="h4" component="h1" className="page-title">
-        Greetings
-      </Typography>
-      <PaginatedTable
-        tableAriaLabel="greetings table"
-        currentPageNumber={currentPage}
-        handlePageChange={handleChangePage}
-        totalRowsCount={greetingsCount}
-        isLoading={isLoading}
-        rows={display_rows}
-        pageSize={pageSize}
-      />
+      {pageState && pageState.user ? (
+        <>
+          <Typography variant="h4" component="h1" className="page-title">
+            Greetings
+          </Typography>
+          <PaginatedTable
+            tableAriaLabel="greetings table"
+            currentPageNumber={currentPage}
+            handlePageChange={handleChangePage}
+            totalRowsCount={greetingsCount}
+            isLoading={isLoading}
+            rows={display_rows}
+            pageSize={pageSize}
+          />
+        </>
+      ) : (
+        <div className="index-guest">
+          <Typography variant="h4" component="h1" className="page-title">
+            welcome to {brandConfig.appName}
+          </Typography>
+          <div className="index-guest-button-group">
+            <Link to="/login">
+              <Button variant="contained" size="large" fullWidth>
+                login
+              </Button>
+            </Link>
+            <Divider>or</Divider>
+            <Link to="/register">
+              <Button variant="contained" size="large" fullWidth>
+                register
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </Page>
   );
 };

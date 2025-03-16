@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
+import brandConfig from "../config/brand";
 import { CustomAppBarProps } from "../types/components/CustomAppBar";
 import { authenticationAdministrationBL } from "../utils/initialiser";
 
@@ -40,7 +41,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     <AppBar position="sticky">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          <Link to="/"> administration </Link>
+          <Link to="/">{brandConfig.appName}</Link>
         </Typography>
         {props.pageState && props.pageState.user ? (
           <>
