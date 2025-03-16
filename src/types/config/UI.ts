@@ -1,9 +1,7 @@
-import { z } from "zod";
+import { ThemeState } from "../Common";
 
-const UIConfigZ = z.strictObject({
-  defaultThemeState: z.enum(["dark", "light"]),
-});
-
-type UIConfig = z.infer<typeof UIConfigZ>;
+interface UIConfig {
+  defaultThemeState: ThemeState;
+}
 
 export default UIConfig;

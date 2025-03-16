@@ -8,4 +8,5 @@ const UserZ = z.object({
 
 type User = z.infer<typeof UserZ>;
 
-export { UserZ, User };
+type ThemeState = "dark" | "light";
+export { UserZ, User, ThemeState };

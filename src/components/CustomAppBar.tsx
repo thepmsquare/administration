@@ -1,5 +1,6 @@
 import { Link, navigate } from "gatsby";
 import * as React from "react";
+import ThemeToggleIconButton from "squarecomponents/components/ThemeToggleIconButton";
 
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import { IconButton } from "@mui/material";
@@ -43,6 +44,11 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           <Link to="/">{brandConfig.appName}</Link>
         </Typography>
+        <ThemeToggleIconButton
+          color="inherit"
+          themeState={props.themeState}
+          customChangeThemeState={props.customChangeThemeState}
+        />
         {props.pageState && props.pageState.user ? (
           <>
             <IconButton color="inherit" onClick={handleProfileNavigation}>

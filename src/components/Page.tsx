@@ -17,6 +17,7 @@ import {
 
 import localStorageKeysConfig from "../config/localStorageKeys";
 import uiConfig from "../config/ui";
+import { ThemeState } from "../types/Common";
 import { CustomAppBarProps } from "../types/components/CustomAppBar";
 import CustomAppBar from "./CustomAppBar";
 
@@ -49,7 +50,7 @@ const Page: React.FC<Props> = ({
   } else {
     localStorageTheme = null;
   }
-  let defaultThemeState: "dark" | "light";
+  let defaultThemeState: ThemeState;
   if (localStorageTheme !== null) {
     defaultThemeState = localStorageTheme === "dark" ? "dark" : "light";
   } else {
@@ -66,7 +67,9 @@ const Page: React.FC<Props> = ({
   const [themeState, changeThemeState] = React.useState(defaultThemeState);
 
   // functions
-  const customChangeThemeState = (newThemeState: "dark" | "light") => {
+  const customChangeThemeState = (newThemeState: ThemeState) => {
+    console.log(themeState);
+    console.log(newThemeState);
     changeThemeState(newThemeState);
     if (isBrowser) {
       window.localStorage.setItem(localStorageKeysConfig.theme, newThemeState);
@@ -103,7 +106,8 @@ const Page: React.FC<Props> = ({
       mode: themeState,
     },
   });
-
+  console.log("render: ", themeState);
+  console.log("render defaultThemeState: ", defaultThemeState);
   return (
     <React.StrictMode>
       <ThemeProvider theme={currentTheme}>
@@ -113,19 +117,14 @@ const Page: React.FC<Props> = ({
             pageState={pageState}
             setPageState={setPageState}
             changeSnackbarState={changeSnackbarState}
+            themeState={themeState}
+            customChangeThemeState={customChangeThemeState}
           />
           <Paper className={`parent ${className}`} square>
             {children}
           </Paper>
 
-          <div className="theme-toggle-container">
-            <ThemeToggle
-              variant="contained"
-              fullwidth
-              themeState={themeState}
-              customChangeThemeState={customChangeThemeState}
-            />
-          </div>
+          <div className="theme-toggle-container"></div>
           <CustomSnackbar
             snackbarState={snackbarState}
             changeSnackbarState={changeSnackbarState}
