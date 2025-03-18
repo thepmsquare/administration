@@ -3,7 +3,7 @@ import * as React from "react";
 import ThemeToggleIconButton from "squarecomponents/components/ThemeToggleIconButton";
 
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import { IconButton } from "@mui/material";
+import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import Toolbar from "@mui/material/Toolbar";
@@ -14,6 +14,8 @@ import { CustomAppBarProps } from "../types/components/CustomAppBar";
 import { authenticationAdministrationBL } from "../utils/initialiser";
 
 export default function CustomAppBar(props: CustomAppBarProps) {
+  const [nonUserMenuAnchor, setNonUserMenuAnchor] =
+    React.useState<null | HTMLElement>(null);
   let handleLogout = async () => {
     try {
       if (!props.pageState || !props.pageState.user) {
@@ -38,12 +40,21 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     }
     navigate("/profile", { state: { user: props.pageState.user } });
   };
+  let handleNonUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setNonUserMenuAnchor(event.currentTarget);
+  };
+  let handleNonUserMenuClose = () => {
+    setNonUserMenuAnchor(null);
+  };
   return (
     <AppBar position="sticky">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          <Link to="/">{brandConfig.appName}</Link>
+          <Tooltip title="home">
+            <Link to="/">{brandConfig.appName}</Link>
+          </Tooltip>
         </Typography>
+
         <ThemeToggleIconButton
           color="inherit"
           themeState={props.themeState}
@@ -60,12 +71,27 @@ export default function CustomAppBar(props: CustomAppBarProps) {
           </>
         ) : (
           <>
-            <Link to="/register">
-              <Button color="inherit">register</Button>
-            </Link>
-            <Link to="/login">
-              <Button color="inherit">login</Button>
-            </Link>
+            <Tooltip title="account options">
+              <IconButton color="inherit" onClick={handleNonUserMenuOpen}>
+                <AccountBoxIcon />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              id="basic-menu"
+              anchorEl={nonUserMenuAnchor}
+              open={Boolean(nonUserMenuAnchor)}
+              onClose={handleNonUserMenuClose}
+              MenuListProps={{
+                "aria-labelledby": "basic-button",
+              }}
+            >
+              <Link to="/register">
+                <MenuItem>register</MenuItem>
+              </Link>
+              <Link to="/login">
+                <MenuItem>login</MenuItem>
+              </Link>
+            </Menu>
           </>
         )}
       </Toolbar>
