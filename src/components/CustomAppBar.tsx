@@ -1,9 +1,10 @@
 import { Link, navigate } from "gatsby";
 import * as React from "react";
+import { AlertDialog } from "squarecomponents";
 import ThemeToggleIconButton from "squarecomponents/components/ThemeToggleIconButton";
 
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
+import { Avatar, IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import Toolbar from "@mui/material/Toolbar";
@@ -16,6 +17,10 @@ import { authenticationAdministrationBL } from "../utils/initialiser";
 export default function CustomAppBar(props: CustomAppBarProps) {
   const [nonUserMenuAnchor, setNonUserMenuAnchor] =
     React.useState<null | HTMLElement>(null);
+  const [userMenuAnchor, setUserMenuAnchor] =
+    React.useState<null | HTMLElement>(null);
+  const [isLogoutAlertOpen, setIsLogoutAlertOpen] =
+    React.useState<boolean>(false);
   let handleLogout = async () => {
     try {
       if (!props.pageState || !props.pageState.user) {
@@ -46,9 +51,25 @@ export default function CustomAppBar(props: CustomAppBarProps) {
   let handleNonUserMenuClose = () => {
     setNonUserMenuAnchor(null);
   };
+  let handleUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+  let handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+  let handleLogoutMenuOpen = () => {
+    setIsLogoutAlertOpen(true);
+  };
+  let handleLogoutMenuClose = () => {
+    setIsLogoutAlertOpen(false);
+  };
+  let handleLogoutMenuSuccess = () => {
+    handleLogout();
+    setIsLogoutAlertOpen(false);
+  };
   return (
     <AppBar position="sticky">
-      <Toolbar>
+      <Toolbar sx={{ gap: "1rem" }}>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           <Tooltip title="home">
             <Link to="/">{brandConfig.appName}</Link>
@@ -62,12 +83,25 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         />
         {props.pageState && props.pageState.user ? (
           <>
-            <IconButton color="inherit" onClick={handleProfileNavigation}>
-              <AccountBoxIcon />
-            </IconButton>
-            <Button color="inherit" onClick={handleLogout}>
-              log out
-            </Button>
+            <Tooltip title="account options">
+              <IconButton onClick={handleUserMenuOpen}>
+                <Avatar>{props.pageState.user.username[0]}</Avatar>
+              </IconButton>
+            </Tooltip>
+            <Menu
+              id="basic-menu-logged-in"
+              anchorEl={userMenuAnchor}
+              open={Boolean(userMenuAnchor)}
+              onClose={handleUserMenuClose}
+              MenuListProps={{
+                "aria-labelledby": "basic-button",
+              }}
+            >
+              <MenuItem color="inherit" onClick={handleProfileNavigation}>
+                profile
+              </MenuItem>
+              <MenuItem onClick={handleLogoutMenuOpen}>log out</MenuItem>
+            </Menu>
           </>
         ) : (
           <>
@@ -77,7 +111,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
               </IconButton>
             </Tooltip>
             <Menu
-              id="basic-menu"
+              id="basic-menu-logged-out"
               anchorEl={nonUserMenuAnchor}
               open={Boolean(nonUserMenuAnchor)}
               onClose={handleNonUserMenuClose}
@@ -95,6 +129,13 @@ export default function CustomAppBar(props: CustomAppBarProps) {
           </>
         )}
       </Toolbar>
+      <AlertDialog
+        open={isLogoutAlertOpen}
+        handleClose={handleLogoutMenuClose}
+        title="confirm log out."
+        handleSuccess={handleLogoutMenuSuccess}
+        confirmButtonColor="error"
+      />
     </AppBar>
   );
 }
