@@ -3,22 +3,11 @@ import "../stylesheets/profile.css";
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
-import { AlertDialog, PasswordInput } from "squarecomponents";
+import { AlertDialog, PaginatedTable, PasswordInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { z } from "zod";
 
-import {
-  Button,
-  CircularProgress,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-} from "@mui/material";
+import { Button, CircularProgress, Paper, TextField } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -332,7 +321,23 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     checkForAccessToken();
   }, [pageState]);
   // misc
-
+  let sessionTableData = userDetails?.sessions.map((row) => {
+    return {
+      "app name": row.app_name,
+      "number of sessions": row.active_sessions,
+      logout: (
+        <Button
+          color="error"
+          onClick={() => {
+            setIsLogoutAppsDialogOpen(true);
+            setLogoutAppName(row.app_name);
+          }}
+        >
+          logout
+        </Button>
+      ),
+    };
+  });
   return (
     <Page
       pageState={pageState}
@@ -342,50 +347,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     >
       <Paper square>
         hi {pageState ? pageState.user.username : "user"}
-        <TableContainer component={Paper}>
-          {userDetails ? (
-            <Table>
-              <caption>your active sessions across apps</caption>
-              <TableHead>
-                <TableRow>
-                  <TableCell>app id</TableCell>
-                  <TableCell align="right">number of sessions</TableCell>
-                  <TableCell align="right">
-                    <Button
-                      color="error"
-                      onClick={() => setIsLogoutAllDialogOpen(true)}
-                    >
-                      logout
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {userDetails.sessions.map((row, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell component="th" scope="row">
-                      {row.app_name}
-                    </TableCell>
-                    <TableCell align="right">{row.active_sessions}</TableCell>
-                    <TableCell align="right">
-                      <Button
-                        color="error"
-                        onClick={() => {
-                          setIsLogoutAppsDialogOpen(true);
-                          setLogoutAppName(row.app_name);
-                        }}
-                      >
-                        logout
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <CircularProgress />
-          )}
-        </TableContainer>
+        <PaginatedTable
+          rows={sessionTableData || []}
+          tableAriaLabel="your active sessions across apps"
+          currentPageNumber={1}
+          handlePageChange={() => {}}
+          totalRowsCount={userDetails?.sessions.length || 0}
+          isLoading={userDetails ? false : true}
+          pageSize={userDetails?.sessions.length || 0}
+          caption="your active sessions across apps"
+        />
+        <Button color="error" onClick={() => setIsLogoutAllDialogOpen(true)}>
+          logout from all apps
+        </Button>
         <Paper>
           <form onSubmit={updateUsername}>
             <TextField
