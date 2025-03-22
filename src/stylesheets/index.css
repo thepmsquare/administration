@@ -1,7 +1,7 @@
 .index-page {
   display: flex;
   flex-direction: column;
-  padding: 1rem 10%;
+  padding: 1rem 5%;
   gap: 1rem;
 }
 .index-guest {

@@ -5,16 +5,32 @@ import * as React from "react";
 import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
 import { AlertDialog, PaginatedTable, PasswordInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
-import { z } from "zod";
+import { set, z } from "zod";
 
-import { Button, CircularProgress, Paper, TextField } from "@mui/material";
+import { Edit } from "@mui/icons-material";
+import {
+  Avatar,
+  Button,
+  ButtonGroup,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Stack,
+  TextField,
+  Typography
+} from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
 import { ProfileState, ProfileStateZ } from "../types/pages/Profile";
 import {
   authenticationAdministrationBL,
-  authenticationCommonBL,
+  authenticationCommonBL
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => (
@@ -56,6 +72,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     React.useState<string>(state ? state.user.username : "");
   const [isUpdateUsernameLoading, setIsUpdateUsernameLoading] =
     React.useState<boolean>(false);
+  const [isUpdateUsernameDialogOpen, setIsUpdateUsernameDialogOpen] =
+    React.useState<boolean>(false);
   //update password
   const [updatePasswordOldPassword, setUpdatePasswordOldPassword] =
     React.useState<string>("");
@@ -76,8 +94,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   // logout all
   const [isLogoutAllDialogOpen, setIsLogoutAllDialogOpen] =
     React.useState<boolean>(false);
-  // functions
 
+  // functions
   const checkForAccessToken = async () => {
     if (pageState) {
       await getUserDetails();
@@ -104,6 +122,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     e.preventDefault();
     setIsDeleteAccountDialogOpen(true);
   };
+
   const closeDeleteAccountDialog = () => {
     if (isDeleteAccountLoading) {
       return;
@@ -111,6 +130,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setIsDeleteAccountLoading(false);
     setIsDeleteAccountDialogOpen(false);
   };
+
   const deleteAccount = async () => {
     if (!pageState) {
       return;
@@ -133,6 +153,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       closeDeleteAccountDialog();
     }
   };
+
   const updateUsername = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pageState) {
@@ -153,6 +174,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         updateUsernameNewUsername
       );
       setIsUpdateUsernameLoading(false);
+      setIsUpdateUsernameDialogOpen(false);
       changeSnackbarState({
         isOpen: true,
         message: "Username updated successfully.",
@@ -169,8 +191,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         severity: "error",
       });
       setIsUpdateUsernameLoading(false);
+      setIsUpdateUsernameDialogOpen(false);
     }
   };
+
   const updatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pageState) {
@@ -223,6 +247,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsUpdatePasswordLoading(false);
     }
   };
+
   const getUserDetails = async () => {
     if (!pageState) {
       return;
@@ -240,6 +265,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
   const logoutFromApp = async (app_name: string) => {
     if (!pageState) {
       return;
@@ -258,6 +284,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
   const logoutAll = async () => {
     if (!pageState) {
       return;
@@ -274,16 +301,20 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
   const closeLogoutAppsDialog = () => {
     setIsLogoutAppsDialogOpen(false);
   };
+
   const closeLogoutAllDialog = () => {
     setIsLogoutAllDialogOpen(false);
   };
+
   const openRemoveAppDialog = (e: React.FormEvent) => {
     e.preventDefault();
     setIsRemoveAppDialogOpen(true);
   };
+
   const closeRemoveAppDialog = () => {
     if (isRemoveAppLoading) {
       return;
@@ -291,6 +322,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setIsRemoveAppLoading(false);
     setIsRemoveAppDialogOpen(false);
   };
+
   const removeApp = async () => {
     if (!pageState) {
       return;
@@ -313,13 +345,23 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       closeRemoveAppDialog();
     }
   };
+
+  const handleUpdateUsernameDialogOpen = () => {
+    setIsUpdateUsernameDialogOpen(true);
+  };
+
+  const handleUpdateUsernameDialogClose = () => {
+    setIsUpdateUsernameDialogOpen(false);
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
   }, []);
+
   React.useEffect(() => {
     checkForAccessToken();
   }, [pageState]);
+
   // misc
   let sessionTableData = userDetails?.sessions.map((row) => {
     return {
@@ -338,153 +380,188 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       ),
     };
   });
+
   return (
     <Page
       pageState={pageState}
       setPageState={setPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
+      className="profile-page"
     >
-      <Paper square>
-        hi {pageState ? pageState.user.username : "user"}
-        <PaginatedTable
-          rows={sessionTableData || []}
-          tableAriaLabel="your active sessions across apps"
-          currentPageNumber={1}
-          handlePageChange={() => {}}
-          totalRowsCount={userDetails?.sessions.length || 0}
-          isLoading={userDetails ? false : true}
-          pageSize={userDetails?.sessions.length || 0}
-          caption="your active sessions across apps"
+      <Typography variant="h4" component="h1">
+        profile
+      </Typography>
+
+      <div className="profile-card">
+        <Avatar>{pageState?.user.username.charAt(0)}</Avatar>
+        <ButtonGroup variant="text" aria-label="Basic button group">
+          <Button onClick={handleUpdateUsernameDialogOpen}>
+            {pageState?.user.username}
+          </Button>
+          <Button onClick={handleUpdateUsernameDialogOpen} color="inherit">
+            <Edit />
+          </Button>
+        </ButtonGroup>
+      </div>
+
+      <Typography variant="h5" component="h2">
+        update password
+      </Typography>
+      <form onSubmit={updatePassword} className="common-form">
+        <PasswordInput
+          value={updatePasswordOldPassword}
+          onChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
+          label="enter existing password"
+          uniqueIdForARIA="update-password-old"
+          others={{ required: true, disabled: isUpdatePasswordLoading }}
+          variant="outlined"
         />
-        <Button color="error" onClick={() => setIsLogoutAllDialogOpen(true)}>
-          logout from all apps
+        <PasswordInput
+          value={updatePasswordNewPassword}
+          onChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
+          label="enter desired password"
+          uniqueIdForARIA="update-password-new"
+          others={{ required: true, disabled: isUpdatePasswordLoading }}
+          variant="outlined"
+        />
+        <PasswordInput
+          value={updatePasswordConfirmPassword}
+          onChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
+          label="confirm desired password"
+          uniqueIdForARIA="update-password-confirm"
+          others={{ required: true, disabled: isUpdatePasswordLoading }}
+          variant="outlined"
+        />
+        <Button
+          color="primary"
+          type="submit"
+          disabled={isUpdatePasswordLoading}
+        >
+          {isUpdatePasswordLoading ? <CircularProgress /> : "update password"}
         </Button>
-        <Paper>
-          <form onSubmit={updateUsername}>
+      </form>
+
+      <Typography variant="h5" component="h2">
+        delete {brandConfig.appName} account
+      </Typography>
+      <form onSubmit={openRemoveAppDialog} className="common-form">
+        <PasswordInput
+          value={removeAppPassword}
+          onChange={(e) => {
+            setRemoveAppPassword(e.target.value);
+          }}
+          label="password"
+          uniqueIdForARIA="remove-app-password"
+          others={{ required: true, disabled: isRemoveAppLoading }}
+          variant="outlined"
+        />
+        <Button color="error" type="submit" disabled={isRemoveAppLoading}>
+          delete {brandConfig.appName} account
+        </Button>
+      </form>
+
+      <Typography variant="h5" component="h2">
+        delete account
+      </Typography>
+      <form onSubmit={openDeleteAccountDialog} className="common-form">
+        <PasswordInput
+          value={deleteAccountPassword}
+          onChange={(e) => {
+            setDeleteAccountPassword(e.target.value);
+          }}
+          label="password"
+          uniqueIdForARIA="delete-account-password"
+          others={{ required: true, disabled: isDeleteAccountLoading }}
+          variant="outlined"
+        />
+        <Button color="error" type="submit" disabled={isDeleteAccountLoading}>
+          Delete Account
+        </Button>
+      </form>
+
+      <Typography variant="h5" component="h2">
+        active sessions
+      </Typography>
+      <PaginatedTable
+        rows={sessionTableData || []}
+        tableAriaLabel="your active sessions across apps"
+        currentPageNumber={1}
+        handlePageChange={() => {}}
+        totalRowsCount={userDetails?.sessions.length || 0}
+        isLoading={userDetails ? false : true}
+        pageSize={userDetails?.sessions.length || 0}
+        caption="your active sessions across apps"
+      />
+
+      <Button color="error" onClick={() => setIsLogoutAllDialogOpen(true)}>
+        logout from all apps
+      </Button>
+
+      <Dialog
+        open={isUpdateUsernameDialogOpen}
+        onClose={handleUpdateUsernameDialogClose}
+        aria-labelledby="update-username-dialog"
+      >
+        <form onSubmit={updateUsername}>
+          <DialogTitle id="alert-dialog-title">update username</DialogTitle>
+          <DialogContent className="common-dialog-content">
             <TextField
               value={updateUsernameNewUsername}
               onChange={(e) => setUpdateUsernameNewUsername(e.target.value)}
               disabled={isUpdateUsernameLoading}
-              label="Enter New Username"
+              label="enter new username"
               required
             />
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleUpdateUsernameDialogClose}
+              disabled={isUpdateUsernameLoading}
+              color="inherit"
+            >
+              cancel
+            </Button>
             <Button
               color="primary"
               type="submit"
               disabled={isUpdateUsernameLoading}
             >
-              {isUpdateUsernameLoading ? (
-                <CircularProgress />
-              ) : (
-                "update username"
-              )}
+              {isUpdateUsernameLoading ? <CircularProgress /> : "confirm"}
             </Button>
-          </form>
-        </Paper>
-        <Paper>
-          <form onSubmit={updatePassword}>
-            <PasswordInput
-              value={updatePasswordOldPassword}
-              onChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
-              label="enter existing password"
-              uniqueIdForARIA="update-password-old"
-              others={{ required: true, disabled: isUpdatePasswordLoading }}
-            />
-            <PasswordInput
-              value={updatePasswordNewPassword}
-              onChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
-              label="enter desired password"
-              uniqueIdForARIA="update-password-new"
-              others={{ required: true, disabled: isUpdatePasswordLoading }}
-            />
-            <PasswordInput
-              value={updatePasswordConfirmPassword}
-              onChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
-              label="confirm desired password"
-              uniqueIdForARIA="update-password-confirm"
-              others={{ required: true, disabled: isUpdatePasswordLoading }}
-            />
-            <Button
-              color="primary"
-              type="submit"
-              disabled={isUpdatePasswordLoading}
-            >
-              {isUpdatePasswordLoading ? (
-                <CircularProgress />
-              ) : (
-                "update password"
-              )}
-            </Button>
-          </form>
-        </Paper>
-        <Paper>
-          <form onSubmit={openRemoveAppDialog}>
-            <PasswordInput
-              value={removeAppPassword}
-              onChange={(e) => {
-                setRemoveAppPassword(e.target.value);
-              }}
-              label="Enter Password to Remove App from account."
-              uniqueIdForARIA="remove-app-password"
-              others={{ required: true, disabled: isRemoveAppLoading }}
-            />
-            <Button color="error" type="submit" disabled={isRemoveAppLoading}>
-              Remove App
-            </Button>
-          </form>
-        </Paper>
-        <Paper>
-          <form onSubmit={openDeleteAccountDialog}>
-            <PasswordInput
-              value={deleteAccountPassword}
-              onChange={(e) => {
-                setDeleteAccountPassword(e.target.value);
-              }}
-              label="Enter Password to Delete Account"
-              uniqueIdForARIA="delete-account-password"
-              others={{ required: true, disabled: isDeleteAccountLoading }}
-            />
-            <Button
-              color="error"
-              type="submit"
-              disabled={isDeleteAccountLoading}
-            >
-              Delete Account
-            </Button>
-          </form>
-        </Paper>
-        <AlertDialog
-          open={isDeleteAccountDialogOpen}
-          handleClose={closeDeleteAccountDialog}
-          handleSuccess={deleteAccount}
-          title="delete account"
-          confirmButtonColor="error"
-          isLoading={isDeleteAccountLoading}
-        />
-        <AlertDialog
-          open={isLogoutAppsDialogOpen}
-          handleClose={closeLogoutAppsDialog}
-          handleSuccess={() => logoutFromApp(logoutAppName as string)}
-          title={`log out all devices from ${logoutAppName}`}
-          confirmButtonColor="error"
-        />
-        <AlertDialog
-          open={isLogoutAllDialogOpen}
-          handleClose={closeLogoutAllDialog}
-          handleSuccess={logoutAll}
-          title="log out all devices for all apps"
-          confirmButtonColor="error"
-        />
-        <AlertDialog
-          open={isRemoveAppDialogOpen}
-          handleClose={closeRemoveAppDialog}
-          handleSuccess={removeApp}
-          title="remove app from account"
-          confirmButtonColor="error"
-          isLoading={isRemoveAppLoading}
-        />
-      </Paper>
+          </DialogActions>
+        </form>
+      </Dialog>
+      <AlertDialog
+        open={isDeleteAccountDialogOpen}
+        handleClose={closeDeleteAccountDialog}
+        handleSuccess={deleteAccount}
+        title="delete account"
+        confirmButtonColor="error"
+        isLoading={isDeleteAccountLoading}
+      />
+      <AlertDialog
+        open={isLogoutAppsDialogOpen}
+        handleClose={closeLogoutAppsDialog}
+        handleSuccess={() => logoutFromApp(logoutAppName as string)}
+        title={`log out all devices from ${logoutAppName}`}
+        confirmButtonColor="error"
+      />
+      <AlertDialog
+        open={isLogoutAllDialogOpen}
+        handleClose={closeLogoutAllDialog}
+        handleSuccess={logoutAll}
+        title="log out all devices for all apps"
+        confirmButtonColor="error"
+      />
+      <AlertDialog
+        open={isRemoveAppDialogOpen}
+        handleClose={closeRemoveAppDialog}
+        handleSuccess={removeApp}
+        title={`delete ${brandConfig.appName} account`}
+        confirmButtonColor="error"
+        isLoading={isRemoveAppLoading}
+      />
     </Page>
   );
 };
