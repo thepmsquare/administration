@@ -5,18 +5,31 @@ import * as React from "react";
 import { PasswordInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Button, Paper, TextField } from "@mui/material";
+import { Button, TextField, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
-import { authenticationAdministrationBL } from "../utils/initialiser";
+import { RegisterState, RegisterStateZ } from "../types/pages/Register";
+import {
+  authenticationAdministrationBL,
+  authenticationCommonBL,
+} from "../utils/initialiser";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | register</title>
 );
 
-const RegisterPage: React.FC<PageProps> = () => {
+const RegisterPage: React.FC<PageProps> = (props) => {
+  const { location } = props;
+  let state: RegisterState | null = null;
+  try {
+    state = RegisterStateZ.parse(location.state);
+  } catch (e) {
+    state = null;
+  }
+
   // state
+  const [pageState, setPageState] = React.useState<RegisterState | null>(state);
   const [snackbarState, changeSnackbarState] =
     React.useState<CustomSnackbarStateType>({
       isOpen: false,
@@ -51,61 +64,89 @@ const RegisterPage: React.FC<PageProps> = () => {
       });
     }
   };
+  const checkForAccessToken = async () => {
+    if (pageState) {
+      await navigate("/", { state: pageState });
+    }
+    try {
+      let accessTokenResponse =
+        await authenticationAdministrationBL.generateAccessTokenV0();
+      let accessToken = accessTokenResponse.data.main.access_token;
+      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+        accessToken
+      );
+      let username = userDetailsResponse.data.main.credentials.username;
+      let user_id = userDetailsResponse.data.main.user_id;
+      let newState = { user: { user_id, username, access_token: accessToken } };
+      setPageState(newState);
+    } catch (e) {
+      console.log("user not logged in.");
+    }
+  };
+
+  // useEffect
+  React.useEffect(() => {
+    checkForAccessToken();
+  }, []);
+  React.useEffect(() => {
+    if (pageState) {
+      navigate("/", { state: pageState });
+    }
+  }, [pageState]);
   // misc
 
   return (
     <Page
-      pageState={null}
-      setPageState={null}
+      pageState={pageState}
+      setPageState={setPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
+      className="register-page"
     >
-      <Paper className="register-main">
-        <Paper className="register-content">
-          <h1>register</h1>
-          <form className="register-form" onSubmit={handleRegister}>
-            <TextField
-              value={username}
-              onChange={(e) => changeUsername(e.target.value)}
-              label="username"
-              variant="outlined"
-              required
-            />
-            <PasswordInput
-              value={password}
-              onChange={(e) => changePassword(e.target.value)}
-              uniqueIdForARIA="register-password"
-              label="password"
-              variant="outlined"
-              others={{ required: true }}
-            />
-            <PasswordInput
-              value={confirmPassword}
-              onChange={(e) => changeConfirmPassword(e.target.value)}
-              uniqueIdForARIA="confirm-register-password"
-              label="confirm password"
-              variant="outlined"
-              others={{ required: true }}
-            />
-            <PasswordInput
-              value={adminPassword}
-              onChange={(e) => changeAdminPassword(e.target.value)}
-              uniqueIdForARIA="register-admin-password"
-              label="admin password"
-              variant="outlined"
-              others={{ required: true }}
-            />
-            <div className="register-form-action">
-              <Button color="inherit">
-                <Link to="/">cancel</Link>
-              </Button>
-              <Button type="submit" variant="contained">
-                submit
-              </Button>
-            </div>
-          </form>
-        </Paper>
-      </Paper>
+      <Typography variant="h4" component="h1">
+        register
+      </Typography>
+      <form className="common-form" onSubmit={handleRegister}>
+        <TextField
+          value={username}
+          onChange={(e) => changeUsername(e.target.value)}
+          label="username"
+          variant="outlined"
+          required
+        />
+        <PasswordInput
+          value={password}
+          onChange={(e) => changePassword(e.target.value)}
+          uniqueIdForARIA="register-password"
+          label="password"
+          variant="outlined"
+          others={{ required: true }}
+        />
+        <PasswordInput
+          value={confirmPassword}
+          onChange={(e) => changeConfirmPassword(e.target.value)}
+          uniqueIdForARIA="confirm-register-password"
+          label="confirm password"
+          variant="outlined"
+          others={{ required: true }}
+        />
+        <PasswordInput
+          value={adminPassword}
+          onChange={(e) => changeAdminPassword(e.target.value)}
+          uniqueIdForARIA="register-admin-password"
+          label="admin password"
+          variant="outlined"
+          others={{ required: true }}
+        />
+        <div className="register-form-action">
+          <Button color="inherit">
+            <Link to="/">cancel</Link>
+          </Button>
+          <Button type="submit" variant="contained">
+            submit
+          </Button>
+        </div>
+      </form>
     </Page>
   );
 };
