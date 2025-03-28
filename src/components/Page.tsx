@@ -17,7 +17,7 @@ import {
 
 import localStorageKeysConfig from "../config/localStorageKeys";
 import uiConfig from "../config/ui";
-import { ThemeState } from "../types/Common";
+import { ThemeState, User } from "../types/Common";
 import { CustomAppBarProps } from "../types/components/CustomAppBar";
 import CustomAppBar from "./CustomAppBar";
 
@@ -25,8 +25,8 @@ const isBrowser = typeof window !== "undefined";
 type Props = {
   children: React.ReactNode;
   className?: string;
-  pageState: CustomAppBarProps["pageState"];
-  setPageState: CustomAppBarProps["setPageState"];
+  user: User | undefined;
+  nullifyPageStateFunction: () => void | undefined;
   changeSnackbarState: React.Dispatch<
     React.SetStateAction<CustomSnackbarStateType>
   >;
@@ -36,8 +36,8 @@ type Props = {
 const Page: React.FC<Props> = ({
   children,
   className,
-  pageState,
-  setPageState,
+  user,
+  nullifyPageStateFunction,
   changeSnackbarState,
   snackbarState,
 }) => {
@@ -114,8 +114,8 @@ const Page: React.FC<Props> = ({
         <StyledEngineProvider injectFirst>
           <CssBaseline />
           <CustomAppBar
-            pageState={pageState}
-            setPageState={setPageState}
+            user={user}
+            nullifyPageStateFunction={nullifyPageStateFunction}
             changeSnackbarState={changeSnackbarState}
             themeState={themeState}
             customChangeThemeState={customChangeThemeState}

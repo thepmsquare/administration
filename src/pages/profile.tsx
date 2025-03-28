@@ -22,7 +22,7 @@ import {
   Paper,
   Stack,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 
 import Page from "../components/Page";
@@ -30,7 +30,7 @@ import brandConfig from "../config/brand";
 import { ProfileState, ProfileStateZ } from "../types/pages/Profile";
 import {
   authenticationAdministrationBL,
-  authenticationCommonBL
+  authenticationCommonBL,
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => (
@@ -353,6 +353,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const handleUpdateUsernameDialogClose = () => {
     setIsUpdateUsernameDialogOpen(false);
   };
+
+  const nullifyPageState = () => {
+    setPageState(null);
+  };
+
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -383,8 +388,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   return (
     <Page
-      pageState={pageState}
-      setPageState={setPageState}
+      user={pageState?.user}
+      nullifyPageStateFunction={nullifyPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       className="profile-page"

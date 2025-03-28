@@ -23,14 +23,14 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     React.useState<boolean>(false);
   let handleLogout = async () => {
     try {
-      if (!props.pageState || !props.pageState.user) {
+      if (!props.user) {
         return;
       }
       await authenticationAdministrationBL.logoutV0();
-      if (!props.setPageState) {
+      if (!props.nullifyPageStateFunction) {
         return;
       }
-      props.setPageState(null);
+      props.nullifyPageStateFunction();
     } catch (error) {
       props.changeSnackbarState({
         isOpen: true,
@@ -40,10 +40,10 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     }
   };
   let handleProfileNavigation = () => {
-    if (!props.pageState || !props.pageState.user) {
+    if (!props.user) {
       return;
     }
-    navigate("/profile", { state: { user: props.pageState.user } });
+    navigate("/profile", { state: { user: props.user } });
   };
   let handleNonUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setNonUserMenuAnchor(event.currentTarget);
@@ -81,11 +81,11 @@ export default function CustomAppBar(props: CustomAppBarProps) {
           themeState={props.themeState}
           customChangeThemeState={props.customChangeThemeState}
         />
-        {props.pageState && props.pageState.user ? (
+        {props.user ? (
           <>
             <Tooltip title="account options">
               <IconButton onClick={handleUserMenuOpen}>
-                <Avatar>{props.pageState.user.username[0]}</Avatar>
+                <Avatar>{props.user.username[0]}</Avatar>
               </IconButton>
             </Tooltip>
             <Menu

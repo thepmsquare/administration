@@ -102,6 +102,11 @@ const IndexPage: React.FC<PageProps> = (props) => {
       console.log("user not logged in.");
     }
   };
+
+  const nullifyPageState = () => {
+    setPageState(null);
+  };
+
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -127,8 +132,8 @@ const IndexPage: React.FC<PageProps> = (props) => {
   return (
     <Page
       className="index-page"
-      pageState={pageState}
-      setPageState={setPageState}
+      user={pageState?.user}
+      nullifyPageStateFunction={nullifyPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
     >

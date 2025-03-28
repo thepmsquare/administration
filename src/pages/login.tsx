@@ -78,6 +78,9 @@ const LoginPage: React.FC<PageProps> = (props) => {
     }
   };
 
+  const nullifyPageState = () => {
+    setPageState(null);
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -91,8 +94,8 @@ const LoginPage: React.FC<PageProps> = (props) => {
 
   return (
     <Page
-      pageState={pageState}
-      setPageState={setPageState}
+      user={pageState?.user}
+      nullifyPageStateFunction={nullifyPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       className="register-page"
