@@ -5,7 +5,7 @@ import * as React from "react";
 import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
 import { AlertDialog, PaginatedTable, PasswordInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
-import { set, z } from "zod";
+import { z } from "zod";
 
 import { Edit } from "@mui/icons-material";
 import {
@@ -16,11 +16,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
-  IconButton,
-  Paper,
-  Stack,
   TextField,
   Typography,
 } from "@mui/material";
@@ -108,7 +104,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username = userDetailsResponse.data.main.credentials.username;
+      let username =
+        userDetailsResponse.data.main.profile.user_profile_username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
       setPageState(newState);

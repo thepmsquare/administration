@@ -5,7 +5,7 @@ import * as React from "react";
 import { PasswordInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Button, Paper, TextField, Typography } from "@mui/material";
+import { Button, TextField, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -69,7 +69,8 @@ const LoginPage: React.FC<PageProps> = (props) => {
       let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username = userDetailsResponse.data.main.credentials.username;
+      let username =
+        userDetailsResponse.data.main.profile.user_profile_username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
       setPageState(newState);
