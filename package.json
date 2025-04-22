@@ -31,7 +31,7 @@
     "squareadministration": "^3.0.1",
     "squarecommonblhelper": "^5.0.0",
     "squarecommons": "^2.1.0",
-    "squarecomponents": "^1.7.0"
+    "squarecomponents": "^1.9.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",

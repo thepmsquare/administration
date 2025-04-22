@@ -494,6 +494,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         isLoading={userDetails ? false : true}
         pageSize={userDetails?.sessions.length || 0}
         caption="your active sessions across apps"
+        hidePaginationOnSinglePage={true}
       />
 
       <Button color="error" onClick={() => setIsLogoutAllDialogOpen(true)}>

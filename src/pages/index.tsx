@@ -141,7 +141,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
       {pageState && pageState.user ? (
         <>
           <Typography variant="h4" component="h1" className="page-title">
-            Greetings
+            greetings
           </Typography>
           <PaginatedTable
             tableAriaLabel="greetings table"
@@ -151,6 +151,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
             isLoading={isLoading}
             rows={display_rows}
             pageSize={pageSize}
+            hidePaginationOnSinglePage={true}
           />
         </>
       ) : (
