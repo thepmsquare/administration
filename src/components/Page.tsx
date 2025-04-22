@@ -79,35 +79,35 @@ const Page: React.FC<Props> = ({
   };
 
   // misc
-  const currentTheme = createTheme({
-    typography: {
-      fontFamily: "Fraunces Variable",
-      h1: {
-        fontFamily: "Outfit Variable",
-      },
-      h2: {
-        fontFamily: "Outfit Variable",
-      },
-      h3: {
-        fontFamily: "Outfit Variable",
-      },
-      h4: {
-        fontFamily: "Outfit Variable",
-      },
-      h5: {
-        fontFamily: "Outfit Variable",
-      },
-      h6: {
-        fontFamily: "Outfit Variable",
-      },
-      button: {
-        fontFamily: "Outfit Variable",
-      },
-    },
-    palette: {
-      mode: themeState,
-    },
-  });
+  // const currentTheme = createTheme({
+  //   typography: {
+  //     fontFamily: "Fraunces Variable",
+  //     h1: {
+  //       fontFamily: "Outfit Variable",
+  //     },
+  //     h2: {
+  //       fontFamily: "Outfit Variable",
+  //     },
+  //     h3: {
+  //       fontFamily: "Outfit Variable",
+  //     },
+  //     h4: {
+  //       fontFamily: "Outfit Variable",
+  //     },
+  //     h5: {
+  //       fontFamily: "Outfit Variable",
+  //     },
+  //     h6: {
+  //       fontFamily: "Outfit Variable",
+  //     },
+  //     button: {
+  //       fontFamily: "Outfit Variable",
+  //     },
+  //   },
+  //   palette: {
+  //     mode: themeState,
+  //   },
+  // });
   console.log("render: ", themeState);
   console.log("render defaultThemeState: ", defaultThemeState);
   const materialYouLight = createMaterialYouTheme(themeState);
