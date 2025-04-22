@@ -42,7 +42,9 @@ const IndexPage: React.FC<PageProps> = (props) => {
   const [greetingsCount, changeGreetingsCount] = React.useState<number>(0);
   const [pageSize, changePageSize] = React.useState<number>(10);
   const [currentPage, changeCurrentPage] = React.useState<number>(1);
-  const [isLoading, changeIsLoading] = React.useState<boolean>(false);
+  const [isLoadingGreetings, changeIsLoadingGreetings] =
+    React.useState<boolean>(false);
+  const [isLoading, changeIsLoading] = React.useState<boolean>(true);
   // functions
   const getGreetings = async () => {
     if (!pageState) {
@@ -56,7 +58,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     if (!pageState) {
       return;
     }
-    changeIsLoading(true);
+    changeIsLoadingGreetings(true);
     try {
       const response = await coreAdministrationBL.getAllGreetingsV0(
         pageState.user.access_token,
@@ -74,7 +76,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
         severity: "error",
       });
     } finally {
-      changeIsLoading(false);
+      changeIsLoadingGreetings(false);
     }
   };
   const handleChangePage = (
@@ -85,6 +87,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
   };
   const checkForAccessToken = async () => {
     if (pageState) {
+      changeIsLoading(false);
       return;
     }
     try {
@@ -98,9 +101,11 @@ const IndexPage: React.FC<PageProps> = (props) => {
         userDetailsResponse.data.main.profile.user_profile_username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
+      changeIsLoading(false);
       setPageState(newState);
     } catch (e) {
       console.log("user not logged in.");
+      changeIsLoading(false);
     }
   };
 
@@ -137,6 +142,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
       nullifyPageStateFunction={nullifyPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
+      isLoading={isLoading}
     >
       {pageState && pageState.user ? (
         <>
@@ -148,7 +154,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
             currentPageNumber={currentPage}
             handlePageChange={handleChangePage}
             totalRowsCount={greetingsCount}
-            isLoading={isLoading}
+            isLoading={isLoadingGreetings}
             rows={display_rows}
             pageSize={pageSize}
             hidePaginationOnSinglePage={true}

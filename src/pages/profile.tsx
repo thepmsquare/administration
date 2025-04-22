@@ -50,6 +50,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       severity: "error",
     });
   const [pageState, setPageState] = React.useState<ProfileState | null>(state);
+  const [isLoading, changeIsLoading] = React.useState<boolean>(true);
   // delete account
   const [deleteAccountPassword, setDeleteAccountPassword] =
     React.useState<string>("");
@@ -95,6 +96,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const checkForAccessToken = async () => {
     if (pageState) {
       await getUserDetails();
+      changeIsLoading(false);
       return;
     }
     try {
@@ -108,9 +110,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         userDetailsResponse.data.main.profile.user_profile_username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
+      changeIsLoading(false);
       setPageState(newState);
     } catch (e) {
       console.log("user not logged in.");
+      changeIsLoading(false);
       navigate("/login");
     }
   };
@@ -253,6 +257,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         pageState.user.access_token
       );
+
       setUserDetails(userDetailsResponse.data.main);
     } catch (error) {
       changeSnackbarState({
@@ -390,6 +395,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       className="profile-page"
+      isLoading={isLoading}
     >
       <Typography variant="h4" component="h1">
         profile

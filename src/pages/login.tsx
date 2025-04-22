@@ -33,6 +33,7 @@ const LoginPage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+  const [isLoading, changeIsLoading] = React.useState<boolean>(true);
   const [username, changeUsername] = React.useState<string>("");
   const [password, changePassword] = React.useState<string>("");
 
@@ -60,6 +61,7 @@ const LoginPage: React.FC<PageProps> = (props) => {
 
   const checkForAccessToken = async () => {
     if (pageState) {
+      changeIsLoading(false);
       await navigate("/", { state: pageState });
     }
     try {
@@ -73,9 +75,11 @@ const LoginPage: React.FC<PageProps> = (props) => {
         userDetailsResponse.data.main.profile.user_profile_username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
+      changeIsLoading(false);
       setPageState(newState);
     } catch (e) {
       console.log("user not logged in.");
+      changeIsLoading(false);
     }
   };
 
@@ -100,6 +104,7 @@ const LoginPage: React.FC<PageProps> = (props) => {
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       className="register-page"
+      isLoading={isLoading}
     >
       <Typography variant="h4" component="h1">
         login
