@@ -3,6 +3,7 @@ import "@fontsource-variable/outfit";
 import "../stylesheets/common.css";
 import "../stylesheets/components/page.css";
 
+import { createMaterialYouTheme } from "mui-create-material-you-theme";
 import * as React from "react";
 import { CustomSnackbar } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
@@ -109,9 +110,10 @@ const Page: React.FC<Props> = ({
   });
   console.log("render: ", themeState);
   console.log("render defaultThemeState: ", defaultThemeState);
+  const materialYouLight = createMaterialYouTheme(themeState);
   return (
     <React.StrictMode>
-      <ThemeProvider theme={currentTheme}>
+      <ThemeProvider theme={materialYouLight}>
         <StyledEngineProvider injectFirst>
           <CssBaseline />
           <CustomAppBar
