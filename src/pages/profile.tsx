@@ -84,6 +84,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const [userDetails, setUserDetails] = React.useState<z.infer<
     typeof GetUserDetailsV0ResponseZ.shape.data.shape.main
   > | null>(null);
+  const [userProfilePhotoURL, setUserProfilePhotoURL] = React.useState<
+    string | null
+  >(null);
+  const [isUserProfilePhotoLoading, setIsUserProfilePhotoLoading] =
+    React.useState<boolean>(false);
   // logout apps
   const [isLogoutAppsDialogOpen, setIsLogoutAppsDialogOpen] =
     React.useState<boolean>(false);
@@ -96,6 +101,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const checkForAccessToken = async () => {
     if (pageState) {
       await getUserDetails();
+      getUserProfilePhoto();
       changeIsLoading(false);
       return;
     }
@@ -267,7 +273,26 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
-
+  const getUserProfilePhoto = async () => {
+    if (!pageState) {
+      return;
+    }
+    try {
+      setIsUserProfilePhotoLoading(true);
+      let userDetailsResponse =
+        await authenticationCommonBL.getUserProfilePhoto(
+          pageState.user.access_token
+        );
+      setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
+      setIsUserProfilePhotoLoading(false);
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
   const logoutFromApp = async (app_name: string) => {
     if (!pageState) {
       return;
@@ -402,7 +427,16 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       </Typography>
 
       <div className="profile-card">
-        <Avatar>{pageState?.user.username.charAt(0)}</Avatar>
+        {isUserProfilePhotoLoading ? (
+          <Avatar>
+            <CircularProgress />
+          </Avatar>
+        ) : userProfilePhotoURL ? (
+          <Avatar alt={pageState?.user.username} src={userProfilePhotoURL} />
+        ) : (
+          <Avatar>{pageState?.user.username.charAt(0)}</Avatar>
+        )}
+
         <ButtonGroup variant="text" aria-label="Basic button group">
           <Button onClick={handleUpdateUsernameDialogOpen}>
             {pageState?.user.username}
