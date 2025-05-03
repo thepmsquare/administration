@@ -5,9 +5,11 @@ import * as React from "react";
 import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
 import { AlertDialog, PaginatedTable, PasswordInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
-import { z } from "zod";
+import { set, z } from "zod";
 
 import { Edit } from "@mui/icons-material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import {
   Avatar,
   Button,
@@ -96,6 +98,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   // logout all
   const [isLogoutAllDialogOpen, setIsLogoutAllDialogOpen] =
     React.useState<boolean>(false);
+  //profile photo update
+  const [
+    userProfilePhotoUpdatePreviewURL,
+    setUserProfilePhotoUpdatePreviewURL,
+  ] = React.useState<string | null>(null);
+  const [
+    openUserProfilePhotoUpdateDialog,
+    setOpenUserProfilePhotoUpdateDialog,
+  ] = React.useState(false);
+  const [
+    openUserProfilePhotoRemoveDialog,
+    setOpenUserProfilePhotoRemoveDialog,
+  ] = React.useState(false);
 
   // functions
   const checkForAccessToken = async () => {
@@ -273,6 +288,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
   const getUserProfilePhoto = async () => {
     if (!pageState) {
       return;
@@ -280,10 +296,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     try {
       setIsUserProfilePhotoLoading(true);
       let userDetailsResponse =
-        await authenticationCommonBL.getUserProfilePhoto(
+        await authenticationCommonBL.getUserProfilePhotoV0(
           pageState.user.access_token
         );
-      setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
+
+      if (userDetailsResponse instanceof Blob && userDetailsResponse.size > 0) {
+        setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
+      }
       setIsUserProfilePhotoLoading(false);
     } catch (error) {
       changeSnackbarState({
@@ -293,6 +312,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
   const logoutFromApp = async (app_name: string) => {
     if (!pageState) {
       return;
@@ -385,6 +405,82 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setPageState(null);
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserProfilePhotoUpdatePreviewURL(reader.result as string);
+        setOpenUserProfilePhotoUpdateDialog(true);
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input value to allow re-selecting the same file
+    if (event.target) {
+      event.target.value = "";
+    }
+  };
+
+  const dataURLToFile = (dataUrl: string, filename: string): File => {
+    const arr = dataUrl.split(",");
+    const mime = arr[0].match(/:(.*?);/)?.[1] || "application/octet-stream";
+    const bstr = atob(arr[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const confirmProfilePhotoUpdate = async () => {
+    if (!pageState) {
+      return;
+    }
+    if (userProfilePhotoUpdatePreviewURL) {
+      await authenticationCommonBL.updateUserProfilePhotoV0(
+        pageState.user.access_token,
+        dataURLToFile(userProfilePhotoUpdatePreviewURL, "profile.jpg")
+      );
+      changeSnackbarState({
+        isOpen: true,
+        message: "profile photo updated successfully.",
+        severity: "success",
+      });
+      setUserProfilePhotoURL(userProfilePhotoUpdatePreviewURL);
+    }
+    setUserProfilePhotoUpdatePreviewURL(null);
+    setOpenUserProfilePhotoUpdateDialog(false);
+  };
+
+  const cancelProfilePhotoUpdate = () => {
+    setUserProfilePhotoUpdatePreviewURL(null);
+    setOpenUserProfilePhotoUpdateDialog(false);
+  };
+
+  const confirmProfilePhotoRemove = async () => {
+    if (!pageState) {
+      return;
+    }
+    await authenticationCommonBL.updateUserProfilePhotoV0(
+      pageState.user.access_token,
+      undefined
+    );
+    changeSnackbarState({
+      isOpen: true,
+      message: "profile photo removed successfully.",
+      severity: "success",
+    });
+    setUserProfilePhotoURL(null);
+    setUserProfilePhotoUpdatePreviewURL(null);
+    setOpenUserProfilePhotoRemoveDialog(false);
+  };
+
+  const cancelProfilePhotoRemove = () => {
+    setOpenUserProfilePhotoRemoveDialog(false);
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -412,6 +508,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       ),
     };
   });
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
     <Page
@@ -446,7 +543,32 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </Button>
         </ButtonGroup>
       </div>
-
+      <input
+        type="file"
+        accept="image/jpeg, image/png"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+        aria-hidden="true"
+      />
+      <div>
+        <Button
+          startIcon={<PhotoCameraIcon />}
+          onClick={triggerFileInput}
+          color="primary"
+        >
+          update profile photo
+        </Button>
+        {userProfilePhotoURL && (
+          <Button
+            startIcon={<DeleteIcon />}
+            onClick={() => setOpenUserProfilePhotoRemoveDialog(true)}
+            color="error"
+          >
+            remove profile photo
+          </Button>
+        )}
+      </div>
       <Typography variant="h5" component="h2">
         update password
       </Typography>
@@ -575,6 +697,37 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </DialogActions>
         </form>
       </Dialog>
+      <Dialog
+        open={openUserProfilePhotoUpdateDialog}
+        onClose={cancelProfilePhotoUpdate}
+        aria-labelledby="update-user-profile-photo-dialog-title"
+      >
+        <DialogTitle id="update-user-profile-photo-dialog-title">
+          update profile photo?
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {userProfilePhotoUpdatePreviewURL && (
+            <Avatar
+              src={userProfilePhotoUpdatePreviewURL}
+              alt="new user profile photo preview"
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelProfilePhotoUpdate} color="inherit">
+            cancel
+          </Button>
+          <Button onClick={confirmProfilePhotoUpdate} color="primary">
+            confirm update
+          </Button>
+        </DialogActions>
+      </Dialog>
       <AlertDialog
         open={isDeleteAccountDialogOpen}
         handleClose={closeDeleteAccountDialog}
@@ -604,6 +757,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         title={`delete ${brandConfig.appName} account`}
         confirmButtonColor="error"
         isLoading={isRemoveAppLoading}
+      />
+      <AlertDialog
+        open={openUserProfilePhotoRemoveDialog}
+        handleClose={cancelProfilePhotoRemove}
+        handleSuccess={confirmProfilePhotoRemove}
+        title={`remove profile photo?`}
+        confirmButtonColor="error"
+        // isLoading={isRemoveAppLoading}
       />
     </Page>
   );
