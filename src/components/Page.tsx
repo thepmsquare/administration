@@ -10,15 +10,12 @@ import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateT
 
 import { CircularProgress, Paper } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import {
-  createTheme,
-  StyledEngineProvider,
-  ThemeProvider,
-} from "@mui/material/styles";
+import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles";
 
 import localStorageKeysConfig from "../config/localStorageKeys";
 import uiConfig from "../config/ui";
 import { ThemeState, User } from "../types/Common";
+import { authenticationCommonBL } from "../utils/initialiser";
 import CustomAppBar from "./CustomAppBar";
 
 const isBrowser = typeof window !== "undefined";
@@ -43,105 +40,102 @@ const Page: React.FC<Props> = ({
   snackbarState,
   isLoading = false,
 }) => {
-  // get stuff from local storage
-  let localStorageTheme;
-  if (isBrowser) {
-    localStorageTheme = window.localStorage.getItem(
+  const defaultThemeState = React.useMemo<ThemeState>(() => {
+    if (!isBrowser) return uiConfig.defaultThemeState;
+    const storedTheme = window.localStorage.getItem(
       localStorageKeysConfig.theme
     );
-  } else {
-    localStorageTheme = null;
-  }
-  let defaultThemeState: ThemeState;
-  if (localStorageTheme !== null) {
-    defaultThemeState = localStorageTheme === "dark" ? "dark" : "light";
-  } else {
-    defaultThemeState = uiConfig.defaultThemeState;
-    if (isBrowser) {
-      window.localStorage.setItem(
-        localStorageKeysConfig.theme,
-        uiConfig.defaultThemeState
-      );
-    }
-  }
+    if (storedTheme !== null) return storedTheme === "dark" ? "dark" : "light";
+    window.localStorage.setItem(
+      localStorageKeysConfig.theme,
+      uiConfig.defaultThemeState
+    );
+    return uiConfig.defaultThemeState;
+  }, []);
 
-  // state
   const [themeState, changeThemeState] = React.useState(defaultThemeState);
+  const [userProfilePhotoURL, setUserProfilePhotoURL] = React.useState<
+    string | null
+  >(null);
+  const [isUserProfilePhotoLoading, setIsUserProfilePhotoLoading] =
+    React.useState<boolean>(false);
 
-  // functions
   const customChangeThemeState = (newThemeState: ThemeState) => {
-    console.log(themeState);
-    console.log(newThemeState);
     changeThemeState(newThemeState);
     if (isBrowser) {
       window.localStorage.setItem(localStorageKeysConfig.theme, newThemeState);
     }
   };
 
-  // misc
-  // const currentTheme = createTheme({
-  //   typography: {
-  //     fontFamily: "Fraunces Variable",
-  //     h1: {
-  //       fontFamily: "Outfit Variable",
-  //     },
-  //     h2: {
-  //       fontFamily: "Outfit Variable",
-  //     },
-  //     h3: {
-  //       fontFamily: "Outfit Variable",
-  //     },
-  //     h4: {
-  //       fontFamily: "Outfit Variable",
-  //     },
-  //     h5: {
-  //       fontFamily: "Outfit Variable",
-  //     },
-  //     h6: {
-  //       fontFamily: "Outfit Variable",
-  //     },
-  //     button: {
-  //       fontFamily: "Outfit Variable",
-  //     },
-  //   },
-  //   palette: {
-  //     mode: themeState,
-  //   },
-  // });
-  console.log("render: ", themeState);
-  console.log("render defaultThemeState: ", defaultThemeState);
-  const materialYouLight = createMaterialYouTheme(themeState);
+  React.useEffect(() => {
+    let isMounted = true;
+    const getUserProfilePhoto = async () => {
+      if (!user) return;
+      try {
+        setIsUserProfilePhotoLoading(true);
+        const userDetailsResponse =
+          await authenticationCommonBL.getUserProfilePhotoV0(user.access_token);
+        if (
+          isMounted &&
+          userDetailsResponse instanceof Blob &&
+          userDetailsResponse.size > 0
+        ) {
+          setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
+        }
+      } catch (error) {
+        if (isMounted) {
+          changeSnackbarState({
+            isOpen: true,
+            message: (error as any).message,
+            severity: "error",
+          });
+        }
+      } finally {
+        if (isMounted) setIsUserProfilePhotoLoading(false);
+      }
+    };
+    getUserProfilePhoto();
+    return () => {
+      isMounted = false;
+    };
+  }, [user, changeSnackbarState]);
+
+  const materialYouTheme = createMaterialYouTheme(themeState);
+
   return (
-    <React.StrictMode>
-      <ThemeProvider theme={materialYouLight}>
-        <StyledEngineProvider injectFirst>
-          <CssBaseline />
-          <CustomAppBar
-            user={user}
-            nullifyPageStateFunction={nullifyPageStateFunction}
-            changeSnackbarState={changeSnackbarState}
-            themeState={themeState}
-            customChangeThemeState={customChangeThemeState}
-          />
-          {isLoading ? (
-            <div className="loading-screen">
-              <CircularProgress />
-            </div>
-          ) : (
-            <>
-              <Paper className={`parent ${className}`} square>
-                {children}
-              </Paper>
-              <div className="theme-toggle-container"></div>
-              <CustomSnackbar
-                snackbarState={snackbarState}
-                changeSnackbarState={changeSnackbarState}
-              />
-            </>
-          )}
-        </StyledEngineProvider>
-      </ThemeProvider>
-    </React.StrictMode>
+    <ThemeProvider theme={materialYouTheme}>
+      <StyledEngineProvider injectFirst>
+        <CssBaseline />
+        <CustomAppBar
+          user={user}
+          nullifyPageStateFunction={nullifyPageStateFunction}
+          changeSnackbarState={changeSnackbarState}
+          themeState={themeState}
+          customChangeThemeState={customChangeThemeState}
+          isUserProfilePhotoLoading={isUserProfilePhotoLoading}
+          userProfilePhotoURL={userProfilePhotoURL}
+        />
+        {isLoading ? (
+          <div className="loading-screen">
+            <CircularProgress />
+          </div>
+        ) : (
+          <>
+            <Paper
+              className={className ? `parent ${className}` : "parent"}
+              square
+            >
+              {children}
+            </Paper>
+            <div className="theme-toggle-container"></div>
+            <CustomSnackbar
+              snackbarState={snackbarState}
+              changeSnackbarState={changeSnackbarState}
+            />
+          </>
+        )}
+      </StyledEngineProvider>
+    </ThemeProvider>
   );
 };
 

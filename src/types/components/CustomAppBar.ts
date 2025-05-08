@@ -1,8 +1,6 @@
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import { ThemeState, User } from "../Common";
-import { IndexState } from "../pages/Index";
-import { ProfileState } from "../pages/Profile";
 
 interface CustomAppBarProps {
   user: User | undefined;
@@ -12,5 +10,7 @@ interface CustomAppBarProps {
   >;
   themeState: ThemeState;
   customChangeThemeState: (newThemeState: ThemeState) => void;
+  isUserProfilePhotoLoading: boolean;
+  userProfilePhotoURL: string | null;
 }
 export { CustomAppBarProps };

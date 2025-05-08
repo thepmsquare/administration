@@ -4,9 +4,15 @@ import { AlertDialog } from "squarecomponents";
 import ThemeToggleIconButton from "squarecomponents/components/ThemeToggleIconButton";
 
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import { Avatar, IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
+import {
+  Avatar,
+  CircularProgress,
+  IconButton,
+  Menu,
+  MenuItem,
+  Tooltip,
+} from "@mui/material";
 import AppBar from "@mui/material/AppBar";
-import Button from "@mui/material/Button";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
@@ -85,7 +91,18 @@ export default function CustomAppBar(props: CustomAppBarProps) {
           <>
             <Tooltip title="account options">
               <IconButton onClick={handleUserMenuOpen}>
-                <Avatar>{props.user.username[0]}</Avatar>
+                {props.isUserProfilePhotoLoading ? (
+                  <Avatar>
+                    <CircularProgress />
+                  </Avatar>
+                ) : props.userProfilePhotoURL ? (
+                  <Avatar
+                    alt={props.user.username}
+                    src={props.userProfilePhotoURL}
+                  />
+                ) : (
+                  <Avatar>{props.user.username.charAt(0)}</Avatar>
+                )}
               </IconButton>
             </Tooltip>
             <Menu
