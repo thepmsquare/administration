@@ -12,6 +12,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import {
   Avatar,
+  Backdrop,
   Button,
   ButtonGroup,
   CircularProgress,
@@ -111,6 +112,9 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     openUserProfilePhotoRemoveDialog,
     setOpenUserProfilePhotoRemoveDialog,
   ] = React.useState(false);
+  // view profile photo
+  const [isPhotoBackdropVisible, setIsPhotoBackdropVisible] =
+    React.useState(false);
 
   // functions
   const checkForAccessToken = async () => {
@@ -529,7 +533,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             <CircularProgress />
           </Avatar>
         ) : userProfilePhotoURL ? (
-          <Avatar alt={pageState?.user.username} src={userProfilePhotoURL} />
+          <Avatar
+            alt={pageState?.user.username}
+            src={userProfilePhotoURL}
+            onClick={() => setIsPhotoBackdropVisible(true)}
+          />
         ) : (
           <Avatar>{pageState?.user.username.charAt(0)}</Avatar>
         )}
@@ -766,6 +774,23 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         confirmButtonColor="error"
         // isLoading={isRemoveAppLoading}
       />
+      {userProfilePhotoURL && (
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open={isPhotoBackdropVisible}
+          onClick={() => setIsPhotoBackdropVisible(false)}
+        >
+          <img
+            src={userProfilePhotoURL}
+            alt="Profile photo"
+            style={{
+              width: "85%",
+              height: "85%",
+              objectFit: "contain",
+            }}
+          />
+        </Backdrop>
+      )}
     </Page>
   );
 };
