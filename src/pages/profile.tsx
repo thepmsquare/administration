@@ -3,7 +3,12 @@ import "../stylesheets/profile.css";
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
-import { AlertDialog, PaginatedTable, PasswordInput } from "squarecomponents";
+import {
+  AlertDialog,
+  PaginatedTable,
+  PasswordInput,
+  UsernameInput,
+} from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { set, z } from "zod";
 
@@ -679,12 +684,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         <form onSubmit={updateUsername}>
           <DialogTitle id="alert-dialog-title">update username</DialogTitle>
           <DialogContent className="common-dialog-content">
-            <TextField
+            <UsernameInput
               value={updateUsernameNewUsername}
               onChange={(e) => setUpdateUsernameNewUsername(e.target.value)}
-              disabled={isUpdateUsernameLoading}
               label="enter new username"
-              required
+              uniqueIdForARIA="update-username"
+              variant="outlined"
+              others={{ required: true, disabled: isUpdateUsernameLoading }}
             />
           </DialogContent>
           <DialogActions>

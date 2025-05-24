@@ -2,7 +2,7 @@ import "../stylesheets/login.css";
 
 import { HeadFC, Link, navigate, PageProps } from "gatsby";
 import * as React from "react";
-import { PasswordInput } from "squarecomponents";
+import { PasswordInput, UsernameInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import { Button, TextField, Typography } from "@mui/material";
@@ -110,12 +110,13 @@ const LoginPage: React.FC<PageProps> = (props) => {
         login
       </Typography>
       <form className="common-form" onSubmit={handleLogin}>
-        <TextField
+        <UsernameInput
           value={username}
           onChange={(e) => changeUsername(e.target.value)}
           label="username"
+          uniqueIdForARIA="login-username"
           variant="outlined"
-          required
+          others={{ required: true }}
         />
         <PasswordInput
           value={password}
