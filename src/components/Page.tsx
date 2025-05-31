@@ -3,14 +3,17 @@ import "@fontsource-variable/outfit";
 import "../stylesheets/common.css";
 import "../stylesheets/components/page.css";
 
-import { createMaterialYouTheme } from "mui-create-material-you-theme";
 import * as React from "react";
 import { CustomSnackbar } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
 import { CircularProgress, Paper } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles";
+import {
+  createTheme,
+  StyledEngineProvider,
+  ThemeProvider,
+} from "@mui/material/styles";
 
 import localStorageKeysConfig from "../config/localStorageKeys";
 import uiConfig from "../config/ui";
@@ -99,11 +102,45 @@ const Page: React.FC<Props> = ({
       isMounted = false;
     };
   }, [user, changeSnackbarState]);
+  const currentTheme = createTheme({
+    typography: {
+      fontFamily: "Fraunces Variable",
 
-  const materialYouTheme = createMaterialYouTheme(themeState);
+      h1: {
+        fontFamily: "Outfit Variable",
+      },
+
+      h2: {
+        fontFamily: "Outfit Variable",
+      },
+
+      h3: {
+        fontFamily: "Outfit Variable",
+      },
+
+      h4: {
+        fontFamily: "Outfit Variable",
+      },
+
+      h5: {
+        fontFamily: "Outfit Variable",
+      },
+
+      h6: {
+        fontFamily: "Outfit Variable",
+      },
+
+      button: {
+        fontFamily: "Outfit Variable",
+      },
+    },
+    palette: {
+      mode: themeState,
+    },
+  });
 
   return (
-    <ThemeProvider theme={materialYouTheme}>
+    <ThemeProvider theme={currentTheme}>
       <StyledEngineProvider injectFirst>
         <CssBaseline />
         <CustomAppBar
