@@ -32,7 +32,7 @@
     "squareadministration": "^3.0.1",
     "squarecommonblhelper": "^5.2.1",
     "squarecommons": "^2.3.0",
-    "squarecomponents": "^1.10.2"
+    "squarecomponents": "^1.10.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
