@@ -164,7 +164,6 @@ const Page: React.FC<Props> = ({
             >
               {children}
             </Paper>
-            <div className="theme-toggle-container"></div>
             <CustomSnackbar
               snackbarState={snackbarState}
               changeSnackbarState={changeSnackbarState}
