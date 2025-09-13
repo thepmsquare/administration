@@ -136,8 +136,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username =
-        userDetailsResponse.data.main.profile.user_profile_username;
+      let username = userDetailsResponse.data.main.username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
       changeIsLoading(false);
@@ -258,7 +257,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
     try {
       setIsUpdatePasswordLoading(true);
-      await authenticationCommonBL.updatePasswordV0(
+      await authenticationAdministrationBL.updatePasswordV0(
         pageState.user.access_token,
         updatePasswordOldPassword,
         updatePasswordNewPassword

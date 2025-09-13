@@ -97,8 +97,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
       let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username =
-        userDetailsResponse.data.main.profile.user_profile_username;
+      let username = userDetailsResponse.data.main.username;
       let user_id = userDetailsResponse.data.main.user_id;
       let newState = { user: { user_id, username, access_token: accessToken } };
       changeIsLoading(false);
