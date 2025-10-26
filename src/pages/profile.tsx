@@ -20,6 +20,7 @@ import {
   Backdrop,
   Button,
   ButtonGroup,
+  Card,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -581,6 +582,39 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </Button>
         )}
       </div>
+      <Card>
+        {[
+          {
+            label: "name",
+            value:
+              `${userDetails?.profile.user_profile_first_name || ""} ${
+                userDetails?.profile.user_profile_last_name || ""
+              }`.trim() || "empty",
+          },
+          { label: "email", value: userDetails?.profile.user_profile_email },
+          {
+            label: "email_verified date",
+            value:
+              userDetails?.profile.user_profile_email_verified ||
+              "not verified",
+            condition: !!userDetails?.profile.user_profile_email,
+          },
+          {
+            label: "phone number",
+            value: userDetails?.profile.user_profile_phone_number
+              ? `${userDetails.profile.user_profile_phone_number_country_code}${userDetails.profile.user_profile_phone_number}`
+              : "empty",
+          },
+        ].map(
+          ({ label, value, condition = true }) =>
+            condition && (
+              <div key={label}>
+                {label}: {value || "empty"}
+              </div>
+            )
+        )}
+      </Card>
+
       <Typography variant="h5" component="h2">
         update password
       </Typography>
