@@ -73,6 +73,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     React.useState<boolean>(false);
   const [isRemoveAppDialogOpen, setIsRemoveAppDialogOpen] =
     React.useState<boolean>(false);
+  // misc profile details
+  const [isEditingProfile, setIsEditingProfile] =
+    React.useState<boolean>(false);
+
   // update username
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
@@ -583,35 +587,41 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         )}
       </div>
       <Card>
-        {[
-          {
-            label: "name",
-            value:
-              `${userDetails?.profile.user_profile_first_name || ""} ${
+        {isEditingProfile ? (
+          <>
+            <TextField
+              label="first name"
+              variant="outlined"
+              value={userDetails?.profile.user_profile_first_name}
+            />
+            <Button onClick={() => setIsEditingProfile(false)}>save</Button>
+          </>
+        ) : (
+          <>
+            <div>
+              name:{" "}
+              {`${userDetails?.profile.user_profile_first_name || ""} ${
                 userDetails?.profile.user_profile_last_name || ""
-              }`.trim() || "empty",
-          },
-          { label: "email", value: userDetails?.profile.user_profile_email },
-          {
-            label: "email_verified date",
-            value:
-              userDetails?.profile.user_profile_email_verified ||
-              "not verified",
-            condition: !!userDetails?.profile.user_profile_email,
-          },
-          {
-            label: "phone number",
-            value: userDetails?.profile.user_profile_phone_number
-              ? `${userDetails.profile.user_profile_phone_number_country_code}${userDetails.profile.user_profile_phone_number}`
-              : "empty",
-          },
-        ].map(
-          ({ label, value, condition = true }) =>
-            condition && (
-              <div key={label}>
-                {label}: {value || "empty"}
+              }`.trim() || "empty"}
+            </div>
+            <div>
+              email: {userDetails?.profile.user_profile_email || "empty"}
+            </div>
+            {!!userDetails?.profile.user_profile_email && (
+              <div>
+                email_verified:{" "}
+                {userDetails?.profile.user_profile_email_verified ||
+                  "not verified"}
               </div>
-            )
+            )}
+            <div>
+              phone number:{" "}
+              {userDetails?.profile.user_profile_phone_number
+                ? `${userDetails.profile.user_profile_phone_number_country_code}${userDetails.profile.user_profile_phone_number}`
+                : "empty"}
+            </div>
+            <Button onClick={() => setIsEditingProfile(true)}>Edit</Button>
+          </>
         )}
       </Card>
 
