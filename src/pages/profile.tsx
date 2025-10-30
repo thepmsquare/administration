@@ -495,9 +495,6 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setOpenUserProfilePhotoRemoveDialog(false);
   };
   // useEffect
-  React.useEffect(() => {
-    checkForAccessToken();
-  }, []);
 
   React.useEffect(() => {
     checkForAccessToken();
