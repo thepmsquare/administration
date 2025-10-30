@@ -76,7 +76,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   // misc profile details
   const [isEditingProfile, setIsEditingProfile] =
     React.useState<boolean>(false);
-
+  const [profileFormData, setProfileFormData] = React.useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    phoneCountryCode: "",
+  });
   // update username
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
@@ -494,6 +500,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const cancelProfilePhotoRemove = () => {
     setOpenUserProfilePhotoRemoveDialog(false);
   };
+
+  const handleProfileFieldChange =
+    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setProfileFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
   // useEffect
 
   React.useEffect(() => {
@@ -585,14 +596,55 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       </div>
       <Card>
         {isEditingProfile ? (
-          <>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setIsEditingProfile(false);
+            }}
+          >
             <TextField
               label="first name"
               variant="outlined"
-              value={userDetails?.profile.user_profile_first_name}
+              value={profileFormData.firstName}
+              onChange={handleProfileFieldChange("firstName")}
+              fullWidth
             />
-            <Button onClick={() => setIsEditingProfile(false)}>save</Button>
-          </>
+            <TextField
+              label="last name"
+              variant="outlined"
+              value={profileFormData.lastName}
+              onChange={handleProfileFieldChange("lastName")}
+              fullWidth
+            />
+            <TextField
+              label="email"
+              variant="outlined"
+              type="email"
+              value={profileFormData.email}
+              onChange={handleProfileFieldChange("email")}
+              fullWidth
+            />
+            <TextField
+              label="phone country code"
+              variant="outlined"
+              value={profileFormData.phoneCountryCode}
+              onChange={handleProfileFieldChange("phoneCountryCode")}
+              fullWidth
+            />
+            <TextField
+              label="phone number"
+              variant="outlined"
+              value={profileFormData.phoneNumber}
+              onChange={handleProfileFieldChange("phoneNumber")}
+              fullWidth
+            />
+            <Button type="button" onClick={() => setIsEditingProfile(false)}>
+              cancel
+            </Button>
+            <Button color="primary" type="submit">
+              save
+            </Button>
+          </form>
         ) : (
           <>
             <div>
@@ -617,7 +669,24 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 ? `${userDetails.profile.user_profile_phone_number_country_code}${userDetails.profile.user_profile_phone_number}`
                 : "empty"}
             </div>
-            <Button onClick={() => setIsEditingProfile(true)}>Edit</Button>
+            <Button
+              onClick={() => {
+                setProfileFormData({
+                  firstName: userDetails?.profile.user_profile_first_name || "",
+                  lastName: userDetails?.profile.user_profile_last_name || "",
+                  email: userDetails?.profile.user_profile_email || "",
+                  phoneNumber:
+                    userDetails?.profile.user_profile_phone_number || "",
+                  phoneCountryCode:
+                    userDetails?.profile
+                      .user_profile_phone_number_country_code || "",
+                });
+                setIsEditingProfile(true);
+                setIsEditingProfile(true);
+              }}
+            >
+              Edit
+            </Button>
           </>
         )}
       </Card>
