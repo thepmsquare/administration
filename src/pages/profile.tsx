@@ -505,6 +505,49 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setProfileFormData((prev) => ({ ...prev, [field]: e.target.value }));
     };
+  const handleProfileFieldSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!pageState) {
+      return;
+    }
+
+    try {
+      const response = await authenticationCommonBL.updateProfileDetailsV0(
+        pageState.user.access_token,
+        profileFormData.firstName || undefined,
+        profileFormData.lastName || undefined,
+        profileFormData.email || undefined,
+        profileFormData.phoneCountryCode || undefined,
+        profileFormData.phoneNumber || undefined
+      );
+
+      if (response.data.main[0]) {
+        setUserDetails((prev) =>
+          prev
+            ? {
+                ...prev,
+                profile: response.data.main[0],
+              }
+            : null
+        );
+      }
+
+      changeSnackbarState({
+        isOpen: true,
+        message: "Profile updated successfully.",
+        severity: "success",
+      });
+
+      setIsEditingProfile(false);
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
   // useEffect
 
   React.useEffect(() => {
@@ -596,12 +639,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       </div>
       <Card>
         {isEditingProfile ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setIsEditingProfile(false);
-            }}
-          >
+          <form onSubmit={handleProfileFieldSave}>
             <TextField
               label="first name"
               variant="outlined"
