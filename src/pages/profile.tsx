@@ -50,7 +50,6 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   } catch (e) {
     state = null;
   }
-
   // state
   const [snackbarState, changeSnackbarState] =
     React.useState<CustomSnackbarStateType>({
@@ -67,6 +66,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     React.useState<boolean>(false);
   const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
     React.useState<boolean>(false);
+
   // remove app
   const [removeAppPassword, setRemoveAppPassword] = React.useState<string>("");
   const [isRemoveAppLoading, setIsRemoveAppLoading] =
@@ -637,7 +637,9 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </Button>
         )}
       </div>
-      <Card>
+      <Card
+        sx={{ padding: 2, display: "flex", flexDirection: "column", gap: 2 }}
+      >
         {isEditingProfile ? (
           <form onSubmit={handleProfileFieldSave}>
             <TextField
