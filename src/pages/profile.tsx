@@ -730,6 +730,18 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </>
         )}
       </Card>
+      <Card>
+        <Typography variant="h5" component="h2">
+          account recovery methods
+        </Typography>
+        {Object.entries(userDetails?.recovery_methods || {}).map(
+          ([name, isVerified], index) => (
+            <div key={index}>
+              {name}: {isVerified ? "verified" : "not verified"}
+            </div>
+          )
+        )}
+      </Card>
 
       <Typography variant="h5" component="h2">
         update password
