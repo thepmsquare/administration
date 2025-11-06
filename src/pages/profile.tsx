@@ -548,6 +548,27 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+  const handleSendVerificationEmail = async () => {
+    if (!pageState) {
+      return;
+    }
+    try {
+      await authenticationCommonBL.sendVerificationEmailV0(
+        pageState.user.access_token
+      );
+      changeSnackbarState({
+        isOpen: true,
+        message: "verification email sent successfully.",
+        severity: "success",
+      });
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
   // useEffect
 
   React.useEffect(() => {
@@ -730,6 +751,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           </>
         )}
       </Card>
+      {userDetails?.profile.user_profile_email &&
+        !userDetails?.profile.user_profile_email_verified && (
+          <Button onClick={handleSendVerificationEmail}>
+            Send verification email
+          </Button>
+        )}
       <Card>
         <Typography variant="h5" component="h2">
           account recovery methods
