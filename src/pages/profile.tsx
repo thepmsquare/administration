@@ -83,6 +83,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     phoneNumber: "",
     phoneCountryCode: "",
   });
+  const [emailVerificationCode, setEmailVerificationCode] =
+    React.useState<string>("");
   // update username
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
@@ -556,6 +558,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       await authenticationCommonBL.sendVerificationEmailV0(
         pageState.user.access_token
       );
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+        pageState.user.access_token
+      );
+
+      setUserDetails(userDetailsResponse.data.main);
+
       changeSnackbarState({
         isOpen: true,
         message: "verification email sent successfully.",
@@ -569,6 +577,35 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
+  const handleEmailVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pageState) {
+      return;
+    }
+    try {
+      await authenticationCommonBL.validateEmailVerificationCodeV0(
+        pageState.user.access_token,
+        emailVerificationCode
+      );
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+        pageState.user.access_token
+      );
+      setUserDetails(userDetailsResponse.data.main);
+      changeSnackbarState({
+        isOpen: true,
+        message: "email verified successfully.",
+        severity: "success",
+      });
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as any).message,
+        severity: "error",
+      });
+    }
+  };
+
   // useEffect
 
   React.useEffect(() => {
@@ -753,9 +790,22 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       </Card>
       {userDetails?.profile.user_profile_email &&
         !userDetails?.profile.user_profile_email_verified && (
-          <Button onClick={handleSendVerificationEmail}>
-            Send verification email
-          </Button>
+          <>
+            {userDetails.email_verification_details ? (
+              <form onSubmit={handleEmailVerificationSubmit}>
+                <TextField
+                  required
+                  value={emailVerificationCode}
+                  onChange={(e) => setEmailVerificationCode(e.target.value)}
+                />
+                <Button type="submit">submit</Button>
+              </form>
+            ) : (
+              <Button onClick={handleSendVerificationEmail}>
+                Send verification email
+              </Button>
+            )}
+          </>
         )}
       <Card>
         <Typography variant="h5" component="h2">
