@@ -10,7 +10,7 @@ import {
   UsernameInput,
 } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
-import { set, z } from "zod";
+import { z } from "zod";
 
 import { Edit } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
