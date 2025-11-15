@@ -5,7 +5,7 @@ import * as React from "react";
 import { PasswordInput, UsernameInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -102,7 +102,7 @@ const LoginPage: React.FC<PageProps> = (props) => {
       nullifyPageStateFunction={nullifyPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
-      className="register-page"
+      className="login-page"
       isLoading={isLoading}
     >
       <Typography variant="h4" component="h1">
