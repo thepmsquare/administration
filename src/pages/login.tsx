@@ -85,6 +85,9 @@ const LoginPage: React.FC<PageProps> = (props) => {
   const nullifyPageState = () => {
     setPageState(null);
   };
+  const navigateToForgotPassword = async () => {
+    await navigate("/forgotPassword", { state: { username } });
+  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -125,6 +128,9 @@ const LoginPage: React.FC<PageProps> = (props) => {
           variant="outlined"
           others={{ required: true }}
         />
+        <Button color="inherit" onClick={navigateToForgotPassword}>
+          forgot password?
+        </Button>
 
         <div className="login-form-action">
           <Button color="inherit">
