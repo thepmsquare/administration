@@ -26,6 +26,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     state = IndexStateZ.parse(location.state);
   } catch (e) {
     state = null;
+    console.log("error parsing page state: ", e);
   }
 
   // state
@@ -45,19 +46,15 @@ const IndexPage: React.FC<PageProps> = (props) => {
   const [isLoadingGreetings, changeIsLoadingGreetings] =
     React.useState<boolean>(false);
   const [isLoading, changeIsLoading] = React.useState<boolean>(true);
+
   // functions
-  const getGreetings = async () => {
+  const getGreetings = React.useCallback(async () => {
     if (!pageState) {
       changeGreetings([]);
       changeGreetingsCount(0);
       return;
     }
-    await getGreetingsWithState();
-  };
-  const getGreetingsWithState = async () => {
-    if (!pageState) {
-      return;
-    }
+
     changeIsLoadingGreetings(true);
     try {
       const response = await coreAdministrationBL.getAllGreetingsV0(
@@ -75,37 +72,18 @@ const IndexPage: React.FC<PageProps> = (props) => {
         message: "Failed to load greetings.",
         severity: "error",
       });
+      changeGreetings([]);
+      changeGreetingsCount(0);
     } finally {
       changeIsLoadingGreetings(false);
     }
-  };
+  }, [pageState, pageSize, currentPage]);
+
   const handleChangePage = (
     _: React.MouseEvent<HTMLButtonElement> | null,
     value: number
   ) => {
     changeCurrentPage(value);
-  };
-  const checkForAccessToken = async () => {
-    if (pageState) {
-      changeIsLoading(false);
-      return;
-    }
-    try {
-      let accessTokenResponse =
-        await authenticationAdministrationBL.generateAccessTokenV0();
-      let accessToken = accessTokenResponse.data.main.access_token;
-      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        accessToken
-      );
-      let username = userDetailsResponse.data.main.username;
-      let user_id = userDetailsResponse.data.main.user_id;
-      let newState = { user: { user_id, username, access_token: accessToken } };
-      changeIsLoading(false);
-      setPageState(newState);
-    } catch (e) {
-      console.log("user not logged in.");
-      changeIsLoading(false);
-    }
   };
 
   const nullifyPageState = () => {
@@ -114,19 +92,39 @@ const IndexPage: React.FC<PageProps> = (props) => {
 
   // useEffect
   React.useEffect(() => {
+    const checkForAccessToken = async () => {
+      if (pageState) {
+        changeIsLoading(false);
+        return;
+      }
+      try {
+        const accessTokenResponse =
+          await authenticationAdministrationBL.generateAccessTokenV0();
+        const accessToken = accessTokenResponse.data.main.access_token;
+        const userDetailsResponse =
+          await authenticationCommonBL.getUserDetailsV0(accessToken);
+        const username = userDetailsResponse.data.main.username;
+        const user_id = userDetailsResponse.data.main.user_id;
+        const newState = {
+          user: { user_id, username, access_token: accessToken },
+        };
+        changeIsLoading(false);
+        setPageState(newState);
+      } catch (e) {
+        console.log("user not logged in. ", e);
+        changeIsLoading(false);
+      }
+    };
+
     checkForAccessToken();
   }, []);
 
   React.useEffect(() => {
     getGreetings();
-  }, [pageState]);
-
-  React.useEffect(() => {
-    getGreetings();
-  }, [currentPage]);
+  }, [getGreetings]);
 
   // misc
-  let display_rows = greetings.map((row) => {
+  const display_rows = greetings.map((row) => {
     return {
       date: new Date(row.greeting_datetime).toLocaleDateString(),
       time: new Date(row.greeting_datetime).toLocaleTimeString(),
@@ -134,6 +132,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
       greeting: row.greeting_text,
     };
   });
+
   return (
     <Page
       className="index-page"
