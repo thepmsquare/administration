@@ -22,6 +22,7 @@ import { authenticationCommonBL } from "../utils/initialiser";
 import CustomAppBar from "./CustomAppBar";
 
 const isBrowser = typeof window !== "undefined";
+
 type Props = {
   children: React.ReactNode;
   className?: string;
@@ -34,6 +35,17 @@ type Props = {
   isLoading?: boolean;
 };
 
+const getInitialThemeState = (): ThemeState => {
+  if (!isBrowser) return uiConfig.defaultThemeState;
+  const storedTheme = window.localStorage.getItem(localStorageKeysConfig.theme);
+  if (storedTheme !== null) return storedTheme === "dark" ? "dark" : "light";
+  window.localStorage.setItem(
+    localStorageKeysConfig.theme,
+    uiConfig.defaultThemeState
+  );
+  return uiConfig.defaultThemeState;
+};
+
 const Page: React.FC<Props> = ({
   children,
   className,
@@ -43,101 +55,122 @@ const Page: React.FC<Props> = ({
   snackbarState,
   isLoading = false,
 }) => {
-  const defaultThemeState = React.useMemo<ThemeState>(() => {
-    if (!isBrowser) return uiConfig.defaultThemeState;
-    const storedTheme = window.localStorage.getItem(
-      localStorageKeysConfig.theme
-    );
-    if (storedTheme !== null) return storedTheme === "dark" ? "dark" : "light";
-    window.localStorage.setItem(
-      localStorageKeysConfig.theme,
-      uiConfig.defaultThemeState
-    );
-    return uiConfig.defaultThemeState;
-  }, []);
-
-  const [themeState, changeThemeState] = React.useState(defaultThemeState);
+  const [themeState, changeThemeState] = React.useState(getInitialThemeState);
   const [userProfilePhotoURL, setUserProfilePhotoURL] = React.useState<
     string | null
   >(null);
   const [isUserProfilePhotoLoading, setIsUserProfilePhotoLoading] =
     React.useState<boolean>(false);
 
-  const customChangeThemeState = (newThemeState: ThemeState) => {
-    changeThemeState(newThemeState);
-    if (isBrowser) {
-      window.localStorage.setItem(localStorageKeysConfig.theme, newThemeState);
-    }
-  };
+  const customChangeThemeState = React.useCallback(
+    (newThemeState: ThemeState) => {
+      changeThemeState(newThemeState);
+      if (isBrowser) {
+        window.localStorage.setItem(
+          localStorageKeysConfig.theme,
+          newThemeState
+        );
+      }
+    },
+    []
+  );
 
   React.useEffect(() => {
-    let isMounted = true;
+    const abortController = new AbortController();
+
     const getUserProfilePhoto = async () => {
-      if (!user) return;
+      if (!user) {
+        setUserProfilePhotoURL(null);
+        return;
+      }
+
       try {
         setIsUserProfilePhotoLoading(true);
         const userDetailsResponse =
           await authenticationCommonBL.getUserProfilePhotoV0(user.access_token);
+
+        if (abortController.signal.aborted) return;
+
         if (
-          isMounted &&
           userDetailsResponse instanceof Blob &&
           userDetailsResponse.size > 0
         ) {
-          setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
+          const url = URL.createObjectURL(userDetailsResponse);
+          setUserProfilePhotoURL(url);
+        } else {
+          setUserProfilePhotoURL(null);
         }
       } catch (error) {
-        if (isMounted) {
-          changeSnackbarState({
-            isOpen: true,
-            message: (error as any).message,
-            severity: "error",
-          });
-        }
+        if (abortController.signal.aborted) return;
+
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "failed to load profile photo";
+        changeSnackbarState({
+          isOpen: true,
+          message: errorMessage,
+          severity: "error",
+        });
+        setUserProfilePhotoURL(null);
       } finally {
-        if (isMounted) setIsUserProfilePhotoLoading(false);
+        if (!abortController.signal.aborted) {
+          setIsUserProfilePhotoLoading(false);
+        }
       }
     };
+
     getUserProfilePhoto();
+
     return () => {
-      isMounted = false;
+      abortController.abort();
+      // Cleanup blob URL to prevent memory leak
+      if (userProfilePhotoURL) {
+        URL.revokeObjectURL(userProfilePhotoURL);
+      }
     };
   }, [user, changeSnackbarState]);
-  const currentTheme = createTheme({
-    typography: {
-      fontFamily: "Fraunces Variable",
 
-      h1: {
-        fontFamily: "Outfit Variable",
-      },
+  const currentTheme = React.useMemo(
+    () =>
+      createTheme({
+        typography: {
+          fontFamily: "Fraunces Variable",
 
-      h2: {
-        fontFamily: "Outfit Variable",
-      },
+          h1: {
+            fontFamily: "Outfit Variable",
+          },
 
-      h3: {
-        fontFamily: "Outfit Variable",
-      },
+          h2: {
+            fontFamily: "Outfit Variable",
+          },
 
-      h4: {
-        fontFamily: "Outfit Variable",
-      },
+          h3: {
+            fontFamily: "Outfit Variable",
+          },
 
-      h5: {
-        fontFamily: "Outfit Variable",
-      },
+          h4: {
+            fontFamily: "Outfit Variable",
+          },
 
-      h6: {
-        fontFamily: "Outfit Variable",
-      },
+          h5: {
+            fontFamily: "Outfit Variable",
+          },
 
-      button: {
-        fontFamily: "Outfit Variable",
-      },
-    },
-    palette: {
-      mode: themeState,
-    },
-  });
+          h6: {
+            fontFamily: "Outfit Variable",
+          },
+
+          button: {
+            fontFamily: "Outfit Variable",
+          },
+        },
+        palette: {
+          mode: themeState,
+        },
+      }),
+    [themeState]
+  );
 
   return (
     <ThemeProvider theme={currentTheme}>
