@@ -27,7 +27,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     React.useState<null | HTMLElement>(null);
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] =
     React.useState<boolean>(false);
-  let handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       if (!props.user) {
         return;
@@ -40,36 +40,38 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     } catch (error) {
       props.changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
   };
-  let handleProfileNavigation = () => {
+  const handleProfileNavigation = () => {
     if (!props.user) {
       return;
     }
     navigate("/profile", { state: { user: props.user } });
   };
-  let handleNonUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleNonUserMenuOpen = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     setNonUserMenuAnchor(event.currentTarget);
   };
-  let handleNonUserMenuClose = () => {
+  const handleNonUserMenuClose = () => {
     setNonUserMenuAnchor(null);
   };
-  let handleUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setUserMenuAnchor(event.currentTarget);
   };
-  let handleUserMenuClose = () => {
+  const handleUserMenuClose = () => {
     setUserMenuAnchor(null);
   };
-  let handleLogoutMenuOpen = () => {
+  const handleLogoutMenuOpen = () => {
     setIsLogoutAlertOpen(true);
   };
-  let handleLogoutMenuClose = () => {
+  const handleLogoutMenuClose = () => {
     setIsLogoutAlertOpen(false);
   };
-  let handleLogoutMenuSuccess = () => {
+  const handleLogoutMenuSuccess = () => {
     handleLogout();
     setIsLogoutAlertOpen(false);
   };
