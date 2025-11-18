@@ -9,7 +9,8 @@ import { Button, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
-import { LoginState, LoginStateZ } from "../types/pages/Login";
+import { ForgotPasswordStateZ } from "../types/pages/ForgotPassword";
+import { IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
   authenticationCommonBL,
@@ -17,17 +18,8 @@ import {
 
 export const Head: HeadFC = () => <title>{brandConfig.appName} | login</title>;
 
-const LoginPage: React.FC<PageProps> = (props) => {
-  const { location } = props;
-  let state: LoginState | null = null;
-  try {
-    state = LoginStateZ.parse(location.state);
-  } catch (e) {
-    state = null;
-    console.log("error parsing page state: ", e);
-  }
+const LoginPage: React.FC<PageProps> = () => {
   // state
-  const [pageState, setPageState] = React.useState<LoginState | null>(state);
   const [snackbarState, changeSnackbarState] =
     React.useState<CustomSnackbarStateType>({
       isOpen: false,
@@ -39,7 +31,6 @@ const LoginPage: React.FC<PageProps> = (props) => {
   const [password, changePassword] = React.useState<string>("");
 
   // functions
-
   const handleLogin: React.FormEventHandler = async (e) => {
     e.preventDefault();
     try {
@@ -48,9 +39,14 @@ const LoginPage: React.FC<PageProps> = (props) => {
         password
       );
 
-      await navigate("/", {
-        state: { user: { ...response["data"]["main"], username } },
+      const indexState = IndexStateZ.parse({
+        user: {
+          ...response["data"]["main"],
+          username,
+        },
       });
+
+      await navigate("/", { state: indexState });
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
@@ -61,51 +57,54 @@ const LoginPage: React.FC<PageProps> = (props) => {
   };
 
   const checkForAccessToken = async () => {
-    if (pageState) {
-      changeIsLoading(false);
-      await navigate("/", { state: pageState });
-    }
     try {
       const accessTokenResponse =
         await authenticationAdministrationBL.generateAccessTokenV0();
       const accessToken = accessTokenResponse.data.main.access_token;
+
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
       const username = userDetailsResponse.data.main.username;
       const user_id = userDetailsResponse.data.main.user_id;
-      const newState = {
-        user: { user_id, username, access_token: accessToken },
-      };
-      changeIsLoading(false);
-      setPageState(newState);
-    } catch (e) {
-      console.log("user not logged in.", e);
+
+      // Validate before navigating
+      const indexState = IndexStateZ.parse({
+        user: {
+          user_id,
+          username,
+          access_token: accessToken,
+        },
+      });
+
+      await navigate("/", { state: indexState });
+    } catch {
+      // User not logged in OR validation failed
+      console.log("user not logged in or invalid response.");
+    } finally {
       changeIsLoading(false);
     }
   };
 
-  const nullifyPageState = () => {
-    setPageState(null);
-  };
   const navigateToForgotPassword = async () => {
-    await navigate("/forgotPassword", { state: { username } });
+    const forgotPasswordState = ForgotPasswordStateZ.parse({
+      user: {
+        username,
+      },
+    });
+    await navigate("/forgotPassword", { state: forgotPasswordState });
   };
+
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
   }, []);
-  React.useEffect(() => {
-    if (pageState) {
-      navigate("/", { state: pageState });
-    }
-  }, [pageState]);
-  // misc
 
+  // render
   return (
     <Page
-      user={pageState?.user}
-      nullifyPageStateFunction={nullifyPageState}
+      user={undefined}
+      nullifyPageStateFunction={() => {}}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       className="login-page"

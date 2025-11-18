@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-import { UserZ } from "../Common";
-
-const LoginStateZ = z.object({
-  user: UserZ,
-});
+const LoginStateZ = z.object({});
 
 type LoginState = z.infer<typeof LoginStateZ>;
 
