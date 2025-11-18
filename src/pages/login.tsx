@@ -24,6 +24,7 @@ const LoginPage: React.FC<PageProps> = (props) => {
     state = LoginStateZ.parse(location.state);
   } catch (e) {
     state = null;
+    console.log("error parsing page state: ", e);
   }
   // state
   const [pageState, setPageState] = React.useState<LoginState | null>(state);
@@ -42,7 +43,7 @@ const LoginPage: React.FC<PageProps> = (props) => {
   const handleLogin: React.FormEventHandler = async (e) => {
     e.preventDefault();
     try {
-      let response = await authenticationAdministrationBL.loginUsernameV0(
+      const response = await authenticationAdministrationBL.loginUsernameV0(
         username,
         password
       );
@@ -53,7 +54,7 @@ const LoginPage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -65,19 +66,21 @@ const LoginPage: React.FC<PageProps> = (props) => {
       await navigate("/", { state: pageState });
     }
     try {
-      let accessTokenResponse =
+      const accessTokenResponse =
         await authenticationAdministrationBL.generateAccessTokenV0();
-      let accessToken = accessTokenResponse.data.main.access_token;
-      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+      const accessToken = accessTokenResponse.data.main.access_token;
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username = userDetailsResponse.data.main.username;
-      let user_id = userDetailsResponse.data.main.user_id;
-      let newState = { user: { user_id, username, access_token: accessToken } };
+      const username = userDetailsResponse.data.main.username;
+      const user_id = userDetailsResponse.data.main.user_id;
+      const newState = {
+        user: { user_id, username, access_token: accessToken },
+      };
       changeIsLoading(false);
       setPageState(newState);
     } catch (e) {
-      console.log("user not logged in.");
+      console.log("user not logged in.", e);
       changeIsLoading(false);
     }
   };
