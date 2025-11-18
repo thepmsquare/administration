@@ -18,6 +18,7 @@ import Typography from "@mui/material/Typography";
 
 import brandConfig from "../config/brand";
 import { CustomAppBarProps } from "../types/components/CustomAppBar";
+import { ProfileStateZ } from "../types/pages/Profile";
 import { authenticationAdministrationBL } from "../utils/initialiser";
 
 export default function CustomAppBar(props: CustomAppBarProps) {
@@ -49,7 +50,8 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     if (!props.user) {
       return;
     }
-    navigate("/profile", { state: { user: props.user } });
+    const profileState = ProfileStateZ.parse({ user: props.user });
+    navigate("/profile", { state: profileState });
   };
   const handleNonUserMenuOpen = (
     event: React.MouseEvent<HTMLButtonElement>
