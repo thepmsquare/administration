@@ -9,7 +9,7 @@ import { Button, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
-import { RegisterState, RegisterStateZ } from "../types/pages/Register";
+import { IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
   authenticationCommonBL,
@@ -19,17 +19,8 @@ export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | register</title>
 );
 
-const RegisterPage: React.FC<PageProps> = (props) => {
-  const { location } = props;
-  let state: RegisterState | null = null;
-  try {
-    state = RegisterStateZ.parse(location.state);
-  } catch {
-    state = null;
-  }
-
+const RegisterPage: React.FC<PageProps> = () => {
   // state
-  const [pageState, setPageState] = React.useState<RegisterState | null>(state);
   const [snackbarState, changeSnackbarState] =
     React.useState<CustomSnackbarStateType>({
       isOpen: false,
@@ -37,6 +28,7 @@ const RegisterPage: React.FC<PageProps> = (props) => {
       severity: "error",
     });
   const [isLoading, changeIsLoading] = React.useState<boolean>(true);
+  const [isSubmitting, changeIsSubmitting] = React.useState<boolean>(false);
   const [username, changeUsername] = React.useState<string>("");
   const [password, changePassword] = React.useState<string>("");
   const [confirmPassword, changeConfirmPassword] = React.useState<string>("");
@@ -46,6 +38,11 @@ const RegisterPage: React.FC<PageProps> = (props) => {
 
   const handleRegister: React.FormEventHandler = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
+
+    changeIsSubmitting(true);
+
     try {
       if (password !== confirmPassword) {
         throw new Error("password and confirm password fields do not match.");
@@ -56,59 +53,66 @@ const RegisterPage: React.FC<PageProps> = (props) => {
         adminPassword
       );
 
-      await navigate("/", { state: { user: response["data"]["main"] } });
+      const indexPageState = IndexStateZ.parse({
+        user: {
+          username: response.data.main.username,
+          user_id: response.data.main.user_id,
+          access_token: response.data.main.access_token,
+        },
+      });
+      await navigate("/", { state: indexPageState });
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      changeIsSubmitting(false);
     }
   };
+
   const checkForAccessToken = async () => {
-    if (pageState) {
-      changeIsLoading(false);
-      await navigate("/", { state: pageState });
-    }
     try {
       const accessTokenResponse =
         await authenticationAdministrationBL.generateAccessTokenV0();
       const accessToken = accessTokenResponse.data.main.access_token;
+
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
       const username = userDetailsResponse.data.main.username;
       const user_id = userDetailsResponse.data.main.user_id;
-      const newState = {
-        user: { user_id, username, access_token: accessToken },
-      };
-      changeIsLoading(false);
-      setPageState(newState);
+
+      // Validate before navigating
+      const indexState = IndexStateZ.parse({
+        user: {
+          user_id,
+          username,
+          access_token: accessToken,
+        },
+      });
+
+      await navigate("/", { state: indexState });
     } catch {
-      console.log("user not logged in.");
+      // User not logged in OR validation failed
+      console.log("user not logged in or invalid response.");
+    } finally {
       changeIsLoading(false);
     }
-  };
-
-  const nullifyPageState = () => {
-    setPageState(null);
   };
 
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
   }, []);
-  React.useEffect(() => {
-    if (pageState) {
-      navigate("/", { state: pageState });
-    }
-  }, [pageState]);
+
   // misc
 
   return (
     <Page
-      user={pageState?.user}
-      nullifyPageStateFunction={nullifyPageState}
+      user={undefined}
+      nullifyPageStateFunction={() => {}}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       className="register-page"
@@ -124,7 +128,7 @@ const RegisterPage: React.FC<PageProps> = (props) => {
           label="username"
           uniqueIdForARIA="register-username"
           variant="outlined"
-          others={{ required: true }}
+          others={{ required: true, disabled: isSubmitting }}
         />
         <PasswordInput
           value={password}
@@ -132,7 +136,7 @@ const RegisterPage: React.FC<PageProps> = (props) => {
           uniqueIdForARIA="register-password"
           label="password"
           variant="outlined"
-          others={{ required: true }}
+          others={{ required: true, disabled: isSubmitting }}
         />
         <PasswordInput
           value={confirmPassword}
@@ -140,7 +144,11 @@ const RegisterPage: React.FC<PageProps> = (props) => {
           uniqueIdForARIA="confirm-register-password"
           label="confirm password"
           variant="outlined"
-          others={{ required: true }}
+          others={{
+            required: true,
+            disabled: isSubmitting,
+            error: confirmPassword.length > 0 && password !== confirmPassword,
+          }}
         />
         <PasswordInput
           value={adminPassword}
@@ -148,14 +156,14 @@ const RegisterPage: React.FC<PageProps> = (props) => {
           uniqueIdForARIA="register-admin-password"
           label="admin password"
           variant="outlined"
-          others={{ required: true }}
+          others={{ required: true, disabled: isSubmitting }}
         />
         <div className="register-form-action">
-          <Button color="inherit">
+          <Button color="inherit" disabled={isSubmitting}>
             <Link to="/">cancel</Link>
           </Button>
-          <Button type="submit" variant="contained">
-            submit
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
+            {isSubmitting ? "submitting..." : "submit"}
           </Button>
         </div>
       </form>
