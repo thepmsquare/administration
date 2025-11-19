@@ -5,7 +5,7 @@ import * as React from "react";
 import { PasswordInput, UsernameInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -24,7 +24,7 @@ const RegisterPage: React.FC<PageProps> = (props) => {
   let state: RegisterState | null = null;
   try {
     state = RegisterStateZ.parse(location.state);
-  } catch (e) {
+  } catch {
     state = null;
   }
 
@@ -50,7 +50,7 @@ const RegisterPage: React.FC<PageProps> = (props) => {
       if (password !== confirmPassword) {
         throw new Error("password and confirm password fields do not match.");
       }
-      let response = await authenticationAdministrationBL.registerUsernameV0(
+      const response = await authenticationAdministrationBL.registerUsernameV0(
         username,
         password,
         adminPassword
@@ -60,7 +60,7 @@ const RegisterPage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -71,18 +71,20 @@ const RegisterPage: React.FC<PageProps> = (props) => {
       await navigate("/", { state: pageState });
     }
     try {
-      let accessTokenResponse =
+      const accessTokenResponse =
         await authenticationAdministrationBL.generateAccessTokenV0();
-      let accessToken = accessTokenResponse.data.main.access_token;
-      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+      const accessToken = accessTokenResponse.data.main.access_token;
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username = userDetailsResponse.data.main.username;
-      let user_id = userDetailsResponse.data.main.user_id;
-      let newState = { user: { user_id, username, access_token: accessToken } };
+      const username = userDetailsResponse.data.main.username;
+      const user_id = userDetailsResponse.data.main.user_id;
+      const newState = {
+        user: { user_id, username, access_token: accessToken },
+      };
       changeIsLoading(false);
       setPageState(newState);
-    } catch (e) {
+    } catch {
       console.log("user not logged in.");
       changeIsLoading(false);
     }
