@@ -15,6 +15,7 @@ import {
   ForgotPasswordState,
   ForgotPasswordStateZ,
 } from "../types/pages/ForgotPassword";
+import { IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
   authenticationCommonBL,
@@ -29,13 +30,11 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   let state: ForgotPasswordState | null = null;
   try {
     state = ForgotPasswordStateZ.parse(location.state);
-  } catch (e) {
+  } catch {
     state = null;
   }
   // state
-  const [pageState, setPageState] = React.useState<ForgotPasswordState | null>(
-    state
-  );
+
   const [username, setUsername] = React.useState<string>(
     state && state.username ? state.username : ""
   );
@@ -53,7 +52,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const getRecoveryMethods = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let recoveryMethodsResponse =
+      const recoveryMethodsResponse =
         await authenticationCommonBL.getUserRecoveryMethodsV0(username);
       changeSnackbarState({
         isOpen: true,
@@ -64,33 +63,32 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     } catch (e) {
       changeSnackbarState({
         isOpen: true,
-        message: (e as any).message,
+        message: (e as Error).message,
         severity: "error",
       });
     }
   };
   const checkForAccessToken = async () => {
     try {
-      let accessTokenResponse =
+      const accessTokenResponse =
         await authenticationAdministrationBL.generateAccessTokenV0();
-      let accessToken = accessTokenResponse.data.main.access_token;
-      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+      const accessToken = accessTokenResponse.data.main.access_token;
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username = userDetailsResponse.data.main.username;
-      let user_id = userDetailsResponse.data.main.user_id;
-      let newState = { user: { user_id, username, access_token: accessToken } };
+      const username = userDetailsResponse.data.main.username;
+      const user_id = userDetailsResponse.data.main.user_id;
+      const newState = IndexStateZ.parse({
+        user: { user_id, username, access_token: accessToken },
+      });
       changeIsLoading(false);
       await navigate("/", { state: newState });
-    } catch (e) {
+    } catch {
       console.log("user not logged in.");
       changeIsLoading(false);
     }
   };
 
-  const nullifyPageState = () => {
-    setPageState(null);
-  };
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -101,7 +99,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   return (
     <Page
       user={undefined}
-      nullifyPageStateFunction={nullifyPageState}
+      nullifyPageStateFunction={() => {}}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       className="register-page"
