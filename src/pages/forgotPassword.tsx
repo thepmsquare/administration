@@ -7,7 +7,7 @@ import { UsernameInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { z } from "zod";
 
-import { Button, Typography } from "@mui/material";
+import { Button, CircularProgress, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -33,8 +33,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   } catch {
     state = null;
   }
-  // state
 
+  // state
   const [username, setUsername] = React.useState<string>(
     state && state.username ? state.username : ""
   );
@@ -45,29 +45,47 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       severity: "error",
     });
   const [isLoading, changeIsLoading] = React.useState<boolean>(true);
+  const [isFetchingRecovery, setIsFetchingRecovery] =
+    React.useState<boolean>(false);
   const [recoveryMethods, setRecoveryMethods] = React.useState<z.infer<
     typeof GetUserRecoveryMethodsV0ResponseZ.shape.data.shape.main
   > | null>(null);
-  // functions
+
+  // Ref to track component mount status
+  const isMountedRef = React.useRef<boolean>(true);
+
+  // Functions
   const getRecoveryMethods = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setIsFetchingRecovery(true);
     try {
       const recoveryMethodsResponse =
         await authenticationCommonBL.getUserRecoveryMethodsV0(username);
-      changeSnackbarState({
-        isOpen: true,
-        message: "recovery methods fetched successfully.",
-        severity: "success",
-      });
-      setRecoveryMethods(recoveryMethodsResponse.data.main);
+
+      if (isMountedRef.current) {
+        changeSnackbarState({
+          isOpen: true,
+          message: "recovery methods fetched successfully.",
+          severity: "success",
+        });
+        setRecoveryMethods(recoveryMethodsResponse.data.main);
+      }
     } catch (e) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (e as Error).message,
-        severity: "error",
-      });
+      if (isMountedRef.current) {
+        changeSnackbarState({
+          isOpen: true,
+          message: (e as Error).message,
+          severity: "error",
+        });
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsFetchingRecovery(false);
+      }
     }
   };
+
   const checkForAccessToken = async () => {
     try {
       const accessTokenResponse =
@@ -81,20 +99,28 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       const newState = IndexStateZ.parse({
         user: { user_id, username, access_token: accessToken },
       });
-      changeIsLoading(false);
-      await navigate("/", { state: newState });
+
+      if (isMountedRef.current) {
+        changeIsLoading(false);
+        await navigate("/", { state: newState });
+      }
     } catch {
-      console.log("user not logged in.");
-      changeIsLoading(false);
+      console.log("user not logged in:");
+      if (isMountedRef.current) {
+        changeIsLoading(false);
+      }
     }
   };
 
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
-  }, []);
 
-  // misc
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   return (
     <Page
@@ -102,44 +128,60 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       nullifyPageStateFunction={() => {}}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
-      className="register-page"
+      className="forgot-password-page"
       isLoading={isLoading}
     >
       <Typography variant="h4" component="h1">
         forgot password
       </Typography>
-      <form className="common-form" onSubmit={getRecoveryMethods}>
+
+      <form
+        className="common-form"
+        onSubmit={getRecoveryMethods}
+        aria-label="Password recovery form"
+      >
         <UsernameInput
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          label="username"
+          label="Username"
           uniqueIdForARIA="forgot-password-username-input"
           variant="outlined"
+          others={{ required: true, disabled: isFetchingRecovery }}
         />
-        <Button type="submit" variant="contained">
-          confirm
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={isFetchingRecovery || !username.trim()}
+        >
+          {isFetchingRecovery ? (
+            <>
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+              Loading...
+            </>
+          ) : (
+            "confirm"
+          )}
         </Button>
       </form>
 
-      <Button color="inherit">
+      <Button color="inherit" disabled={isFetchingRecovery}>
         <Link to="/login">cancel</Link>
       </Button>
-      <Typography
-        variant="body1"
-        component="div"
-        className="recovery-methods"
-      ></Typography>
+
       {recoveryMethods && (
-        <div>
+        <div
+          className="recovery-methods-container"
+          role="region"
+          aria-label="Available recovery methods"
+        >
           <Typography variant="h6" component="h2">
             recovery methods:
           </Typography>
-          {recoveryMethods &&
-            Object.entries(recoveryMethods).map(([key, value], index) => (
-              <Typography key={index} variant="body1" component="div">
-                {key}: {String(value)}
-              </Typography>
-            ))}
+          {Object.entries(recoveryMethods).map(([key, value], index) => (
+            <Typography key={index} variant="body1" component="div">
+              <strong>{key}:</strong> {String(value)}
+            </Typography>
+          ))}
         </div>
       )}
     </Page>
