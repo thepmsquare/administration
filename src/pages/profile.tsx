@@ -47,7 +47,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   let state: ProfileState | null = null;
   try {
     state = ProfileStateZ.parse(location.state);
-  } catch (e) {
+  } catch {
     state = null;
   }
   // state
@@ -143,18 +143,20 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
-      let accessTokenResponse =
+      const accessTokenResponse =
         await authenticationAdministrationBL.generateAccessTokenV0();
-      let accessToken = accessTokenResponse.data.main.access_token;
-      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+      const accessToken = accessTokenResponse.data.main.access_token;
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         accessToken
       );
-      let username = userDetailsResponse.data.main.username;
-      let user_id = userDetailsResponse.data.main.user_id;
-      let newState = { user: { user_id, username, access_token: accessToken } };
+      const username = userDetailsResponse.data.main.username;
+      const user_id = userDetailsResponse.data.main.user_id;
+      const newState = {
+        user: { user_id, username, access_token: accessToken },
+      };
       changeIsLoading(false);
       setPageState(newState);
-    } catch (e) {
+    } catch {
       console.log("user not logged in.");
       changeIsLoading(false);
       navigate("/login");
@@ -189,7 +191,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
       setIsDeleteAccountLoading(false);
@@ -223,14 +225,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: "Username updated successfully.",
         severity: "success",
       });
-      let newState = {
+      const newState = {
         user: { ...pageState.user, username: updateUsernameNewUsername },
       };
       setPageState(newState);
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
       setIsUpdateUsernameLoading(false);
@@ -284,7 +286,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
       setIsUpdatePasswordLoading(false);
@@ -296,7 +298,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
-      let userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         pageState.user.access_token
       );
 
@@ -304,7 +306,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -316,7 +318,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
     try {
       setIsUserProfilePhotoLoading(true);
-      let userDetailsResponse =
+      const userDetailsResponse =
         await authenticationCommonBL.getUserProfilePhotoV0(
           pageState.user.access_token
         );
@@ -328,7 +330,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -347,7 +349,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -364,7 +366,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -406,7 +408,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
       setIsRemoveAppLoading(false);
@@ -545,7 +547,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -572,7 +574,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -600,7 +602,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
-        message: (error as any).message,
+        message: (error as Error).message,
         severity: "error",
       });
     }
@@ -613,7 +615,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   }, [pageState]);
 
   // misc
-  let sessionTableData = userDetails?.sessions.map((row) => {
+  const sessionTableData = userDetails?.sessions.map((row) => {
     return {
       "app name": row.app_name,
       "number of sessions": row.active_sessions,
