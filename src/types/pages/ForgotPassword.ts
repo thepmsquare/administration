@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const ForgotPasswordStateZ = z.object({
-  username: z.string().nullable(),
+  username: z.string(),
 });
 
 type ForgotPasswordState = z.infer<typeof ForgotPasswordStateZ>;

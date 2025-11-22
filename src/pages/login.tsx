@@ -88,9 +88,7 @@ const LoginPage: React.FC<PageProps> = () => {
 
   const navigateToForgotPassword = async () => {
     const forgotPasswordState = ForgotPasswordStateZ.parse({
-      user: {
-        username,
-      },
+      username,
     });
     await navigate("/forgotPassword", { state: forgotPasswordState });
   };

@@ -36,7 +36,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
 
   // state
   const [username, setUsername] = React.useState<string>(
-    state && state.username ? state.username : ""
+    state ? state.username : ""
   );
   const [snackbarState, changeSnackbarState] =
     React.useState<CustomSnackbarStateType>({
