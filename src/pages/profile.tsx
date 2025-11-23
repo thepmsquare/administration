@@ -614,6 +614,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     checkForAccessToken();
   }, [pageState]);
 
+  React.useEffect(() => {
+    return () => {
+      if (userProfilePhotoURL) {
+        URL.revokeObjectURL(userProfilePhotoURL);
+      }
+    };
+  }, [userProfilePhotoURL]);
+
   // misc
   const sessionTableData = userDetails?.sessions.map((row) => {
     return {
@@ -642,6 +650,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       changeSnackbarState={changeSnackbarState}
       className="profile-page"
       isLoading={isLoading}
+      externalUserProfilePhotoURL={userProfilePhotoURL}
+      isExternalUserProfilePhotoLoading={isUserProfilePhotoLoading}
     >
       <Typography variant="h4" component="h1">
         profile

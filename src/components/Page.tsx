@@ -33,6 +33,8 @@ type Props = {
   >;
   snackbarState: CustomSnackbarStateType;
   isLoading?: boolean;
+  externalUserProfilePhotoURL?: string | null;
+  isExternalUserProfilePhotoLoading?: boolean;
 };
 
 const getInitialThemeState = (): ThemeState => {
@@ -54,13 +56,24 @@ const Page: React.FC<Props> = ({
   changeSnackbarState,
   snackbarState,
   isLoading = false,
+  externalUserProfilePhotoURL,
+  isExternalUserProfilePhotoLoading,
 }) => {
   const [themeState, changeThemeState] = React.useState(getInitialThemeState);
-  const [userProfilePhotoURL, setUserProfilePhotoURL] = React.useState<
-    string | null
-  >(null);
-  const [isUserProfilePhotoLoading, setIsUserProfilePhotoLoading] =
-    React.useState<boolean>(false);
+  const [internalUserProfilePhotoURL, setInternalUserProfilePhotoURL] =
+    React.useState<string | null>(null);
+  const [
+    isInternalUserProfilePhotoLoading,
+    setIsInternalUserProfilePhotoLoading,
+  ] = React.useState<boolean>(false);
+
+  const isControlled = externalUserProfilePhotoURL !== undefined;
+  const userProfilePhotoURL = isControlled
+    ? externalUserProfilePhotoURL
+    : internalUserProfilePhotoURL;
+  const isUserProfilePhotoLoading = isControlled
+    ? !!isExternalUserProfilePhotoLoading
+    : isInternalUserProfilePhotoLoading;
 
   const customChangeThemeState = React.useCallback(
     (newThemeState: ThemeState) => {
@@ -76,16 +89,23 @@ const Page: React.FC<Props> = ({
   );
 
   React.useEffect(() => {
+    if (isControlled) {
+      return;
+    }
+
     const abortController = new AbortController();
+
+    const internalUserProfilePhotoURLRef = React.useRef<string | null>(null);
 
     const getUserProfilePhoto = async () => {
       if (!user) {
-        setUserProfilePhotoURL(null);
+        setInternalUserProfilePhotoURL(null);
+        internalUserProfilePhotoURLRef.current = null;
         return;
       }
 
       try {
-        setIsUserProfilePhotoLoading(true);
+        setIsInternalUserProfilePhotoLoading(true);
         const userDetailsResponse =
           await authenticationCommonBL.getUserProfilePhotoV0(user.access_token);
 
@@ -96,9 +116,11 @@ const Page: React.FC<Props> = ({
           userDetailsResponse.size > 0
         ) {
           const url = URL.createObjectURL(userDetailsResponse);
-          setUserProfilePhotoURL(url);
+          setInternalUserProfilePhotoURL(url);
+          internalUserProfilePhotoURLRef.current = url;
         } else {
-          setUserProfilePhotoURL(null);
+          setInternalUserProfilePhotoURL(null);
+          internalUserProfilePhotoURLRef.current = null;
         }
       } catch (error) {
         if (abortController.signal.aborted) return;
@@ -112,10 +134,11 @@ const Page: React.FC<Props> = ({
           message: errorMessage,
           severity: "error",
         });
-        setUserProfilePhotoURL(null);
+        setInternalUserProfilePhotoURL(null);
+        internalUserProfilePhotoURLRef.current = null;
       } finally {
         if (!abortController.signal.aborted) {
-          setIsUserProfilePhotoLoading(false);
+          setIsInternalUserProfilePhotoLoading(false);
         }
       }
     };
@@ -125,11 +148,12 @@ const Page: React.FC<Props> = ({
     return () => {
       abortController.abort();
       // Cleanup blob URL to prevent memory leak
-      if (userProfilePhotoURL) {
-        URL.revokeObjectURL(userProfilePhotoURL);
+      if (internalUserProfilePhotoURLRef.current) {
+        URL.revokeObjectURL(internalUserProfilePhotoURLRef.current);
+        internalUserProfilePhotoURLRef.current = null;
       }
     };
-  }, [user, changeSnackbarState]);
+  }, [user, changeSnackbarState, isControlled]);
 
   const currentTheme = React.useMemo(
     () =>
