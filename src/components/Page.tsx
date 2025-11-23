@@ -67,6 +67,8 @@ const Page: React.FC<Props> = ({
     setIsInternalUserProfilePhotoLoading,
   ] = React.useState<boolean>(false);
 
+  const internalUserProfilePhotoURLRef = React.useRef<string | null>(null);
+
   const isControlled = externalUserProfilePhotoURL !== undefined;
   const userProfilePhotoURL = isControlled
     ? externalUserProfilePhotoURL
@@ -94,8 +96,6 @@ const Page: React.FC<Props> = ({
     }
 
     const abortController = new AbortController();
-
-    const internalUserProfilePhotoURLRef = React.useRef<string | null>(null);
 
     const getUserProfilePhoto = async () => {
       if (!user) {
