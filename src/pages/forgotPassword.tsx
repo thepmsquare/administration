@@ -50,7 +50,9 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const [recoveryMethods, setRecoveryMethods] = React.useState<z.infer<
     typeof GetUserRecoveryMethodsV0ResponseZ.shape.data.shape.main
   > | null>(null);
-
+  const [selectedMethod, setSelectedMethod] = React.useState<string | null>(
+    null
+  );
   // Ref to track component mount status
   const isMountedRef = React.useRef<boolean>(true);
 
@@ -178,10 +180,28 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
             recovery methods:
           </Typography>
           {Object.entries(recoveryMethods).map(([key, value], index) => (
-            <Typography key={index} variant="body1" component="div">
-              <strong>{key}:</strong> {String(value)}
-            </Typography>
+            <div key={index}>
+              <Typography variant="body1">
+                <strong>{key}:</strong> {String(value)}
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  console.log(`Selected method: ${key}, value: ${value}`);
+                  setSelectedMethod(key);
+                }}
+                disabled={isFetchingRecovery || !value}
+                sx={{ mt: 1 }}
+              >
+                Use this method
+              </Button>
+            </div>
           ))}
+          {selectedMethod && (
+            <Typography sx={{ mt: 2 }}>
+              You selected: {selectedMethod}
+            </Typography>
+          )}
         </div>
       )}
     </Page>
