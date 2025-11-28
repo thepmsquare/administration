@@ -2,7 +2,10 @@ import "../stylesheets/profile.css";
 
 import { HeadFC, navigate, PageProps } from "gatsby";
 import * as React from "react";
-import { GetUserDetailsV0ResponseZ } from "squarecommonblhelper";
+import {
+  GetUserDetailsV0ResponseZ,
+  RecoveryMethodEnum,
+} from "squarecommonblhelper";
 import {
   AlertDialog,
   PaginatedTable,
@@ -607,6 +610,43 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+  const handleAccountRecoveryToggle = async (
+    method: RecoveryMethodEnum,
+    isActiveCurrently: boolean
+  ) => {
+    if (!pageState) {
+      return;
+    }
+    try {
+      let recoveryMethodsToRemove: RecoveryMethodEnum[] = [];
+      let recoveryMethodsToAdd: RecoveryMethodEnum[] = [];
+      if (isActiveCurrently) {
+        recoveryMethodsToRemove = [method];
+      } else {
+        recoveryMethodsToAdd = [method];
+      }
+      await authenticationCommonBL.updateUserRecoveryMethodsV0(
+        pageState.user.access_token,
+        recoveryMethodsToAdd,
+        recoveryMethodsToRemove
+      );
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+        pageState.user.access_token
+      );
+      setUserDetails(userDetailsResponse.data.main);
+      changeSnackbarState({
+        isOpen: true,
+        message: `account recovery method ${method} toggled successfully.`,
+        severity: "success",
+      });
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as Error).message,
+        severity: "error",
+      });
+    }
+  };
 
   // useEffect
 
@@ -823,13 +863,24 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         <Typography variant="h5" component="h2">
           account recovery methods
         </Typography>
-        {Object.entries(userDetails?.recovery_methods || {}).map(
-          ([name, isVerified], index) => (
-            <div key={index}>
-              {name}: {isVerified ? "verified" : "not verified"}
-            </div>
-          )
-        )}
+        {userDetails &&
+          Object.entries(userDetails.recovery_methods).map(
+            ([name, isActive], index) => (
+              <div key={index}>
+                {name}: {isActive ? "active" : "not active"}{" "}
+                <Button
+                  onClick={() =>
+                    handleAccountRecoveryToggle(
+                      name as RecoveryMethodEnum,
+                      isActive
+                    )
+                  }
+                >
+                  toggle
+                </Button>
+              </div>
+            )
+          )}
       </Card>
 
       <Typography variant="h5" component="h2">
