@@ -31,7 +31,7 @@
     "squareadministration": "^4.0.0",
     "squarecommonblhelper": "^9.2.3",
     "squarecommons": "^2.3.0",
-    "squarecomponents": "^2.0.0"
+    "squarecomponents": "^2.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
