@@ -4,31 +4,32 @@ import { HeadFC, Link, navigate, PageProps } from "gatsby";
 import * as React from "react";
 import {
   GetUserRecoveryMethodsV0ResponseZ,
-  RecoveryMethodEnum
+  RecoveryMethodEnum,
 } from "squarecommonblhelper";
 import { PasswordInput, UsernameInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { z } from "zod";
 
 import {
+  Alert,
   Button,
   Checkbox,
   CircularProgress,
   FormControlLabel,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
 import {
   ForgotPasswordState,
-  ForgotPasswordStateZ
+  ForgotPasswordStateZ,
 } from "../types/pages/ForgotPassword";
 import { IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
-  authenticationCommonBL
+  authenticationCommonBL,
 } from "../utils/initialiser";
 
 export const Head: HeadFC = () => (
@@ -69,6 +70,15 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     React.useState<string>("");
   const [emailResetLogoutOtherSessions, setEmailResetLogoutOtherSessions] =
     React.useState<boolean>(false);
+
+  // Cooldown state
+  const [cooldownResetAt, setCooldownResetAt] = React.useState<string | null>(
+    null,
+  );
+  const [expiresAt, setExpiresAt] = React.useState<string | null>(null);
+  const [remainingCooldown, setRemainingCooldown] = React.useState<number>(0);
+  const [isSendingEmail, setIsSendingEmail] = React.useState<boolean>(false);
+
   // Ref to track component mount status
   const isMountedRef = React.useRef<boolean>(true);
 
@@ -136,15 +146,63 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     setEmailResetPasswordCodeInput("");
     setEmailResetNewPassword("");
     setEmailResetLogoutOtherSessions(false);
+    setCooldownResetAt(null);
+    setExpiresAt(null);
+    setRemainingCooldown(0);
+  };
+
+  const calculateRemainingCooldown = (cooldownResetAt: string): number => {
+    const cooldownTime = new Date(cooldownResetAt).getTime();
+    const now = Date.now();
+    const remaining = Math.max(0, Math.ceil((cooldownTime - now) / 1000));
+    return remaining;
+  };
+
+  const formatTime = (seconds: number): string => {
+    if (seconds <= 0) return "0s";
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+    return `${remainingSeconds}s`;
   };
 
   const handleSendPasswordResetEmail = async () => {
-    try {
-      await authenticationCommonBL.sendResetPasswordEmailV0(username);
-      if (isMountedRef.current) {
+    // Check if still in cooldown
+    if (cooldownResetAt) {
+      const remaining = calculateRemainingCooldown(cooldownResetAt);
+      if (remaining > 0) {
         changeSnackbarState({
           isOpen: true,
-          message: "password reset email sent successfully.",
+          message: `Please wait ${formatTime(remaining)} before requesting another code.`,
+          severity: "warning",
+        });
+        return;
+      }
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const response =
+        await authenticationCommonBL.sendResetPasswordEmailV0(username);
+
+      if (isMountedRef.current && response.data) {
+        // Store cooldown and expiration times
+        setCooldownResetAt(response.data.cooldown_reset_at);
+        setExpiresAt(response.data.expires_at);
+
+        // Calculate initial remaining time
+        const remaining = calculateRemainingCooldown(
+          response.data.cooldown_reset_at,
+        );
+        setRemainingCooldown(remaining);
+
+        changeSnackbarState({
+          isOpen: true,
+          message: "Password reset email sent successfully. Check your inbox.",
           severity: "success",
         });
       }
@@ -155,6 +213,10 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
           message: (e as Error).message,
           severity: "error",
         });
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsSendingEmail(false);
       }
     }
   };
@@ -195,6 +257,25 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       }
     }
   };
+
+  // useEffect for cooldown countdown
+  React.useEffect(() => {
+    if (!cooldownResetAt) return;
+
+    const interval = setInterval(() => {
+      const remaining = calculateRemainingCooldown(cooldownResetAt);
+      setRemainingCooldown(remaining);
+
+      // Clear cooldown when time is up
+      if (remaining <= 0) {
+        setCooldownResetAt(null);
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [cooldownResetAt]);
+
   // useEffect
   React.useEffect(() => {
     checkForAccessToken();
@@ -204,6 +285,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       isMountedRef.current = false;
     };
   }, []);
+
+  const isInCooldown = !!(cooldownResetAt && remainingCooldown > 0);
 
   return (
     <Page
@@ -294,9 +377,41 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
               <Typography sx={{ mt: 2 }}>
                 You selected: {selectedMethod}
               </Typography>
-              <Button onClick={handleSendPasswordResetEmail}>
-                send code on email
+
+              {/* Cooldown Alert */}
+              {isInCooldown && (
+                <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
+                  You can request another code in{" "}
+                  {formatTime(remainingCooldown)}
+                </Alert>
+              )}
+
+              {/* Expiration Alert */}
+              {expiresAt && (
+                <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
+                  Your code will expire at{" "}
+                  {new Date(expiresAt).toLocaleTimeString()}
+                </Alert>
+              )}
+
+              <Button
+                onClick={handleSendPasswordResetEmail}
+                disabled={isSendingEmail || isInCooldown}
+                variant="contained"
+                sx={{ mt: 1 }}
+              >
+                {isSendingEmail ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                    Sending...
+                  </>
+                ) : isInCooldown ? (
+                  `Wait ${formatTime(remainingCooldown)}`
+                ) : (
+                  "Send code on email"
+                )}
               </Button>
+
               <form
                 onSubmit={handleEmailRecoverySubmit}
                 className="common-form"
@@ -307,6 +422,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                   onChange={(e) => {
                     setEmailResetPasswordCodeInput(e.target.value);
                   }}
+                  required
                 />
                 <PasswordInput
                   value={emailResetNewPassword}
@@ -315,6 +431,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                   }}
                   label="new password"
                   uniqueIdForARIA="new password"
+                  others={{ required: true }}
                 />
 
                 <FormControlLabel
