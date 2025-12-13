@@ -19,6 +19,7 @@ import { Edit } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import {
+  Alert,
   Avatar,
   Backdrop,
   Button,
@@ -88,6 +89,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   });
   const [emailVerificationCode, setEmailVerificationCode] =
     React.useState<string>("");
+  const [cooldownResetAt, setCooldownResetAt] = React.useState<string | null>(
+    null,
+  );
+  const [expiresAt, setExpiresAt] = React.useState<string | null>(null);
+  const [remainingCooldown, setRemainingCooldown] = React.useState<number>(0);
   // update username
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
@@ -149,9 +155,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       const accessTokenResponse =
         await authenticationAdministrationBL.generateAccessTokenV0();
       const accessToken = accessTokenResponse.data.main.access_token;
-      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        accessToken
-      );
+      const userDetailsResponse =
+        await authenticationCommonBL.getUserDetailsV0(accessToken);
       const username = userDetailsResponse.data.main.username;
       const user_id = userDetailsResponse.data.main.user_id;
       const newState = {
@@ -187,7 +192,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsDeleteAccountLoading(true);
       await authenticationCommonBL.deleteUserV0(
         pageState.user.access_token,
-        deleteAccountPassword
+        deleteAccountPassword,
       );
       setIsDeleteAccountLoading(false);
       navigate("/login");
@@ -219,7 +224,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsUpdateUsernameLoading(true);
       await authenticationCommonBL.updateUsernameV0(
         pageState.user.access_token,
-        updateUsernameNewUsername
+        updateUsernameNewUsername,
       );
       setIsUpdateUsernameLoading(false);
       setIsUpdateUsernameDialogOpen(false);
@@ -278,7 +283,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       await authenticationAdministrationBL.updatePasswordV0(
         pageState.user.access_token,
         updatePasswordOldPassword,
-        updatePasswordNewPassword
+        updatePasswordNewPassword,
       );
       setIsUpdatePasswordLoading(false);
       changeSnackbarState({
@@ -302,10 +307,25 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
     try {
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token
+        pageState.user.access_token,
       );
 
       setUserDetails(userDetailsResponse.data.main);
+      if (userDetailsResponse.data.main.email_verification_details) {
+        setCooldownResetAt(
+          userDetailsResponse.data.main.email_verification_details
+            .cooldown_reset_at,
+        );
+        setExpiresAt(
+          userDetailsResponse.data.main.email_verification_details.expires_at,
+        );
+        // Calculate initial remaining time
+        const remaining = calculateRemainingCooldown(
+          userDetailsResponse.data.main.email_verification_details
+            .cooldown_reset_at,
+        );
+        setRemainingCooldown(remaining);
+      }
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
@@ -323,7 +343,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsUserProfilePhotoLoading(true);
       const userDetailsResponse =
         await authenticationCommonBL.getUserProfilePhotoV0(
-          pageState.user.access_token
+          pageState.user.access_token,
         );
 
       if (userDetailsResponse instanceof Blob && userDetailsResponse.size > 0) {
@@ -404,7 +424,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsRemoveAppLoading(true);
       await authenticationAdministrationBL.removeAppForSelfV0(
         pageState.user.access_token,
-        removeAppPassword
+        removeAppPassword,
       );
       setIsRemoveAppLoading(false);
       navigate("/login");
@@ -468,7 +488,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     if (userProfilePhotoUpdatePreviewURL) {
       await authenticationCommonBL.updateUserProfilePhotoV0(
         pageState.user.access_token,
-        dataURLToFile(userProfilePhotoUpdatePreviewURL, "profile.jpg")
+        dataURLToFile(userProfilePhotoUpdatePreviewURL, "profile.jpg"),
       );
       changeSnackbarState({
         isOpen: true,
@@ -492,7 +512,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
     await authenticationCommonBL.updateUserProfilePhotoV0(
       pageState.user.access_token,
-      undefined
+      undefined,
     );
     changeSnackbarState({
       isOpen: true,
@@ -526,7 +546,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         profileFormData.lastName || undefined,
         profileFormData.email || undefined,
         profileFormData.phoneCountryCode || undefined,
-        profileFormData.phoneNumber || undefined
+        profileFormData.phoneNumber || undefined,
       );
 
       if (response.data.main[0]) {
@@ -536,7 +556,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 ...prev,
                 profile: response.data.main[0],
               }
-            : null
+            : null,
         );
       }
 
@@ -561,13 +581,27 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
     try {
       await authenticationCommonBL.sendVerificationEmailV0(
-        pageState.user.access_token
+        pageState.user.access_token,
       );
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token
+        pageState.user.access_token,
       );
 
       setUserDetails(userDetailsResponse.data.main);
+      if (userDetailsResponse.data.main.email_verification_details) {
+        setCooldownResetAt(
+          userDetailsResponse.data.main.email_verification_details
+            .cooldown_reset_at,
+        );
+        setExpiresAt(
+          userDetailsResponse.data.main.email_verification_details.expires_at,
+        );
+        const remaining = calculateRemainingCooldown(
+          userDetailsResponse.data.main.email_verification_details
+            .cooldown_reset_at,
+        );
+        setRemainingCooldown(remaining);
+      }
 
       changeSnackbarState({
         isOpen: true,
@@ -591,10 +625,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     try {
       await authenticationCommonBL.validateEmailVerificationCodeV0(
         pageState.user.access_token,
-        emailVerificationCode
+        emailVerificationCode,
       );
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token
+        pageState.user.access_token,
       );
       setUserDetails(userDetailsResponse.data.main);
       changeSnackbarState({
@@ -612,7 +646,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
   const handleAccountRecoveryToggle = async (
     method: RecoveryMethodEnum,
-    isActiveCurrently: boolean
+    isActiveCurrently: boolean,
   ) => {
     if (!pageState) {
       return;
@@ -628,10 +662,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       await authenticationCommonBL.updateUserRecoveryMethodsV0(
         pageState.user.access_token,
         recoveryMethodsToAdd,
-        recoveryMethodsToRemove
+        recoveryMethodsToRemove,
       );
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token
+        pageState.user.access_token,
       );
       setUserDetails(userDetailsResponse.data.main);
       changeSnackbarState({
@@ -662,6 +696,22 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     };
   }, [userProfilePhotoURL]);
 
+  React.useEffect(() => {
+    if (!cooldownResetAt) return;
+
+    const interval = setInterval(() => {
+      const remaining = calculateRemainingCooldown(cooldownResetAt);
+      setRemainingCooldown(remaining);
+
+      if (remaining <= 0) {
+        setCooldownResetAt(null);
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [cooldownResetAt]);
+
   // misc
   const sessionTableData = userDetails?.sessions.map((row) => {
     return {
@@ -681,6 +731,27 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     };
   });
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const calculateRemainingCooldown = (cooldownResetAt: string): number => {
+    const cooldownTime = new Date(cooldownResetAt).getTime();
+    const now = Date.now();
+    const remaining = Math.max(0, Math.ceil((cooldownTime - now) / 1000));
+    return remaining;
+  };
+
+  const formatTime = (seconds: number): string => {
+    if (seconds <= 0) return "0s";
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+    return `${remainingSeconds}s`;
+  };
+
+  const isInCooldown = !!(cooldownResetAt && remainingCooldown > 0);
 
   return (
     <Page
@@ -845,6 +916,30 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           <>
             {userDetails.email_verification_details ? (
               <form onSubmit={handleEmailVerificationSubmit}>
+                {isInCooldown && (
+                  <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
+                    You can request another code in{" "}
+                    {formatTime(remainingCooldown)}
+                  </Alert>
+                )}
+
+                {expiresAt && (
+                  <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
+                    Your code will expire at{" "}
+                    {new Date(expiresAt).toLocaleTimeString()}
+                  </Alert>
+                )}
+
+                <Button
+                  onClick={handleSendVerificationEmail}
+                  disabled={isInCooldown}
+                  variant="contained"
+                  sx={{ mt: 1 }}
+                >
+                  {isInCooldown
+                    ? `wait ${formatTime(remainingCooldown)}`
+                    : "resend code on email"}
+                </Button>
                 <TextField
                   required
                   value={emailVerificationCode}
@@ -872,14 +967,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                   onClick={() =>
                     handleAccountRecoveryToggle(
                       name as RecoveryMethodEnum,
-                      isActive
+                      isActive,
                     )
                   }
                 >
                   toggle
                 </Button>
               </div>
-            )
+            ),
           )}
       </Card>
 
