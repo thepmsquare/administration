@@ -30,6 +30,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Grid,
+  Paper,
   TextField,
   Typography,
 } from "@mui/material";
@@ -94,6 +96,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   );
   const [expiresAt, setExpiresAt] = React.useState<string | null>(null);
   const [remainingCooldown, setRemainingCooldown] = React.useState<number>(0);
+  // recovery methods
+  const [accountRecoveryBackupCodes, setAccountRecoveryBackupCodes] =
+    React.useState<string[]>([]);
+  const [
+    isAccountRecoveryBackupCodesDialogOpen,
+    setIsAccountRecoveryBackupCodesDialogOpen,
+  ] = React.useState<boolean>(false);
   // update username
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
@@ -575,6 +584,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
   const handleSendVerificationEmail = async () => {
     if (!pageState) {
       return;
@@ -644,6 +654,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       });
     }
   };
+
   const handleAccountRecoveryToggle = async (
     method: RecoveryMethodEnum,
     isActiveCurrently: boolean,
@@ -682,6 +693,33 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
   };
 
+  const handleGenerateAccountRecoveryBackupCodes = async () => {
+    if (!pageState) {
+      return;
+    }
+    try {
+      const response =
+        await authenticationCommonBL.generateAccountBackupCodesV0(
+          pageState.user.access_token,
+        );
+      setAccountRecoveryBackupCodes(response.data.main.backup_codes);
+      setIsAccountRecoveryBackupCodesDialogOpen(true);
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as Error).message,
+        severity: "error",
+      });
+    }
+  };
+  const handleAccountRecoveryBackupCodesCopy = async () => {
+    const text = accountRecoveryBackupCodes.join("\n");
+    await navigator.clipboard.writeText(text);
+  };
+  const handleAccountRecoveryBackupCodesDialogClose = () => {
+    setIsAccountRecoveryBackupCodesDialogOpen(false);
+    setAccountRecoveryBackupCodes([]);
+  };
   // useEffect
 
   React.useEffect(() => {
@@ -977,7 +1015,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             ),
           )}
       </Card>
-
+      {userDetails && userDetails.recovery_methods.BACKUP_CODE && (
+        <Button onClick={handleGenerateAccountRecoveryBackupCodes}>
+          generate account backup codes
+        </Button>
+      )}
       <Typography variant="h5" component="h2">
         update password
       </Typography>
@@ -1193,6 +1235,44 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           />
         </Backdrop>
       )}
+      <Dialog open={isAccountRecoveryBackupCodesDialogOpen}>
+        <DialogTitle>account recovery backup codes</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            save these backup codes in a secure place. each code can be used
+            once if you forget your password.
+          </Typography>
+
+          <Grid container spacing={1}>
+            {accountRecoveryBackupCodes.map((code) => (
+              <Grid key={code}>
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    py: 1,
+                    textAlign: "center",
+                    fontFamily: "monospace",
+                    fontSize: 14,
+                  }}
+                >
+                  {code}
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleAccountRecoveryBackupCodesCopy}>
+            copy all
+          </Button>
+          <Button
+            onClick={handleAccountRecoveryBackupCodesDialogClose}
+            variant="contained"
+          >
+            done
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Page>
   );
 };
