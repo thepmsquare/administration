@@ -720,6 +720,20 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setIsAccountRecoveryBackupCodesDialogOpen(false);
     setAccountRecoveryBackupCodes([]);
   };
+  const handleAccountRecoveryBackupCodesDownload = () => {
+    const text = accountRecoveryBackupCodes.join("\n");
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = userDetails?.username
+      ? userDetails?.username + "-"
+      : "" + "account-recovery-backup-codes.txt";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
   // useEffect
 
   React.useEffect(() => {
@@ -1264,6 +1278,9 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         <DialogActions>
           <Button onClick={handleAccountRecoveryBackupCodesCopy}>
             copy all
+          </Button>
+          <Button onClick={handleAccountRecoveryBackupCodesDownload}>
+            download
           </Button>
           <Button
             onClick={handleAccountRecoveryBackupCodesDialogClose}
