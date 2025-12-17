@@ -727,12 +727,17 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = userDetails?.username
-      ? userDetails?.username + "-"
-      : "" + "account-recovery-backup-codes.txt";
+    a.download = `${userDetails?.username ? userDetails.username + "-" : ""}account-recovery-backup-codes.txt`;
+    a.style.display = "none";
+
+    document.body.appendChild(a);
     a.click();
 
-    URL.revokeObjectURL(url);
+    // Clean up after a short delay
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   };
   // useEffect
 
