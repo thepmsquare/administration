@@ -716,7 +716,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     const text = accountRecoveryBackupCodes.join("\n");
     await navigator.clipboard.writeText(text);
   };
-  const handleAccountRecoveryBackupCodesDialogClose = () => {
+  const handleAccountRecoveryBackupCodesDialogClose = async () => {
+    if (pageState) {
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
+        pageState.user.access_token,
+      );
+      setUserDetails(userDetailsResponse.data.main);
+    }
     setIsAccountRecoveryBackupCodesDialogOpen(false);
     setAccountRecoveryBackupCodes([]);
   };
@@ -1035,9 +1041,26 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           )}
       </Card>
       {userDetails && userDetails.recovery_methods.BACKUP_CODE && (
-        <Button onClick={handleGenerateAccountRecoveryBackupCodes}>
-          generate account backup codes
-        </Button>
+        <>
+          {userDetails.backup_code_details &&
+            userDetails.backup_code_details.generated_at && (
+              <>
+                <Typography>
+                  {userDetails.backup_code_details.available} of{" "}
+                  {userDetails.backup_code_details.total} generated codes are
+                  available. last generated on{" "}
+                  {new Date(
+                    userDetails.backup_code_details.generated_at,
+                  ).toLocaleDateString()}
+                </Typography>
+              </>
+            )}
+          <Button onClick={handleGenerateAccountRecoveryBackupCodes}>
+            {userDetails.backup_code_details
+              ? "regenerate account backup codes"
+              : "generate account backup codes"}
+          </Button>
+        </>
       )}
       <Typography variant="h5" component="h2">
         update password
