@@ -1042,19 +1042,18 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       </Card>
       {userDetails && userDetails.recovery_methods.BACKUP_CODE && (
         <>
-          {userDetails.backup_code_details &&
-            userDetails.backup_code_details.generated_at && (
-              <>
-                <Typography>
-                  {userDetails.backup_code_details.available} of{" "}
-                  {userDetails.backup_code_details.total} generated codes are
-                  available. last generated on{" "}
-                  {new Date(
-                    userDetails.backup_code_details.generated_at,
-                  ).toLocaleDateString()}
-                </Typography>
-              </>
-            )}
+          {userDetails.backup_code_details && (
+            <>
+              <Typography>
+                {userDetails.backup_code_details.available} of{" "}
+                {userDetails.backup_code_details.total} generated codes are
+                available. last generated on{" "}
+                {new Date(
+                  userDetails.backup_code_details.generated_at,
+                ).toLocaleDateString()}
+              </Typography>
+            </>
+          )}
           <Button onClick={handleGenerateAccountRecoveryBackupCodes}>
             {userDetails.backup_code_details
               ? "regenerate account backup codes"
