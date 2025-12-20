@@ -78,6 +78,17 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const [expiresAt, setExpiresAt] = React.useState<string | null>(null);
   const [remainingCooldown, setRemainingCooldown] = React.useState<number>(0);
   const [isSendingEmail, setIsSendingEmail] = React.useState<boolean>(false);
+  // backup code state
+  const [
+    backupCodeResetPasswordCodeInput,
+    setBackupCodeResetPasswordCodeInput,
+  ] = React.useState<string>("");
+  const [backupCodeResetNewPassword, setBackupCodeResetNewPassword] =
+    React.useState<string>("");
+  const [
+    backupCodeResetLogoutOtherSessions,
+    setBackupCodeResetLogoutOtherSessions,
+  ] = React.useState<boolean>(false);
 
   // Ref to track component mount status
   const isMountedRef = React.useRef<boolean>(true);
@@ -149,6 +160,9 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     setCooldownResetAt(null);
     setExpiresAt(null);
     setRemainingCooldown(0);
+    setBackupCodeResetPasswordCodeInput("");
+    setBackupCodeResetNewPassword("");
+    setBackupCodeResetLogoutOtherSessions(false);
   };
 
   const calculateRemainingCooldown = (cooldownResetAt: string): number => {
@@ -258,6 +272,42 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     }
   };
 
+  const handleBackupCodesRecoverySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const recoveryMethodsResponse =
+        await authenticationAdministrationBL.resetPasswordAndLoginUsingBackupCodeV0(
+          backupCodeResetPasswordCodeInput,
+          username,
+          backupCodeResetNewPassword,
+          backupCodeResetLogoutOtherSessions,
+        );
+
+      // redirect to homepage
+      const indexState = IndexStateZ.parse({
+        user: {
+          user_id: recoveryMethodsResponse.data.main.user_id,
+          username: username,
+          access_token: recoveryMethodsResponse.data.main.access_token,
+        },
+      });
+
+      await navigate("/", { state: indexState });
+    } catch (e) {
+      if (isMountedRef.current) {
+        changeSnackbarState({
+          isOpen: true,
+          message: (e as Error).message,
+          severity: "error",
+        });
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsFetchingRecovery(false);
+      }
+    }
+  };
   // useEffect for cooldown countdown
   React.useEffect(() => {
     if (!cooldownResetAt) return;
@@ -455,9 +505,51 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
             </>
           )}
           {selectedMethod === "BACKUP_CODE" && (
-            <Typography sx={{ mt: 2 }}>
-              You selected: {selectedMethod}
-            </Typography>
+            <>
+              <Typography sx={{ mt: 2 }}>
+                You selected: {selectedMethod}
+              </Typography>
+              <form
+                onSubmit={handleBackupCodesRecoverySubmit}
+                className="common-form"
+              >
+                <TextField
+                  label="backup code"
+                  value={backupCodeResetPasswordCodeInput}
+                  onChange={(e) => {
+                    setBackupCodeResetPasswordCodeInput(e.target.value);
+                  }}
+                  required
+                />
+                <PasswordInput
+                  value={backupCodeResetNewPassword}
+                  onChange={(e) => {
+                    setBackupCodeResetNewPassword(e.target.value);
+                  }}
+                  label="new password"
+                  uniqueIdForARIA="new password"
+                  others={{ required: true }}
+                />
+
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={backupCodeResetLogoutOtherSessions}
+                      onChange={() => {
+                        setBackupCodeResetLogoutOtherSessions(
+                          !backupCodeResetLogoutOtherSessions,
+                        );
+                      }}
+                    />
+                  }
+                  label="logout other sessions"
+                />
+
+                <Button type="submit" variant="contained">
+                  Submit
+                </Button>
+              </form>
+            </>
           )}
         </div>
       )}
