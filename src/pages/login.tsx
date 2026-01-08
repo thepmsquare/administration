@@ -27,16 +27,20 @@ const LoginPage: React.FC<PageProps> = () => {
       severity: "error",
     });
   const [isLoading, changeIsLoading] = React.useState<boolean>(true);
+  const [isSubmitting, changeIsSubmitting] = React.useState<boolean>(false);
   const [username, changeUsername] = React.useState<string>("");
   const [password, changePassword] = React.useState<string>("");
 
   // functions
   const handleLogin: React.FormEventHandler = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    changeIsSubmitting(true);
     try {
       const response = await authenticationAdministrationBL.loginUsernameV0(
         username,
-        password
+        password,
       );
 
       const indexState = IndexStateZ.parse({
@@ -48,11 +52,14 @@ const LoginPage: React.FC<PageProps> = () => {
 
       await navigate("/", { state: indexState });
     } catch (error) {
+      changePassword("");
       changeSnackbarState({
         isOpen: true,
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      changeIsSubmitting(false);
     }
   };
 
@@ -62,9 +69,8 @@ const LoginPage: React.FC<PageProps> = () => {
         await authenticationAdministrationBL.generateAccessTokenV0();
       const accessToken = accessTokenResponse.data.main.access_token;
 
-      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        accessToken
-      );
+      const userDetailsResponse =
+        await authenticationCommonBL.getUserDetailsV0(accessToken);
       const username = userDetailsResponse.data.main.username;
       const user_id = userDetailsResponse.data.main.user_id;
 
@@ -86,12 +92,12 @@ const LoginPage: React.FC<PageProps> = () => {
     }
   };
 
-  const navigateToForgotPassword = async () => {
+  const navigateToForgotPassword = React.useCallback(async () => {
     const forgotPasswordState = ForgotPasswordStateZ.parse({
       username,
     });
     await navigate("/forgotPassword", { state: forgotPasswordState });
-  };
+  }, [username]);
 
   // useEffect
   React.useEffect(() => {
@@ -118,7 +124,11 @@ const LoginPage: React.FC<PageProps> = () => {
           label="username"
           uniqueIdForARIA="login-username"
           variant="outlined"
-          others={{ required: true }}
+          autocomplete="username"
+          others={{
+            required: true,
+            disabled: isSubmitting,
+          }}
         />
         <PasswordInput
           value={password}
@@ -126,18 +136,26 @@ const LoginPage: React.FC<PageProps> = () => {
           uniqueIdForARIA="login-password"
           label="password"
           variant="outlined"
-          others={{ required: true }}
+          others={{
+            required: true,
+            autoComplete: "current-password",
+            disabled: isSubmitting,
+          }}
         />
-        <Button color="inherit" onClick={navigateToForgotPassword}>
+        <Button
+          color="inherit"
+          onClick={navigateToForgotPassword}
+          disabled={isSubmitting}
+        >
           forgot password?
         </Button>
 
         <div className="login-form-action">
-          <Button color="inherit">
+          <Button color="inherit" disabled={isSubmitting}>
             <Link to="/">cancel</Link>
           </Button>
-          <Button type="submit" variant="contained">
-            submit
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
+            {isSubmitting ? "logging in..." : "submit"}
           </Button>
         </div>
       </form>
