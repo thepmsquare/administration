@@ -558,12 +558,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         profileFormData.phoneNumber || undefined,
       );
 
-      if (response.data.main[0]) {
+      if (response.data.main) {
         setUserDetails((prev) =>
           prev
             ? {
                 ...prev,
-                profile: response.data.main[0],
+                profile: response.data.main,
               }
             : null,
         );
