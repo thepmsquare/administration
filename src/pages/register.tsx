@@ -14,6 +14,7 @@ import {
   authenticationAdministrationBL,
   authenticationCommonBL,
 } from "../utils/initialiser";
+import { useAuth } from "../utils/auth";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | register</title>
@@ -27,7 +28,7 @@ const RegisterPage: React.FC<PageProps> = () => {
       message: "",
       severity: "error",
     });
-  const [isLoading, changeIsLoading] = React.useState<boolean>(true);
+  const { isLoading } = useAuth(null, { redirectIfLoggedIn: "/" });
   const [isSubmitting, changeIsSubmitting] = React.useState<boolean>(false);
   const [username, changeUsername] = React.useState<string>("");
   const [password, changePassword] = React.useState<string>("");
@@ -72,40 +73,7 @@ const RegisterPage: React.FC<PageProps> = () => {
     }
   };
 
-  const checkForAccessToken = async () => {
-    try {
-      const accessTokenResponse =
-        await authenticationAdministrationBL.generateAccessTokenV0();
-      const accessToken = accessTokenResponse.data.main.access_token;
-
-      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        accessToken
-      );
-      const username = userDetailsResponse.data.main.username;
-      const user_id = userDetailsResponse.data.main.user_id;
-
-      // Validate before navigating
-      const indexState = IndexStateZ.parse({
-        user: {
-          user_id,
-          username,
-          access_token: accessToken,
-        },
-      });
-
-      await navigate("/", { state: indexState });
-    } catch {
-      // User not logged in OR validation failed
-      console.log("user not logged in or invalid response.");
-    } finally {
-      changeIsLoading(false);
-    }
-  };
-
-  // useEffect
-  React.useEffect(() => {
-    checkForAccessToken();
-  }, []);
+  // misc
 
   // misc
 

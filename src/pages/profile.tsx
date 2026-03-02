@@ -43,6 +43,7 @@ import {
   authenticationAdministrationBL,
   authenticationCommonBL,
 } from "../utils/initialiser";
+import { useAuth } from "../utils/auth";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | profile</title>
@@ -63,8 +64,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+  const { user, isLoading, setUser: setAuthUser } = useAuth(state?.user, { redirectIfLoggedOut: "/login" });
   const [pageState, setPageState] = React.useState<ProfileState | null>(state);
-  const [isLoading, changeIsLoading] = React.useState<boolean>(true);
   // delete account
   const [deleteAccountPassword, setDeleteAccountPassword] =
     React.useState<string>("");
@@ -153,32 +154,6 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     React.useState(false);
 
   // functions
-  const checkForAccessToken = async () => {
-    if (pageState) {
-      await getUserDetails();
-      getUserProfilePhoto();
-      changeIsLoading(false);
-      return;
-    }
-    try {
-      const accessTokenResponse =
-        await authenticationAdministrationBL.generateAccessTokenV0();
-      const accessToken = accessTokenResponse.data.main.access_token;
-      const userDetailsResponse =
-        await authenticationCommonBL.getUserDetailsV0(accessToken);
-      const username = userDetailsResponse.data.main.username;
-      const user_id = userDetailsResponse.data.main.user_id;
-      const newState = {
-        user: { user_id, username, access_token: accessToken },
-      };
-      changeIsLoading(false);
-      setPageState(newState);
-    } catch {
-      console.log("user not logged in.");
-      changeIsLoading(false);
-      navigate("/login");
-    }
-  };
 
   const openDeleteAccountDialog = (e: React.FormEvent) => {
     e.preventDefault();
@@ -748,8 +723,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   // useEffect
 
   React.useEffect(() => {
-    checkForAccessToken();
-  }, [pageState]);
+    if (user) {
+      setPageState({ user });
+      getUserDetails();
+      getUserProfilePhoto();
+    }
+  }, [user]);
 
   React.useEffect(() => {
     return () => {

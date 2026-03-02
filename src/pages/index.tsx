@@ -16,6 +16,7 @@ import {
   authenticationCommonBL,
   coreAdministrationBL,
 } from "../utils/initialiser";
+import { useAuth } from "../utils/auth";
 
 export const Head: HeadFC = () => <title>{brandConfig.appName}</title>;
 
@@ -36,6 +37,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+  const { user, isLoading, setUser: setAuthUser } = useAuth(state?.user);
   const [pageState, setPageState] = React.useState<IndexState | null>(state);
   const [greetings, changeGreetings] = React.useState<
     GetAllGreetingsV0Response["data"]["main"]
@@ -45,7 +47,6 @@ const IndexPage: React.FC<PageProps> = (props) => {
   const [currentPage, changeCurrentPage] = React.useState<number>(1);
   const [isLoadingGreetings, changeIsLoadingGreetings] =
     React.useState<boolean>(false);
-  const [isLoading, changeIsLoading] = React.useState<boolean>(true);
 
   // functions
   const getGreetings = React.useCallback(async () => {
@@ -91,33 +92,14 @@ const IndexPage: React.FC<PageProps> = (props) => {
   };
 
   // useEffect
+  // Sync hook user with local pageState
   React.useEffect(() => {
-    const checkForAccessToken = async () => {
-      if (pageState) {
-        changeIsLoading(false);
-        return;
-      }
-      try {
-        const accessTokenResponse =
-          await authenticationAdministrationBL.generateAccessTokenV0();
-        const accessToken = accessTokenResponse.data.main.access_token;
-        const userDetailsResponse =
-          await authenticationCommonBL.getUserDetailsV0(accessToken);
-        const username = userDetailsResponse.data.main.username;
-        const user_id = userDetailsResponse.data.main.user_id;
-        const newState = {
-          user: { user_id, username, access_token: accessToken },
-        };
-        changeIsLoading(false);
-        setPageState(newState);
-      } catch (e) {
-        console.log("user not logged in. ", e);
-        changeIsLoading(false);
-      }
-    };
-
-    checkForAccessToken();
-  }, []);
+    if (user) {
+      setPageState({ user });
+    } else {
+      setPageState(null);
+    }
+  }, [user]);
 
   React.useEffect(() => {
     getGreetings();

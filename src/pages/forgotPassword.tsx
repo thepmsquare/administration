@@ -27,6 +27,7 @@ import {
   authenticationAdministrationBL,
   authenticationCommonBL,
 } from "../utils/initialiser";
+import { useAuth } from "../utils/auth";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | forgot password</title>
@@ -48,7 +49,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
-  const [isLoading, changeIsLoading] = React.useState<boolean>(true);
+  const { isLoading } = useAuth(null, { redirectIfLoggedIn: "/" });
   const [isFetchingRecovery, setIsFetchingRecovery] =
     React.useState<boolean>(false);
   const [recoveryMethods, setRecoveryMethods] = React.useState<z.infer<
@@ -123,30 +124,6 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     }
   };
 
-  const checkForAccessToken = async () => {
-    try {
-      const accessTokenResponse =
-        await authenticationAdministrationBL.generateAccessTokenV0();
-      const accessToken = accessTokenResponse.data.main.access_token;
-      const userDetailsResponse =
-        await authenticationCommonBL.getUserDetailsV0(accessToken);
-      const username = userDetailsResponse.data.main.username;
-      const user_id = userDetailsResponse.data.main.user_id;
-      const newState = IndexStateZ.parse({
-        user: { user_id, username, access_token: accessToken },
-      });
-
-      if (isMountedRef.current) {
-        changeIsLoading(false);
-        await navigate("/", { state: newState });
-      }
-    } catch {
-      console.log("user not logged in:");
-      if (isMountedRef.current) {
-        changeIsLoading(false);
-      }
-    }
-  };
 
   const handleClearRecoveryMethods = () => {
     setRecoveryMethods(null);
@@ -326,7 +303,6 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
 
   // useEffect
   React.useEffect(() => {
-    checkForAccessToken();
 
     // Cleanup function
     return () => {
