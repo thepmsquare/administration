@@ -34,7 +34,6 @@ const IndexPage: React.FC<PageProps> = (props) => {
       severity: "error",
     });
   const { user, isLoading, setUser: setAuthUser } = useAuth(state?.user);
-  const [pageState, setPageState] = React.useState<IndexState | null>(state);
   const [greetings, changeGreetings] = React.useState<
     GetAllGreetingsV0Response["data"]["main"]
   >([]);
@@ -46,7 +45,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
 
   // functions
   const getGreetings = React.useCallback(async () => {
-    if (!pageState || !pageState.user) {
+    if (!user) {
       changeGreetings([]);
       changeGreetingsCount(0);
       return;
@@ -55,7 +54,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     changeIsLoadingGreetings(true);
     try {
       const response = await coreAdministrationBL.getAllGreetingsV0(
-        pageState.user?.access_token as string,
+        user.access_token,
         [],
         pageSize,
         (currentPage - 1) * pageSize,
@@ -74,7 +73,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     } finally {
       changeIsLoadingGreetings(false);
     }
-  }, [pageState, pageSize, currentPage]);
+  }, [user, pageSize, currentPage]);
 
   const handleChangePage = (
     _: React.MouseEvent<HTMLButtonElement> | null,
@@ -84,19 +83,10 @@ const IndexPage: React.FC<PageProps> = (props) => {
   };
 
   const nullifyPageState = () => {
-    setPageState(null);
+    setAuthUser(null);
   };
 
   // useEffect
-  // Sync hook user with local pageState
-  React.useEffect(() => {
-    if (user) {
-      setPageState({ user });
-    } else {
-      setPageState(null);
-    }
-  }, [user]);
-
   React.useEffect(() => {
     getGreetings();
   }, [getGreetings]);
@@ -114,13 +104,13 @@ const IndexPage: React.FC<PageProps> = (props) => {
   return (
     <Page
       className="index-page"
-      user={pageState?.user}
+      user={user || undefined}
       nullifyPageStateFunction={nullifyPageState}
       snackbarState={snackbarState}
       changeSnackbarState={changeSnackbarState}
       isLoading={isLoading}
     >
-      {pageState && pageState.user ? (
+      {user ? (
         <>
           <Typography variant="h4" component="h1" className="page-title">
             greetings
