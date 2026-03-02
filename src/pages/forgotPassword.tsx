@@ -22,10 +22,6 @@ import {
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
-import {
-  ForgotPasswordState,
-  ForgotPasswordStateZ,
-} from "../types/pages/ForgotPassword";
 import { IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
@@ -38,16 +34,13 @@ export const Head: HeadFC = () => (
 
 const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const { location } = props;
-  let state: ForgotPasswordState | null = null;
-  try {
-    state = ForgotPasswordStateZ.parse(location.state);
-  } catch {
-    state = null;
-  }
+
+  const params = new URLSearchParams(location.search);
+  const stateUsername = params.get("username");
 
   // state
   const [username, setUsername] = React.useState<string>(
-    state ? state.username : "",
+    stateUsername ? stateUsername : "",
   );
   const [snackbarState, changeSnackbarState] =
     React.useState<CustomSnackbarStateType>({
@@ -98,10 +91,15 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     e.preventDefault();
 
     setIsFetchingRecovery(true);
+
     try {
       const recoveryMethodsResponse =
         await authenticationCommonBL.getUserRecoveryMethodsV0(username);
-
+      const params = new URLSearchParams(location.search);
+      params.set("username", username);
+      navigate(`${location.pathname}?${params.toString()}`, {
+        replace: true,
+      });
       if (isMountedRef.current) {
         changeSnackbarState({
           isOpen: true,

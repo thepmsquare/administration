@@ -9,7 +9,6 @@ import { Button, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
-import { ForgotPasswordStateZ } from "../types/pages/ForgotPassword";
 import { IndexStateZ } from "../types/pages/Index";
 import {
   authenticationAdministrationBL,
@@ -93,10 +92,7 @@ const LoginPage: React.FC<PageProps> = () => {
   };
 
   const navigateToForgotPassword = React.useCallback(async () => {
-    const forgotPasswordState = ForgotPasswordStateZ.parse({
-      username,
-    });
-    await navigate("/forgotPassword", { state: forgotPasswordState });
+    await navigate(`/forgotPassword?username=${username}`);
   }, [username]);
 
   // useEffect
