@@ -11,11 +11,7 @@ import { Button, Divider, Typography } from "@mui/material";
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
 import { IndexState, IndexStateZ } from "../types/pages/Index";
-import {
-  authenticationAdministrationBL,
-  authenticationCommonBL,
-  coreAdministrationBL,
-} from "../utils/initialiser";
+import { coreAdministrationBL } from "../utils/initialiser";
 import { useAuth } from "../utils/auth";
 
 export const Head: HeadFC = () => <title>{brandConfig.appName}</title>;
@@ -27,7 +23,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     state = IndexStateZ.parse(location.state);
   } catch (e) {
     state = null;
-    console.log("error parsing page state: ", e);
+    console.error("error parsing page state: ", e);
   }
 
   // state
@@ -50,7 +46,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
 
   // functions
   const getGreetings = React.useCallback(async () => {
-    if (!pageState) {
+    if (!pageState || !pageState.user) {
       changeGreetings([]);
       changeGreetingsCount(0);
       return;
@@ -59,7 +55,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
     changeIsLoadingGreetings(true);
     try {
       const response = await coreAdministrationBL.getAllGreetingsV0(
-        pageState.user.access_token,
+        pageState.user?.access_token as string,
         [],
         pageSize,
         (currentPage - 1) * pageSize,
