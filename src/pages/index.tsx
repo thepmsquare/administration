@@ -61,7 +61,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
         pageState.user.access_token,
         [],
         pageSize,
-        (currentPage - 1) * pageSize
+        (currentPage - 1) * pageSize,
       );
       changeGreetings(response.data.main);
       changeGreetingsCount(response.data.total_count);
@@ -81,9 +81,9 @@ const IndexPage: React.FC<PageProps> = (props) => {
 
   const handleChangePage = (
     _: React.MouseEvent<HTMLButtonElement> | null,
-    value: number
+    value: number,
   ) => {
-    changeCurrentPage(value);
+    changeCurrentPage(value + 1);
   };
 
   const nullifyPageState = () => {
