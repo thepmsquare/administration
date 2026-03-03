@@ -99,9 +99,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     try {
       const recoveryMethodsResponse =
         await authenticationCommonBL.getUserRecoveryMethodsV0(username);
-      const params = new URLSearchParams(location.search);
-      params.set("username", username);
-      navigate(`${location.pathname}?${params.toString()}`, {
+      navigate(`/forgotPassword?username=${username}`, {
         replace: true,
       });
       if (isMountedRef.current) {
