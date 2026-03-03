@@ -159,34 +159,63 @@ const Page: React.FC<Props> = ({
     () =>
       createTheme({
         typography: {
-          fontFamily: "Fraunces Variable",
+          fontFamily: "Outfit Variable, sans-serif",
 
           h1: {
-            fontFamily: "Outfit Variable",
+            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "clamp(2.5rem, 8vw, 4.5rem)",
+            fontWeight: 700,
+            lineHeight: 1.1,
           },
 
           h2: {
-            fontFamily: "Outfit Variable",
+            fontFamily: "Outfit Variable, sans-serif",
           },
 
           h3: {
-            fontFamily: "Outfit Variable",
+            fontFamily: "Outfit Variable, sans-serif",
           },
 
           h4: {
-            fontFamily: "Outfit Variable",
+            fontFamily: "Outfit Variable, sans-serif",
           },
 
           h5: {
-            fontFamily: "Outfit Variable",
+            fontFamily: "Outfit Variable, sans-serif",
           },
 
           h6: {
-            fontFamily: "Outfit Variable",
+            fontFamily: "Outfit Variable, sans-serif",
+          },
+
+          body1: {
+            fontFamily: "Fraunces Variable, serif",
+            fontSize: "clamp(1rem, 2vw, 1.25rem)",
+          },
+
+          body2: {
+            fontFamily: "Fraunces Variable, serif",
           },
 
           button: {
-            fontFamily: "Outfit Variable",
+            fontFamily: "Outfit Variable, sans-serif",
+            textTransform: "none",
+            fontWeight: 500,
+          },
+          caption: {
+            fontFamily: "Outfit Variable, sans-serif",
+          },
+          overline: {
+            fontFamily: "Outfit Variable, sans-serif",
+          },
+        },
+        components: {
+          MuiMenuItem: {
+            styleOverrides: {
+              root: {
+                fontFamily: "Outfit Variable, sans-serif",
+              },
+            },
           },
         },
         palette: {

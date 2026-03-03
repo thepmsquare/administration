@@ -130,18 +130,26 @@ const IndexPage: React.FC<PageProps> = (props) => {
         </>
       ) : (
         <div className="index-guest">
-          <Typography variant="h4" component="h1" className="page-title">
-            welcome to {brandConfig.appName}
-          </Typography>
+          <div className="index-guest-text-container">
+            <Typography variant="h1" className="index-guest-title">
+              {brandConfig.appName}
+            </Typography>
+            <Typography variant="body1" className="index-guest-subtitle">
+              simple control center managing{" "}
+              <Typography color="primary" component="span" variant="inherit">
+                square
+              </Typography>{" "}
+              services exclusively for administrators.
+            </Typography>
+          </div>
           <div className="index-guest-button-group">
             <Link to="/login">
               <Button variant="contained" size="large" fullWidth>
                 login
               </Button>
             </Link>
-            <Divider>or</Divider>
             <Link to="/register">
-              <Button variant="contained" size="large" fullWidth>
+              <Button variant="outlined" size="large" fullWidth>
                 register
               </Button>
             </Link>
