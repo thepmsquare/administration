@@ -50,7 +50,7 @@ export const useAuth = (
     try {
       // 1. Attempt to generate an access token
       const accessTokenResponse =
-        await authenticationAdministrationBL.generateAccessTokenV0();
+        await authenticationAdministrationBL.generateAccessTokenV0(false);
       const accessToken = accessTokenResponse.data.main.access_token;
 
       // 2. Fetch user details using the access token
