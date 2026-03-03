@@ -88,8 +88,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const isMountedRef = React.useRef<boolean>(true);
 
   // Functions
-  const getRecoveryMethods = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const getRecoveryMethods = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     setIsFetchingRecovery(true);
 
@@ -123,7 +123,6 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       }
     }
   };
-
 
   const handleClearRecoveryMethods = () => {
     setRecoveryMethods(null);
@@ -231,7 +230,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
         },
       });
 
-      await navigate("/", { state: indexState });
+      await navigate("/", { state: indexState! });
     } catch (e) {
       if (isMountedRef.current) {
         changeSnackbarState({
@@ -268,7 +267,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
         },
       });
 
-      await navigate("/", { state: indexState });
+      await navigate("/", { state: indexState! });
     } catch (e) {
       if (isMountedRef.current) {
         changeSnackbarState({
@@ -303,6 +302,9 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
 
   // useEffect
   React.useEffect(() => {
+    if (stateUsername) {
+      getRecoveryMethods();
+    }
 
     // Cleanup function
     return () => {
