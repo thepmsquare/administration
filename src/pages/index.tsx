@@ -19,11 +19,13 @@ export const Head: HeadFC = () => <title>{brandConfig.appName}</title>;
 const IndexPage: React.FC<PageProps> = (props) => {
   const { location } = props;
   let state: IndexState | null = null;
-  try {
-    state = IndexStateZ.parse(location.state);
-  } catch (e) {
-    state = null;
-    console.error("error parsing page state: ", e);
+  if (location.state) {
+    try {
+      state = IndexStateZ.parse(location.state);
+    } catch (e) {
+      state = null;
+      console.error("error parsing page state: ", e);
+    }
   }
 
   // state
