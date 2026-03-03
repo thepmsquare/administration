@@ -64,7 +64,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
-  const { user, isLoading, setUser: setAuthUser } = useAuth(state?.user, { redirectIfLoggedOut: "/login" });
+  const {
+    user,
+    isLoading,
+    setUser: setAuthUser,
+  } = useAuth(state?.user, { redirectIfLoggedOut: "/login" });
   const [pageState, setPageState] = React.useState<ProfileState | null>(state);
   // delete account
   const [deleteAccountPassword, setDeleteAccountPassword] =
@@ -178,6 +182,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         pageState.user.access_token,
         deleteAccountPassword,
       );
+      setAuthUser(null);
       setIsDeleteAccountLoading(false);
       navigate("/login");
     } catch (error) {
@@ -351,6 +356,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       await authenticationCommonBL.logoutAppsV0(pageState.user.access_token, [
         app_name,
       ]);
+      setAuthUser(null);
       setPageState(null);
       setIsLogoutAppsDialogOpen(false);
     } catch (error) {
@@ -368,6 +374,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
     try {
       await authenticationCommonBL.logoutAllV0(pageState.user.access_token);
+      setAuthUser(null);
       setPageState(null);
       closeLogoutAllDialog();
     } catch (error) {
@@ -410,6 +417,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         pageState.user.access_token,
         removeAppPassword,
       );
+      setAuthUser(null);
       setIsRemoveAppLoading(false);
       navigate("/login");
     } catch (error) {
@@ -432,6 +440,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const nullifyPageState = () => {
+    setAuthUser(null);
     setPageState(null);
   };
 
