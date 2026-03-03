@@ -57,6 +57,9 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   > | null>(null);
   const [selectedMethod, setSelectedMethod] =
     React.useState<RecoveryMethodEnum | null>(null);
+  const [backupCodeDetails, setBackupCodeDetails] = React.useState<z.infer<
+    typeof GetUserRecoveryMethodsV0ResponseZ.shape.data.shape.backup_code_details
+  > | null>(null);
 
   const [emailResetPasswordCodeInput, setEmailResetPasswordCodeInput] =
     React.useState<string>("");
@@ -108,6 +111,22 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
           severity: "success",
         });
         setRecoveryMethods(recoveryMethodsResponse.data.main);
+        setBackupCodeDetails(recoveryMethodsResponse.data.backup_code_details);
+
+        if (recoveryMethodsResponse.data.email_recovery_details) {
+          setCooldownResetAt(
+            recoveryMethodsResponse.data.email_recovery_details
+              .cooldown_reset_at,
+          );
+          setExpiresAt(
+            recoveryMethodsResponse.data.email_recovery_details.expires_at,
+          );
+          const remaining = calculateRemainingCooldown(
+            recoveryMethodsResponse.data.email_recovery_details
+              .cooldown_reset_at,
+          );
+          setRemainingCooldown(remaining);
+        }
       }
     } catch (e) {
       if (isMountedRef.current) {
@@ -137,6 +156,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     setBackupCodeResetPasswordCodeInput("");
     setBackupCodeResetNewPassword("");
     setBackupCodeResetLogoutOtherSessions(false);
+    setBackupCodeDetails(null);
   };
 
   const calculateRemainingCooldown = (cooldownResetAt: string): number => {
@@ -380,6 +400,22 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
           <Typography variant="h6" component="h2">
             recovery methods:
           </Typography>
+
+          {/* Cooldown Alert */}
+          {isInCooldown && (
+            <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
+              An email with a reset code was recently sent. You can request
+              another code in {formatTime(remainingCooldown)}
+            </Alert>
+          )}
+
+          {/* Expiration Alert */}
+          {expiresAt && (
+            <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
+              Your reset code will expire at{" "}
+              {new Date(expiresAt).toLocaleTimeString()}
+            </Alert>
+          )}
           {Object.entries(recoveryMethods).map(([key, value], index) => (
             <div key={index}>
               <Typography variant="body1">
@@ -403,22 +439,6 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
               <Typography sx={{ mt: 2 }}>
                 You selected: {selectedMethod}
               </Typography>
-
-              {/* Cooldown Alert */}
-              {isInCooldown && (
-                <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
-                  You can request another code in{" "}
-                  {formatTime(remainingCooldown)}
-                </Alert>
-              )}
-
-              {/* Expiration Alert */}
-              {expiresAt && (
-                <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
-                  Your code will expire at{" "}
-                  {new Date(expiresAt).toLocaleTimeString()}
-                </Alert>
-              )}
 
               <Button
                 onClick={handleSendPasswordResetEmail}
@@ -485,6 +505,15 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
               <Typography sx={{ mt: 2 }}>
                 You selected: {selectedMethod}
               </Typography>
+              {backupCodeDetails && (
+                <Typography sx={{ mt: 1, mb: 1 }}>
+                  {backupCodeDetails.available} of {backupCodeDetails.total}{" "}
+                  generated codes are available. last generated on{" "}
+                  {new Date(
+                    backupCodeDetails.generated_at,
+                  ).toLocaleDateString()}
+                </Typography>
+              )}
               <form
                 onSubmit={handleBackupCodesRecoverySubmit}
                 className="common-form"

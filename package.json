@@ -29,7 +29,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "squareadministration": "^5.1.0",
-    "squarecommonblhelper": "^11.1.0",
+    "squarecommonblhelper": "^11.2.1",
     "squarecommons": "^2.5.0",
     "squarecomponents": "^2.0.1"
   },
