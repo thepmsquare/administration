@@ -12,13 +12,21 @@ import { z } from "zod";
 
 import {
   Alert,
+  Box,
   Button,
   Checkbox,
   CircularProgress,
+  Divider,
   FormControlLabel,
+  IconButton,
+  Paper,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import VpnKeyOutlinedIcon from "@mui/icons-material/VpnKeyOutlined";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -55,8 +63,6 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const [recoveryMethods, setRecoveryMethods] = React.useState<z.infer<
     typeof GetUserRecoveryMethodsV0ResponseZ.shape.data.shape.main
   > | null>(null);
-  const [selectedMethod, setSelectedMethod] =
-    React.useState<RecoveryMethodEnum | null>(null);
   const [backupCodeDetails, setBackupCodeDetails] = React.useState<z.infer<
     typeof GetUserRecoveryMethodsV0ResponseZ.shape.data.shape.backup_code_details
   > | null>(null);
@@ -87,6 +93,9 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     setBackupCodeResetLogoutOtherSessions,
   ] = React.useState<boolean>(false);
 
+  // Persistent error state for account lookup failure
+  const [lookupError, setLookupError] = React.useState<string | null>(null);
+
   // Ref to track component mount status
   const isMountedRef = React.useRef<boolean>(true);
 
@@ -103,6 +112,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
         replace: true,
       });
       if (isMountedRef.current) {
+        setLookupError(null);
         changeSnackbarState({
           isOpen: true,
           message: "recovery methods fetched successfully.",
@@ -128,9 +138,11 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       }
     } catch (e) {
       if (isMountedRef.current) {
+        const msg = (e as Error).message;
+        setLookupError(msg);
         changeSnackbarState({
           isOpen: true,
-          message: (e as Error).message,
+          message: msg,
           severity: "error",
         });
       }
@@ -143,8 +155,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
 
   const handleClearRecoveryMethods = () => {
     setRecoveryMethods(null);
-    setSelectedMethod(null);
     setUsername("");
+    setLookupError(null);
     setEmailResetPasswordCodeInput("");
     setEmailResetNewPassword("");
     setEmailResetLogoutOtherSessions(false);
@@ -155,6 +167,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     setBackupCodeResetNewPassword("");
     setBackupCodeResetLogoutOtherSessions(false);
     setBackupCodeDetails(null);
+    // clear URL param without reload
+    navigate("/forgotPassword", { replace: true });
   };
 
   const calculateRemainingCooldown = (cooldownResetAt: string): number => {
@@ -300,6 +314,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       }
     }
   };
+
   // useEffect for cooldown countdown
   React.useEffect(() => {
     if (!cooldownResetAt) return;
@@ -332,6 +347,12 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
 
   const isInCooldown = !!(cooldownResetAt && remainingCooldown > 0);
 
+  // Derive available methods from recoveryMethods object
+  const hasEmailRecovery = recoveryMethods?.EMAIL === true;
+  const hasBackupCodeRecovery = recoveryMethods?.BACKUP_CODE === true;
+  const hasAnyRecoveryMethod = hasEmailRecovery || hasBackupCodeRecovery;
+  const methodsWereFetched = recoveryMethods !== null;
+
   return (
     <Page
       user={undefined}
@@ -341,221 +362,319 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       className="forgot-password-page"
       isLoading={isLoading}
     >
-      <Typography variant="h4" component="h1">
-        forgot password
-      </Typography>
-
-      <form
-        className="common-form"
-        onSubmit={getRecoveryMethods}
-        aria-label="Password recovery form"
-      >
-        <UsernameInput
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          label="Username"
-          uniqueIdForARIA="forgot-password-username-input"
-          variant="outlined"
-          others={{
-            required: true,
-            disabled: isFetchingRecovery || recoveryMethods !== null,
-          }}
-        />
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={
-            isFetchingRecovery || !username.trim() || recoveryMethods !== null
-          }
-        >
-          {isFetchingRecovery ? (
-            <>
-              <CircularProgress size={20} sx={{ mr: 1 }} />
-              Loading...
-            </>
-          ) : (
-            "confirm"
-          )}
-        </Button>
-        <Button
-          color="inherit"
-          disabled={isFetchingRecovery}
-          onClick={handleClearRecoveryMethods}
-        >
-          clear
-        </Button>
-        <Button color="inherit" disabled={isFetchingRecovery}>
-          <Link to="/login">cancel</Link>
-        </Button>
-      </form>
-
-      {recoveryMethods && (
-        <div
-          className="recovery-methods-container"
-          role="region"
-          aria-label="Available recovery methods"
-        >
-          <Typography variant="h6" component="h2">
-            recovery methods:
+      <div className="fp-outer">
+        <Paper className="fp-card" elevation={3}>
+          {/* Header */}
+          <Typography variant="h5" component="h1" className="fp-title">
+            forgot password
           </Typography>
 
-          {/* Cooldown Alert */}
-          {isInCooldown && (
-            <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
-              An email with a reset code was recently sent. You can request
-              another code in {formatTime(remainingCooldown)}
-            </Alert>
-          )}
-
-          {/* Expiration Alert */}
-          {expiresAt && (
-            <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
-              Your reset code will expire at{" "}
-              {new Date(expiresAt).toLocaleTimeString()}
-            </Alert>
-          )}
-          {Object.entries(recoveryMethods).map(([key, value], index) => (
-            <div key={index}>
-              <Typography variant="body1">
-                <strong>{key}:</strong> {String(value)}
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  console.log(`Selected method: ${key}, value: ${value}`);
-                  setSelectedMethod(key as RecoveryMethodEnum);
+          {/* Step 1: Username lookup */}
+          {!methodsWereFetched ? (
+            <form
+              className="common-form"
+              onSubmit={getRecoveryMethods}
+              aria-label="Password recovery form"
+            >
+              <UsernameInput
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (lookupError) setLookupError(null);
                 }}
-                disabled={isFetchingRecovery || !value}
-                sx={{ mt: 1 }}
-              >
-                Use this method
-              </Button>
-            </div>
-          ))}
-          {selectedMethod === "EMAIL" && (
-            <>
-              <Typography sx={{ mt: 2 }}>
-                You selected: {selectedMethod}
-              </Typography>
+                label="username"
+                uniqueIdForARIA="forgot-password-username-input"
+                variant="outlined"
+                others={{ required: true, disabled: isFetchingRecovery }}
+              />
 
-              <Button
-                onClick={handleSendPasswordResetEmail}
-                disabled={isSendingEmail || isInCooldown}
-                variant="contained"
-                sx={{ mt: 1 }}
-              >
-                {isSendingEmail ? (
-                  <>
-                    <CircularProgress size={20} sx={{ mr: 1 }} />
-                    Sending...
-                  </>
-                ) : isInCooldown ? (
-                  `Wait ${formatTime(remainingCooldown)}`
-                ) : (
-                  "Send code on email"
-                )}
-              </Button>
-
-              <form
-                onSubmit={handleEmailRecoverySubmit}
-                className="common-form"
-              >
-                <TextField
-                  label="code"
-                  value={emailResetPasswordCodeInput}
-                  onChange={(e) => {
-                    setEmailResetPasswordCodeInput(e.target.value);
-                  }}
-                  required
-                />
-                <PasswordInput
-                  value={emailResetNewPassword}
-                  onChange={(e) => {
-                    setEmailResetNewPassword(e.target.value);
-                  }}
-                  label="new password"
-                  uniqueIdForARIA="new password"
-                  others={{ required: true }}
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={emailResetLogoutOtherSessions}
-                      onChange={() => {
-                        setEmailResetLogoutOtherSessions(
-                          !emailResetLogoutOtherSessions,
-                        );
-                      }}
-                    />
-                  }
-                  label="logout other sessions"
-                />
-
-                <Button type="submit" variant="contained">
-                  Submit
-                </Button>
-              </form>
-            </>
-          )}
-          {selectedMethod === "BACKUP_CODE" && (
-            <>
-              <Typography sx={{ mt: 2 }}>
-                You selected: {selectedMethod}
-              </Typography>
-              {backupCodeDetails && (
-                <Typography sx={{ mt: 1, mb: 1 }}>
-                  {backupCodeDetails.available} of {backupCodeDetails.total}{" "}
-                  generated codes are available. last generated on{" "}
-                  {new Date(
-                    backupCodeDetails.generated_at,
-                  ).toLocaleDateString()}
-                </Typography>
+              {/* Persistent lookup error */}
+              {lookupError && (
+                <Alert severity="error" onClose={() => setLookupError(null)}>
+                  {lookupError}
+                </Alert>
               )}
-              <form
-                onSubmit={handleBackupCodesRecoverySubmit}
-                className="common-form"
-              >
-                <TextField
-                  label="backup code"
-                  value={backupCodeResetPasswordCodeInput}
-                  onChange={(e) => {
-                    setBackupCodeResetPasswordCodeInput(e.target.value);
-                  }}
-                  required
-                />
-                <PasswordInput
-                  value={backupCodeResetNewPassword}
-                  onChange={(e) => {
-                    setBackupCodeResetNewPassword(e.target.value);
-                  }}
-                  label="new password"
-                  uniqueIdForARIA="new password"
-                  others={{ required: true }}
-                />
 
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={backupCodeResetLogoutOtherSessions}
-                      onChange={() => {
-                        setBackupCodeResetLogoutOtherSessions(
-                          !backupCodeResetLogoutOtherSessions,
-                        );
-                      }}
-                    />
+              <div className="fp-form-actions">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isFetchingRecovery || !username.trim()}
+                  startIcon={
+                    isFetchingRecovery ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : undefined
                   }
-                  label="logout other sessions"
-                />
-
-                <Button type="submit" variant="contained">
-                  Submit
+                >
+                  {isFetchingRecovery ? "looking up…" : "find account"}
                 </Button>
-              </form>
+                <Button
+                  component={Link}
+                  to="/login"
+                  variant="text"
+                  color="inherit"
+                  disabled={isFetchingRecovery}
+                >
+                  cancel
+                </Button>
+              </div>
+            </form>
+          ) : (
+            /* Locked username row */
+            <div className="fp-username-locked">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                className="fp-username-label"
+              >
+                account
+              </Typography>
+              <Typography variant="body1" className="fp-username-value">
+                {username}
+              </Typography>
+              <Tooltip title="Change username">
+                <IconButton
+                  size="small"
+                  onClick={handleClearRecoveryMethods}
+                  aria-label="change username"
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </div>
+          )}
+
+          {/* Step 2: Recovery methods */}
+          {methodsWereFetched && (
+            <>
+              <Divider sx={{ my: 2 }} />
+
+              {!hasAnyRecoveryMethod ? (
+                /* No recovery methods available */
+                <Alert severity="warning" className="fp-no-methods-alert">
+                  <Typography variant="body1" fontWeight={500}>
+                    no recovery methods active
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    This account has no active recovery methods set up. Please
+                    contact support.
+                  </Typography>
+                </Alert>
+              ) : (
+                <div className="fp-methods-list">
+                  {/* EMAIL RECOVERY */}
+                  {hasEmailRecovery && (
+                    <Paper
+                      variant="outlined"
+                      className="fp-method-panel"
+                      aria-label="Email recovery"
+                    >
+                      <div className="fp-method-header">
+                        <EmailOutlinedIcon
+                          fontSize="small"
+                          color="primary"
+                          aria-hidden="true"
+                        />
+                        <Typography variant="h6" component="h2">
+                          email recovery
+                        </Typography>
+                      </div>
+
+                      {/* Cooldown Alert */}
+                      {isInCooldown && (
+                        <Alert severity="info" sx={{ mb: 1.5 }}>
+                          A reset code was recently sent. You can request
+                          another in{" "}
+                          <strong>{formatTime(remainingCooldown)}</strong>.
+                        </Alert>
+                      )}
+
+                      {/* Expiration Alert */}
+                      {expiresAt && (
+                        <Alert severity="warning" sx={{ mb: 1.5 }}>
+                          Your reset code expires at{" "}
+                          <strong>
+                            {new Date(expiresAt).toLocaleTimeString()}
+                          </strong>
+                          .
+                        </Alert>
+                      )}
+
+                      <Button
+                        onClick={handleSendPasswordResetEmail}
+                        disabled={isSendingEmail || isInCooldown}
+                        variant="outlined"
+                        size="small"
+                        startIcon={
+                          isSendingEmail ? (
+                            <CircularProgress size={14} color="inherit" />
+                          ) : undefined
+                        }
+                        sx={{ mb: 2 }}
+                      >
+                        {isSendingEmail
+                          ? "sending…"
+                          : isInCooldown
+                            ? `resend in ${formatTime(remainingCooldown)}`
+                            : "send reset code"}
+                      </Button>
+
+                      <form
+                        onSubmit={handleEmailRecoverySubmit}
+                        className="common-form"
+                      >
+                        <TextField
+                          label="reset code"
+                          value={emailResetPasswordCodeInput}
+                          onChange={(e) => {
+                            setEmailResetPasswordCodeInput(e.target.value);
+                          }}
+                          required
+                          fullWidth
+                          size="small"
+                        />
+                        <PasswordInput
+                          value={emailResetNewPassword}
+                          onChange={(e) => {
+                            setEmailResetNewPassword(e.target.value);
+                          }}
+                          label="new password"
+                          uniqueIdForARIA="email-recovery-new-password"
+                          variant="outlined"
+                          fullWidth
+                          others={{ required: true }}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={emailResetLogoutOtherSessions}
+                              onChange={() => {
+                                setEmailResetLogoutOtherSessions(
+                                  !emailResetLogoutOtherSessions,
+                                );
+                              }}
+                              size="small"
+                            />
+                          }
+                          label={
+                            <Typography variant="body2">
+                              log out other sessions
+                            </Typography>
+                          }
+                        />
+                        <Button type="submit" variant="contained">
+                          reset password
+                        </Button>
+                      </form>
+                    </Paper>
+                  )}
+
+                  {/* BACKUP CODE RECOVERY */}
+                  {hasBackupCodeRecovery && (
+                    <Paper
+                      variant="outlined"
+                      className="fp-method-panel"
+                      aria-label="Backup code recovery"
+                    >
+                      <div className="fp-method-header">
+                        <VpnKeyOutlinedIcon
+                          fontSize="small"
+                          color="primary"
+                          aria-hidden="true"
+                        />
+                        <Typography variant="h6" component="h2">
+                          backup code
+                        </Typography>
+                      </div>
+
+                      {backupCodeDetails && (
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                          <strong>{backupCodeDetails.available}</strong> of{" "}
+                          <strong>{backupCodeDetails.total}</strong> codes
+                          remaining · generated on{" "}
+                          {new Date(
+                            backupCodeDetails.generated_at,
+                          ).toLocaleDateString()}
+                        </Alert>
+                      )}
+
+                      <form
+                        onSubmit={handleBackupCodesRecoverySubmit}
+                        className="common-form"
+                      >
+                        <TextField
+                          label="backup code"
+                          value={backupCodeResetPasswordCodeInput}
+                          onChange={(e) => {
+                            setBackupCodeResetPasswordCodeInput(e.target.value);
+                          }}
+                          required
+                          fullWidth
+                          size="small"
+                        />
+                        <PasswordInput
+                          value={backupCodeResetNewPassword}
+                          onChange={(e) => {
+                            setBackupCodeResetNewPassword(e.target.value);
+                          }}
+                          label="new password"
+                          uniqueIdForARIA="backup-code-new-password"
+                          variant="outlined"
+                          fullWidth
+                          others={{ required: true }}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={backupCodeResetLogoutOtherSessions}
+                              onChange={() => {
+                                setBackupCodeResetLogoutOtherSessions(
+                                  !backupCodeResetLogoutOtherSessions,
+                                );
+                              }}
+                              size="small"
+                            />
+                          }
+                          label={
+                            <Typography variant="body2">
+                              log out other sessions
+                            </Typography>
+                          }
+                        />
+                        <Button type="submit" variant="contained">
+                          reset password
+                        </Button>
+                      </form>
+                    </Paper>
+                  )}
+                </div>
+              )}
+
+              {/* Back to login link */}
+              <Box sx={{ mt: 2, textAlign: "center" }}>
+                <Typography variant="body2" color="text.secondary">
+                  remembered your password?{" "}
+                  <Link to="/login" className="fp-link">
+                    sign in
+                  </Link>
+                </Typography>
+              </Box>
             </>
           )}
-        </div>
-      )}
+
+          {/* Back to login when pre-lookup */}
+          {!methodsWereFetched && (
+            <Box sx={{ mt: 1, textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                remembered your password?{" "}
+                <Link to="/login" className="fp-link">
+                  sign in
+                </Link>
+              </Typography>
+            </Box>
+          )}
+        </Paper>
+      </div>
     </Page>
   );
 };

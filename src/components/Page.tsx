@@ -217,6 +217,30 @@ const Page: React.FC<Props> = ({
               },
             },
           },
+          MuiPaper: {
+            defaultProps: {
+              elevation: 0,
+            },
+            styleOverrides: {
+              root: {
+                borderRadius: 12,
+              },
+            },
+          },
+          MuiAppBar: {
+            styleOverrides: {
+              root: {
+                borderRadius: 0,
+              },
+            },
+          },
+          MuiButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: 8,
+              },
+            },
+          },
         },
         palette: {
           mode: themeState,
