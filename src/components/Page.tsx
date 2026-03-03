@@ -7,7 +7,7 @@ import * as React from "react";
 import { CustomSnackbar } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { CircularProgress, Paper } from "@mui/material";
+import { Box, CircularProgress, Paper } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import {
   createTheme,
@@ -43,7 +43,7 @@ const getInitialThemeState = (): ThemeState => {
   if (storedTheme !== null) return storedTheme === "dark" ? "dark" : "light";
   window.localStorage.setItem(
     localStorageKeysConfig.theme,
-    uiConfig.defaultThemeState
+    uiConfig.defaultThemeState,
   );
   return uiConfig.defaultThemeState;
 };
@@ -83,11 +83,11 @@ const Page: React.FC<Props> = ({
       if (isBrowser) {
         window.localStorage.setItem(
           localStorageKeysConfig.theme,
-          newThemeState
+          newThemeState,
         );
       }
     },
-    []
+    [],
   );
 
   React.useEffect(() => {
@@ -193,40 +193,42 @@ const Page: React.FC<Props> = ({
           mode: themeState,
         },
       }),
-    [themeState]
+    [themeState],
   );
 
   return (
     <ThemeProvider theme={currentTheme}>
       <StyledEngineProvider injectFirst>
         <CssBaseline />
-        <CustomAppBar
-          user={user}
-          nullifyPageStateFunction={nullifyPageStateFunction}
-          changeSnackbarState={changeSnackbarState}
-          themeState={themeState}
-          customChangeThemeState={customChangeThemeState}
-          isUserProfilePhotoLoading={isUserProfilePhotoLoading}
-          userProfilePhotoURL={userProfilePhotoURL}
-        />
-        {isLoading ? (
-          <div className="loading-screen">
-            <CircularProgress />
-          </div>
-        ) : (
-          <>
-            <Paper
-              className={className ? `parent ${className}` : "parent"}
-              square
-            >
-              {children}
-            </Paper>
-            <CustomSnackbar
-              snackbarState={snackbarState}
-              changeSnackbarState={changeSnackbarState}
-            />
-          </>
-        )}
+        <Box className="main-container">
+          <CustomAppBar
+            user={user}
+            nullifyPageStateFunction={nullifyPageStateFunction}
+            changeSnackbarState={changeSnackbarState}
+            themeState={themeState}
+            customChangeThemeState={customChangeThemeState}
+            isUserProfilePhotoLoading={isUserProfilePhotoLoading}
+            userProfilePhotoURL={userProfilePhotoURL}
+          />
+          {isLoading ? (
+            <Box className="loading-screen">
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              <Paper
+                className={className ? `parent ${className}` : "parent"}
+                square
+              >
+                {children}
+              </Paper>
+              <CustomSnackbar
+                snackbarState={snackbarState}
+                changeSnackbarState={changeSnackbarState}
+              />
+            </>
+          )}
+        </Box>
       </StyledEngineProvider>
     </ThemeProvider>
   );

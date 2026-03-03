@@ -1,10 +1,14 @@
+.main-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 .parent {
-  min-height: calc(100vh - 64px);
+  flex-grow: 1;
 }
 .loading-screen {
+  flex-grow: 1;
   display: flex;
-  width: 100vw;
-  min-height: calc(100vh - 64px);
   align-items: center;
   justify-content: center;
 }
