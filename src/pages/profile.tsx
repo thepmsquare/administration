@@ -19,21 +19,30 @@ import { MuiTelInput } from "mui-tel-input";
 import { Edit } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import DevicesOutlinedIcon from "@mui/icons-material/DevicesOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import MarkEmailUnreadOutlinedIcon from "@mui/icons-material/MarkEmailUnreadOutlined";
 import {
   Alert,
   Avatar,
   Backdrop,
+  Box,
   Button,
-  ButtonGroup,
-  Card,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Grid,
+  IconButton,
   Paper,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 
@@ -816,497 +825,740 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       externalUserProfilePhotoURL={userProfilePhotoURL}
       isExternalUserProfilePhotoLoading={isUserProfilePhotoLoading}
     >
-      <Typography variant="h4" component="h1">
-        profile
-      </Typography>
+      <div className="profile-outer">
+        {/* Page title */}
+        <Typography variant="h4" component="h1" className="profile-title">
+          profile
+        </Typography>
 
-      <div className="profile-card">
-        {isUserProfilePhotoLoading ? (
-          <Avatar>
-            <CircularProgress />
-          </Avatar>
-        ) : userProfilePhotoURL ? (
-          <Avatar
-            alt={pageState?.user.username}
-            src={userProfilePhotoURL}
-            onClick={() => setIsPhotoBackdropVisible(true)}
-          />
-        ) : (
-          <Avatar>{pageState?.user.username.charAt(0)}</Avatar>
-        )}
-
-        <ButtonGroup variant="text" aria-label="Basic button group">
-          <Button onClick={handleUpdateUsernameDialogOpen}>
-            {pageState?.user.username}
-          </Button>
-          <Button onClick={handleUpdateUsernameDialogOpen} color="inherit">
-            <Edit />
-          </Button>
-        </ButtonGroup>
-      </div>
-      <input
-        type="file"
-        accept="image/jpeg, image/png"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        style={{ display: "none" }}
-        aria-hidden="true"
-      />
-      <div>
-        <Button
-          startIcon={<PhotoCameraIcon />}
-          onClick={triggerFileInput}
-          color="primary"
-        >
-          update profile photo
-        </Button>
-        {userProfilePhotoURL && (
-          <Button
-            startIcon={<DeleteIcon />}
-            onClick={() => setOpenUserProfilePhotoRemoveDialog(true)}
-            color="error"
-          >
-            remove profile photo
-          </Button>
-        )}
-      </div>
-      <Card
-        sx={{ padding: 2, display: "flex", flexDirection: "column", gap: 2 }}
-      >
-        {isEditingProfile ? (
-          <form onSubmit={handleProfileFieldSave}>
-            <TextField
-              label="first name"
-              variant="outlined"
-              value={profileFormData.firstName}
-              onChange={handleProfileFieldChange("firstName")}
-              fullWidth
-            />
-            <TextField
-              label="last name"
-              variant="outlined"
-              value={profileFormData.lastName}
-              onChange={handleProfileFieldChange("lastName")}
-              fullWidth
-            />
-            <TextField
-              label="email"
-              variant="outlined"
-              type="email"
-              value={profileFormData.email}
-              onChange={handleProfileFieldChange("email")}
-              fullWidth
-            />
-            <MuiTelInput
-              label="phone number"
-              value={`${profileFormData.phoneCountryCode}${profileFormData.phoneNumber}`}
-              onChange={(value, info) => {
-                setProfileFormData((prev) => ({
-                  ...prev,
-                  phoneNumber: info.nationalNumber || "",
-                  phoneCountryCode: info.countryCallingCode
-                    ? `+${info.countryCallingCode}`
-                    : "",
-                }));
-              }}
-              fullWidth
-              variant="outlined"
-            />
-            <Button type="button" onClick={() => setIsEditingProfile(false)}>
-              cancel
-            </Button>
-            <Button color="primary" type="submit">
-              save
-            </Button>
-          </form>
-        ) : (
-          <>
-            <div>
-              name:{" "}
-              {`${userDetails?.profile.user_profile_first_name || ""} ${
-                userDetails?.profile.user_profile_last_name || ""
-              }`.trim() || "empty"}
-            </div>
-            <div>
-              email: {userDetails?.profile.user_profile_email || "empty"}
-            </div>
-            {!!userDetails?.profile.user_profile_email && (
-              <div>
-                email_verified:{" "}
-                {userDetails?.profile.user_profile_email_verified ||
-                  "not verified"}
-              </div>
-            )}
-            <div>
-              phone number:{" "}
-              {userDetails?.profile.user_profile_phone_number
-                ? `${userDetails.profile.user_profile_phone_number_country_code}${userDetails.profile.user_profile_phone_number}`
-                : "empty"}
-            </div>
-            <Button
-              onClick={() => {
-                setProfileFormData({
-                  firstName: userDetails?.profile.user_profile_first_name || "",
-                  lastName: userDetails?.profile.user_profile_last_name || "",
-                  email: userDetails?.profile.user_profile_email || "",
-                  phoneNumber:
-                    userDetails?.profile.user_profile_phone_number || "",
-                  phoneCountryCode:
-                    userDetails?.profile
-                      .user_profile_phone_number_country_code || "",
-                });
-                setIsEditingProfile(true);
-                setIsEditingProfile(true);
-              }}
-            >
-              Edit
-            </Button>
-          </>
-        )}
-      </Card>
-      {userDetails?.profile.user_profile_email &&
-        !userDetails?.profile.user_profile_email_verified && (
-          <>
-            {userDetails.email_verification_details ? (
-              <form onSubmit={handleEmailVerificationSubmit}>
-                {isInCooldown && (
-                  <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
-                    You can request another code in{" "}
-                    {formatTime(remainingCooldown)}
-                  </Alert>
-                )}
-
-                {expiresAt && (
-                  <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
-                    Your code will expire at{" "}
-                    {new Date(expiresAt).toLocaleTimeString()}
-                  </Alert>
-                )}
-
-                <Button
-                  onClick={handleSendVerificationEmail}
-                  disabled={isInCooldown}
-                  variant="contained"
-                  sx={{ mt: 1 }}
-                >
-                  {isInCooldown
-                    ? `wait ${formatTime(remainingCooldown)}`
-                    : "resend code on email"}
-                </Button>
-                <TextField
-                  required
-                  value={emailVerificationCode}
-                  onChange={(e) => setEmailVerificationCode(e.target.value)}
+        {/* ---- Hero card: avatar + username ---- */}
+        <Paper variant="outlined" className="profile-hero-card" elevation={3}>
+          <div className="profile-avatar-wrapper">
+            {isUserProfilePhotoLoading ? (
+              <Avatar className="profile-avatar-large">
+                <CircularProgress size={32} />
+              </Avatar>
+            ) : userProfilePhotoURL ? (
+              <Tooltip title="View photo">
+                <Avatar
+                  className="profile-avatar-large"
+                  alt={pageState?.user.username}
+                  src={userProfilePhotoURL}
+                  onClick={() => setIsPhotoBackdropVisible(true)}
                 />
-                <Button type="submit">submit</Button>
-              </form>
+              </Tooltip>
             ) : (
-              <Button onClick={handleSendVerificationEmail}>
-                Send verification email
+              <Avatar className="profile-avatar-large">
+                {pageState?.user.username?.charAt(0).toUpperCase()}
+              </Avatar>
+            )}
+          </div>
+
+          <div className="profile-username-row">
+            <Typography variant="h6" component="span" fontWeight={600}>
+              {pageState?.user.username}
+            </Typography>
+            <Tooltip title="Change username">
+              <IconButton
+                size="small"
+                onClick={handleUpdateUsernameDialogOpen}
+                aria-label="change username"
+              >
+                <Edit fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </div>
+
+          <div className="profile-photo-actions">
+            <Button
+              startIcon={<PhotoCameraIcon />}
+              onClick={triggerFileInput}
+              variant="outlined"
+              size="small"
+            >
+              update photo
+            </Button>
+            {userProfilePhotoURL && (
+              <Button
+                startIcon={<DeleteIcon />}
+                onClick={() => setOpenUserProfilePhotoRemoveDialog(true)}
+                color="error"
+                variant="outlined"
+                size="small"
+              >
+                remove photo
               </Button>
             )}
-          </>
-        )}
-      <Card>
-        <Typography variant="h5" component="h2">
-          account recovery methods
-        </Typography>
-        {userDetails &&
-          Object.entries(userDetails.recovery_methods).map(
-            ([name, isActive], index) => (
-              <div key={index}>
-                {name}: {isActive ? "active" : "not active"}{" "}
+          </div>
+        </Paper>
+
+        <input
+          type="file"
+          accept="image/jpeg, image/png"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+          aria-hidden="true"
+        />
+
+        {/* ---- Profile details section ---- */}
+        <Paper variant="outlined" className="profile-section-card">
+          <div className="profile-section-header">
+            <AccountCircleOutlinedIcon
+              fontSize="small"
+              color="primary"
+              aria-hidden="true"
+            />
+            <Typography variant="h6" component="h2">
+              profile details
+            </Typography>
+          </div>
+          <Divider />
+
+          {isEditingProfile ? (
+            <form onSubmit={handleProfileFieldSave} className="common-form">
+              <TextField
+                label="first name"
+                variant="outlined"
+                value={profileFormData.firstName}
+                onChange={handleProfileFieldChange("firstName")}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="last name"
+                variant="outlined"
+                value={profileFormData.lastName}
+                onChange={handleProfileFieldChange("lastName")}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="email"
+                variant="outlined"
+                type="email"
+                value={profileFormData.email}
+                onChange={handleProfileFieldChange("email")}
+                fullWidth
+                size="small"
+              />
+              <MuiTelInput
+                label="phone number"
+                value={`${profileFormData.phoneCountryCode}${profileFormData.phoneNumber}`}
+                onChange={(value, info) => {
+                  setProfileFormData((prev) => ({
+                    ...prev,
+                    phoneNumber: info.nationalNumber || "",
+                    phoneCountryCode: info.countryCallingCode
+                      ? `+${info.countryCallingCode}`
+                      : "",
+                  }));
+                }}
+                fullWidth
+                variant="outlined"
+                size="small"
+              />
+              <div className="profile-form-actions">
+                <Button variant="contained" color="primary" type="submit">
+                  save changes
+                </Button>
                 <Button
-                  onClick={() =>
-                    handleAccountRecoveryToggle(
-                      name as RecoveryMethodEnum,
-                      isActive,
-                    )
-                  }
+                  variant="text"
+                  color="inherit"
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
                 >
-                  toggle
+                  cancel
                 </Button>
               </div>
-            ),
-          )}
-      </Card>
-      {userDetails && userDetails.recovery_methods.BACKUP_CODE && (
-        <>
-          {userDetails.backup_code_details && (
+            </form>
+          ) : (
             <>
-              <Typography>
-                {userDetails.backup_code_details.available} of{" "}
-                {userDetails.backup_code_details.total} generated codes are
-                available. last generated on{" "}
-                {new Date(
-                  userDetails.backup_code_details.generated_at,
-                ).toLocaleDateString()}
-              </Typography>
-            </>
-          )}
-          <Button onClick={handleGenerateAccountRecoveryBackupCodes}>
-            {userDetails.backup_code_details
-              ? "regenerate account backup codes"
-              : "generate account backup codes"}
-          </Button>
-        </>
-      )}
-      <Typography variant="h5" component="h2">
-        update password
-      </Typography>
-      <form onSubmit={updatePassword} className="common-form">
-        <PasswordInput
-          value={updatePasswordOldPassword}
-          onChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
-          label="enter existing password"
-          uniqueIdForARIA="update-password-old"
-          others={{ required: true, disabled: isUpdatePasswordLoading }}
-          variant="outlined"
-        />
-        <PasswordInput
-          value={updatePasswordNewPassword}
-          onChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
-          label="enter desired password"
-          uniqueIdForARIA="update-password-new"
-          others={{ required: true, disabled: isUpdatePasswordLoading }}
-          variant="outlined"
-        />
-        <PasswordInput
-          value={updatePasswordConfirmPassword}
-          onChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
-          label="confirm desired password"
-          uniqueIdForARIA="update-password-confirm"
-          others={{ required: true, disabled: isUpdatePasswordLoading }}
-          variant="outlined"
-        />
-        <Button
-          color="primary"
-          type="submit"
-          disabled={isUpdatePasswordLoading}
-        >
-          {isUpdatePasswordLoading ? <CircularProgress /> : "update password"}
-        </Button>
-      </form>
-
-      <Typography variant="h5" component="h2">
-        delete {brandConfig.appName} account
-      </Typography>
-      <form onSubmit={openRemoveAppDialog} className="common-form">
-        <PasswordInput
-          value={removeAppPassword}
-          onChange={(e) => {
-            setRemoveAppPassword(e.target.value);
-          }}
-          label="password"
-          uniqueIdForARIA="remove-app-password"
-          others={{ required: true, disabled: isRemoveAppLoading }}
-          variant="outlined"
-        />
-        <Button color="error" type="submit" disabled={isRemoveAppLoading}>
-          delete {brandConfig.appName} account
-        </Button>
-      </form>
-
-      <Typography variant="h5" component="h2">
-        delete account
-      </Typography>
-      <form onSubmit={openDeleteAccountDialog} className="common-form">
-        <PasswordInput
-          value={deleteAccountPassword}
-          onChange={(e) => {
-            setDeleteAccountPassword(e.target.value);
-          }}
-          label="password"
-          uniqueIdForARIA="delete-account-password"
-          others={{ required: true, disabled: isDeleteAccountLoading }}
-          variant="outlined"
-        />
-        <Button color="error" type="submit" disabled={isDeleteAccountLoading}>
-          Delete Account
-        </Button>
-      </form>
-
-      <Typography variant="h5" component="h2">
-        active sessions
-      </Typography>
-      <PaginatedTable
-        rows={sessionTableData || []}
-        tableAriaLabel="your active sessions across apps"
-        currentPageNumber={1}
-        handlePageChange={() => {}}
-        totalRowsCount={userDetails?.sessions.length || 0}
-        isLoading={userDetails ? false : true}
-        pageSize={userDetails?.sessions.length || 0}
-        caption="your active sessions across apps"
-        hidePaginationOnSinglePage={true}
-      />
-
-      <Button color="error" onClick={() => setIsLogoutAllDialogOpen(true)}>
-        logout from all apps
-      </Button>
-
-      <Dialog
-        open={isUpdateUsernameDialogOpen}
-        onClose={handleUpdateUsernameDialogClose}
-        aria-labelledby="update-username-dialog"
-      >
-        <form onSubmit={updateUsername}>
-          <DialogTitle id="alert-dialog-title">update username</DialogTitle>
-          <DialogContent className="common-dialog-content">
-            <UsernameInput
-              value={updateUsernameNewUsername}
-              onChange={(e) => setUpdateUsernameNewUsername(e.target.value)}
-              label="enter new username"
-              uniqueIdForARIA="update-username"
-              variant="outlined"
-              others={{ required: true, disabled: isUpdateUsernameLoading }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={handleUpdateUsernameDialogClose}
-              disabled={isUpdateUsernameLoading}
-              color="inherit"
-            >
-              cancel
-            </Button>
-            <Button
-              color="primary"
-              type="submit"
-              disabled={isUpdateUsernameLoading}
-            >
-              {isUpdateUsernameLoading ? <CircularProgress /> : "confirm"}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-      <Dialog
-        open={openUserProfilePhotoUpdateDialog}
-        onClose={cancelProfilePhotoUpdate}
-        aria-labelledby="update-user-profile-photo-dialog-title"
-      >
-        <DialogTitle id="update-user-profile-photo-dialog-title">
-          update profile photo?
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          {userProfilePhotoUpdatePreviewURL && (
-            <Avatar
-              src={userProfilePhotoUpdatePreviewURL}
-              alt="new user profile photo preview"
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelProfilePhotoUpdate} color="inherit">
-            cancel
-          </Button>
-          <Button onClick={confirmProfilePhotoUpdate} color="primary">
-            confirm update
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <AlertDialog
-        open={isDeleteAccountDialogOpen}
-        handleClose={closeDeleteAccountDialog}
-        handleSuccess={deleteAccount}
-        title="delete account"
-        confirmButtonColor="error"
-        isLoading={isDeleteAccountLoading}
-      />
-      <AlertDialog
-        open={isLogoutAppsDialogOpen}
-        handleClose={closeLogoutAppsDialog}
-        handleSuccess={() => logoutFromApp(logoutAppName as string)}
-        title={`log out all devices from ${logoutAppName}`}
-        confirmButtonColor="error"
-      />
-      <AlertDialog
-        open={isLogoutAllDialogOpen}
-        handleClose={closeLogoutAllDialog}
-        handleSuccess={logoutAll}
-        title="log out all devices for all apps"
-        confirmButtonColor="error"
-      />
-      <AlertDialog
-        open={isRemoveAppDialogOpen}
-        handleClose={closeRemoveAppDialog}
-        handleSuccess={removeApp}
-        title={`delete ${brandConfig.appName} account`}
-        confirmButtonColor="error"
-        isLoading={isRemoveAppLoading}
-      />
-      <AlertDialog
-        open={openUserProfilePhotoRemoveDialog}
-        handleClose={cancelProfilePhotoRemove}
-        handleSuccess={confirmProfilePhotoRemove}
-        title={`remove profile photo?`}
-        confirmButtonColor="error"
-        // isLoading={isRemoveAppLoading}
-      />
-      {userProfilePhotoURL && (
-        <Backdrop
-          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-          open={isPhotoBackdropVisible}
-          onClick={() => setIsPhotoBackdropVisible(false)}
-        >
-          <img
-            src={userProfilePhotoURL}
-            alt="Profile photo"
-            style={{
-              width: "85%",
-              height: "85%",
-              objectFit: "contain",
-            }}
-          />
-        </Backdrop>
-      )}
-      <Dialog open={isAccountRecoveryBackupCodesDialogOpen}>
-        <DialogTitle>account recovery backup codes</DialogTitle>
-        <DialogContent dividers>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            save these backup codes in a secure place. each code can be used
-            once if you forget your password.
-          </Typography>
-
-          <Grid container spacing={1}>
-            {accountRecoveryBackupCodes.map((code) => (
-              <Grid key={code}>
-                <Paper
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+                <div className="profile-info-row">
+                  <Typography variant="body2" color="text.secondary">
+                    name
+                  </Typography>
+                  <Typography variant="body1">
+                    {`${userDetails?.profile.user_profile_first_name || ""} ${
+                      userDetails?.profile.user_profile_last_name || ""
+                    }`.trim() || "—"}
+                  </Typography>
+                </div>
+                <div className="profile-info-row">
+                  <Typography variant="body2" color="text.secondary">
+                    email
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Typography variant="body1">
+                      {userDetails?.profile.user_profile_email || "—"}
+                    </Typography>
+                    {!!userDetails?.profile.user_profile_email && (
+                      <Chip
+                        size="small"
+                        label={
+                          userDetails?.profile.user_profile_email_verified
+                            ? "verified"
+                            : "not verified"
+                        }
+                        color={
+                          userDetails?.profile.user_profile_email_verified
+                            ? "success"
+                            : "warning"
+                        }
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
+                </div>
+                <div className="profile-info-row">
+                  <Typography variant="body2" color="text.secondary">
+                    phone
+                  </Typography>
+                  <Typography variant="body1">
+                    {userDetails?.profile.user_profile_phone_number
+                      ? `${userDetails.profile.user_profile_phone_number_country_code}${userDetails.profile.user_profile_phone_number}`
+                      : "—"}
+                  </Typography>
+                </div>
+              </Box>
+              <div>
+                <Button
                   variant="outlined"
-                  sx={{
-                    py: 1,
-                    textAlign: "center",
-                    fontFamily: "monospace",
-                    fontSize: 14,
+                  size="small"
+                  startIcon={<Edit fontSize="small" />}
+                  onClick={() => {
+                    setProfileFormData({
+                      firstName:
+                        userDetails?.profile.user_profile_first_name || "",
+                      lastName:
+                        userDetails?.profile.user_profile_last_name || "",
+                      email: userDetails?.profile.user_profile_email || "",
+                      phoneNumber:
+                        userDetails?.profile.user_profile_phone_number || "",
+                      phoneCountryCode:
+                        userDetails?.profile
+                          .user_profile_phone_number_country_code || "",
+                    });
+                    setIsEditingProfile(true);
                   }}
                 >
-                  {code}
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleAccountRecoveryBackupCodesCopy}>
-            copy all
-          </Button>
-          <Button onClick={handleAccountRecoveryBackupCodesDownload}>
-            download
-          </Button>
-          <Button
-            onClick={handleAccountRecoveryBackupCodesDialogClose}
-            variant="contained"
+                  edit details
+                </Button>
+              </div>
+            </>
+          )}
+        </Paper>
+        {/* ---- Email verification section (only when unverified) ---- */}
+        {userDetails?.profile.user_profile_email &&
+          !userDetails?.profile.user_profile_email_verified && (
+            <Paper variant="outlined" className="profile-section-card">
+              <div className="profile-section-header">
+                <MarkEmailUnreadOutlinedIcon
+                  fontSize="small"
+                  color="warning"
+                  aria-hidden="true"
+                />
+                <Typography variant="h6" component="h2">
+                  verify email
+                </Typography>
+              </div>
+              <Divider />
+              {userDetails.email_verification_details ? (
+                <>
+                  {isInCooldown && (
+                    <Alert severity="info">
+                      A code was recently sent. You can request another in{" "}
+                      <strong>{formatTime(remainingCooldown)}</strong>.
+                    </Alert>
+                  )}
+                  {expiresAt && (
+                    <Alert severity="warning">
+                      Your code expires at{" "}
+                      <strong>
+                        {new Date(expiresAt).toLocaleTimeString()}
+                      </strong>
+                      .
+                    </Alert>
+                  )}
+                  <Button
+                    onClick={handleSendVerificationEmail}
+                    disabled={isInCooldown}
+                    variant="outlined"
+                    size="small"
+                  >
+                    {isInCooldown
+                      ? `resend in ${formatTime(remainingCooldown)}`
+                      : "resend verification email"}
+                  </Button>
+                  <form
+                    onSubmit={handleEmailVerificationSubmit}
+                    className="common-form"
+                  >
+                    <TextField
+                      label="verification code"
+                      required
+                      fullWidth
+                      size="small"
+                      value={emailVerificationCode}
+                      onChange={(e) => setEmailVerificationCode(e.target.value)}
+                    />
+                    <div className="profile-form-actions">
+                      <Button type="submit" variant="contained">
+                        submit code
+                      </Button>
+                    </div>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <Typography variant="body2" color="text.secondary">
+                    Your email address is not yet verified. Send a verification
+                    code to confirm your email.
+                  </Typography>
+                  <div>
+                    <Button
+                      onClick={handleSendVerificationEmail}
+                      variant="outlined"
+                      size="small"
+                      startIcon={
+                        <MarkEmailUnreadOutlinedIcon fontSize="small" />
+                      }
+                    >
+                      send verification email
+                    </Button>
+                  </div>
+                </>
+              )}
+            </Paper>
+          )}
+        {/* ---- Account recovery section ---- */}
+        <Paper variant="outlined" className="profile-section-card">
+          <div className="profile-section-header">
+            <ShieldOutlinedIcon
+              fontSize="small"
+              color="primary"
+              aria-hidden="true"
+            />
+            <Typography variant="h6" component="h2">
+              account recovery
+            </Typography>
+          </div>
+          <Divider />
+          {userDetails &&
+            Object.entries(userDetails.recovery_methods).map(
+              ([name, isActive], index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 1,
+                    py: 0.5,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{ textTransform: "lowercase" }}
+                    >
+                      {name.replace(/_/g, " ")}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={isActive ? "active" : "inactive"}
+                      color={isActive ? "success" : "default"}
+                      variant="outlined"
+                    />
+                  </Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color={isActive ? "error" : "primary"}
+                    onClick={() =>
+                      handleAccountRecoveryToggle(
+                        name as RecoveryMethodEnum,
+                        isActive,
+                      )
+                    }
+                  >
+                    {isActive ? "disable" : "enable"}
+                  </Button>
+                </Box>
+              ),
+            )}
+          {userDetails && userDetails.recovery_methods.BACKUP_CODE && (
+            <>
+              <Divider />
+              {userDetails.backup_code_details && (
+                <Alert severity="info" sx={{ mt: 0.5 }}>
+                  <strong>{userDetails.backup_code_details.available}</strong>{" "}
+                  of <strong>{userDetails.backup_code_details.total}</strong>{" "}
+                  codes remaining · generated on{" "}
+                  {new Date(
+                    userDetails.backup_code_details.generated_at,
+                  ).toLocaleDateString()}
+                </Alert>
+              )}
+              <div>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleGenerateAccountRecoveryBackupCodes}
+                >
+                  {userDetails.backup_code_details
+                    ? "regenerate backup codes"
+                    : "generate backup codes"}
+                </Button>
+              </div>
+            </>
+          )}
+        </Paper>
+        {/* ---- Update password section ---- */}
+        <Paper variant="outlined" className="profile-section-card">
+          <div className="profile-section-header">
+            <LockOutlinedIcon
+              fontSize="small"
+              color="primary"
+              aria-hidden="true"
+            />
+            <Typography variant="h6" component="h2">
+              update password
+            </Typography>
+          </div>
+          <Divider />
+          <form onSubmit={updatePassword} className="common-form">
+            <PasswordInput
+              value={updatePasswordOldPassword}
+              onChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
+              label="current password"
+              uniqueIdForARIA="update-password-old"
+              others={{ required: true, disabled: isUpdatePasswordLoading }}
+              variant="outlined"
+              fullWidth
+            />
+            <PasswordInput
+              value={updatePasswordNewPassword}
+              onChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
+              label="new password"
+              uniqueIdForARIA="update-password-new"
+              others={{ required: true, disabled: isUpdatePasswordLoading }}
+              variant="outlined"
+              fullWidth
+            />
+            <PasswordInput
+              value={updatePasswordConfirmPassword}
+              onChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
+              label="confirm new password"
+              uniqueIdForARIA="update-password-confirm"
+              others={{ required: true, disabled: isUpdatePasswordLoading }}
+              variant="outlined"
+              fullWidth
+            />
+            <div className="profile-form-actions">
+              <Button
+                color="primary"
+                variant="contained"
+                type="submit"
+                disabled={isUpdatePasswordLoading}
+                startIcon={
+                  isUpdatePasswordLoading ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : undefined
+                }
+              >
+                {isUpdatePasswordLoading ? "updating…" : "update password"}
+              </Button>
+            </div>
+          </form>
+        </Paper>
+
+        {/* ---- Sessions section ---- */}
+        <Paper variant="outlined" className="profile-sessions-card">
+          <div className="profile-section-header">
+            <DevicesOutlinedIcon
+              fontSize="small"
+              color="primary"
+              aria-hidden="true"
+            />
+            <Typography variant="h6" component="h2">
+              active sessions
+            </Typography>
+          </div>
+          <Divider />
+          <PaginatedTable
+            rows={sessionTableData || []}
+            tableAriaLabel="your active sessions across apps"
+            currentPageNumber={1}
+            handlePageChange={() => {}}
+            totalRowsCount={userDetails?.sessions.length || 0}
+            isLoading={userDetails ? false : true}
+            pageSize={userDetails?.sessions.length || 0}
+            caption="your active sessions across apps"
+            hidePaginationOnSinglePage={true}
+          />
+          <div>
+            <Button
+              color="error"
+              variant="outlined"
+              size="small"
+              onClick={() => setIsLogoutAllDialogOpen(true)}
+            >
+              logout from all apps
+            </Button>
+          </div>
+        </Paper>
+
+        {/* ---- Danger zone ---- */}
+        <Paper variant="outlined" className="profile-danger-section">
+          <div className="profile-section-header">
+            <DeleteOutlineIcon
+              fontSize="small"
+              color="error"
+              aria-hidden="true"
+            />
+            <Typography variant="h6" component="h2" color="error">
+              danger zone
+            </Typography>
+          </div>
+          <Divider />
+
+          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+            delete {brandConfig.appName} account
+          </Typography>
+          <form onSubmit={openRemoveAppDialog} className="common-form">
+            <PasswordInput
+              value={removeAppPassword}
+              onChange={(e) => setRemoveAppPassword(e.target.value)}
+              label="password"
+              uniqueIdForARIA="remove-app-password"
+              others={{ required: true, disabled: isRemoveAppLoading }}
+              variant="outlined"
+              fullWidth
+            />
+            <div className="profile-form-actions">
+              <Button
+                color="error"
+                variant="outlined"
+                type="submit"
+                disabled={isRemoveAppLoading}
+                startIcon={
+                  isRemoveAppLoading ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : undefined
+                }
+              >
+                {isRemoveAppLoading
+                  ? "deleting…"
+                  : `delete ${brandConfig.appName} account`}
+              </Button>
+            </div>
+          </form>
+
+          <Divider />
+
+          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+            delete account permanently
+          </Typography>
+          <form onSubmit={openDeleteAccountDialog} className="common-form">
+            <PasswordInput
+              value={deleteAccountPassword}
+              onChange={(e) => setDeleteAccountPassword(e.target.value)}
+              label="password"
+              uniqueIdForARIA="delete-account-password"
+              others={{ required: true, disabled: isDeleteAccountLoading }}
+              variant="outlined"
+              fullWidth
+            />
+            <div className="profile-form-actions">
+              <Button
+                color="error"
+                variant="contained"
+                type="submit"
+                disabled={isDeleteAccountLoading}
+                startIcon={
+                  isDeleteAccountLoading ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : undefined
+                }
+              >
+                {isDeleteAccountLoading ? "deleting…" : "delete account"}
+              </Button>
+            </div>
+          </form>
+        </Paper>
+
+        <Dialog
+          open={isUpdateUsernameDialogOpen}
+          onClose={handleUpdateUsernameDialogClose}
+          aria-labelledby="update-username-dialog"
+        >
+          <form onSubmit={updateUsername}>
+            <DialogTitle id="alert-dialog-title">update username</DialogTitle>
+            <DialogContent className="common-dialog-content">
+              <UsernameInput
+                value={updateUsernameNewUsername}
+                onChange={(e) => setUpdateUsernameNewUsername(e.target.value)}
+                label="enter new username"
+                uniqueIdForARIA="update-username"
+                variant="outlined"
+                others={{ required: true, disabled: isUpdateUsernameLoading }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={handleUpdateUsernameDialogClose}
+                disabled={isUpdateUsernameLoading}
+                color="inherit"
+              >
+                cancel
+              </Button>
+              <Button
+                color="primary"
+                type="submit"
+                disabled={isUpdateUsernameLoading}
+              >
+                {isUpdateUsernameLoading ? <CircularProgress /> : "confirm"}
+              </Button>
+            </DialogActions>
+          </form>
+        </Dialog>
+        <Dialog
+          open={openUserProfilePhotoUpdateDialog}
+          onClose={cancelProfilePhotoUpdate}
+          aria-labelledby="update-user-profile-photo-dialog-title"
+        >
+          <DialogTitle id="update-user-profile-photo-dialog-title">
+            update profile photo?
+          </DialogTitle>
+          <DialogContent
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
           >
-            done
-          </Button>
-        </DialogActions>
-      </Dialog>
+            {userProfilePhotoUpdatePreviewURL && (
+              <Avatar
+                src={userProfilePhotoUpdatePreviewURL}
+                alt="new user profile photo preview"
+              />
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={cancelProfilePhotoUpdate} color="inherit">
+              cancel
+            </Button>
+            <Button onClick={confirmProfilePhotoUpdate} color="primary">
+              confirm update
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <AlertDialog
+          open={isDeleteAccountDialogOpen}
+          handleClose={closeDeleteAccountDialog}
+          handleSuccess={deleteAccount}
+          title="delete account"
+          confirmButtonColor="error"
+          isLoading={isDeleteAccountLoading}
+        />
+        <AlertDialog
+          open={isLogoutAppsDialogOpen}
+          handleClose={closeLogoutAppsDialog}
+          handleSuccess={() => logoutFromApp(logoutAppName as string)}
+          title={`log out all devices from ${logoutAppName}`}
+          confirmButtonColor="error"
+        />
+        <AlertDialog
+          open={isLogoutAllDialogOpen}
+          handleClose={closeLogoutAllDialog}
+          handleSuccess={logoutAll}
+          title="log out all devices for all apps"
+          confirmButtonColor="error"
+        />
+        <AlertDialog
+          open={isRemoveAppDialogOpen}
+          handleClose={closeRemoveAppDialog}
+          handleSuccess={removeApp}
+          title={`delete ${brandConfig.appName} account`}
+          confirmButtonColor="error"
+          isLoading={isRemoveAppLoading}
+        />
+        <AlertDialog
+          open={openUserProfilePhotoRemoveDialog}
+          handleClose={cancelProfilePhotoRemove}
+          handleSuccess={confirmProfilePhotoRemove}
+          title={`remove profile photo?`}
+          confirmButtonColor="error"
+          // isLoading={isRemoveAppLoading}
+        />
+        {userProfilePhotoURL && (
+          <Backdrop
+            sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+            open={isPhotoBackdropVisible}
+            onClick={() => setIsPhotoBackdropVisible(false)}
+          >
+            <img
+              src={userProfilePhotoURL}
+              alt="Profile photo"
+              style={{
+                width: "85%",
+                height: "85%",
+                objectFit: "contain",
+              }}
+            />
+          </Backdrop>
+        )}
+        <Dialog open={isAccountRecoveryBackupCodesDialogOpen}>
+          <DialogTitle>account recovery backup codes</DialogTitle>
+          <DialogContent dividers>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              save these backup codes in a secure place. each code can be used
+              once if you forget your password.
+            </Typography>
+
+            <Grid container spacing={1}>
+              {accountRecoveryBackupCodes.map((code) => (
+                <Grid key={code}>
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      py: 1,
+                      textAlign: "center",
+                      fontFamily: "monospace",
+                      fontSize: 14,
+                    }}
+                  >
+                    {code}
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleAccountRecoveryBackupCodesCopy}>
+              copy all
+            </Button>
+            <Button onClick={handleAccountRecoveryBackupCodesDownload}>
+              download
+            </Button>
+            <Button
+              onClick={handleAccountRecoveryBackupCodesDialogClose}
+              variant="contained"
+            >
+              done
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
     </Page>
   );
 };
