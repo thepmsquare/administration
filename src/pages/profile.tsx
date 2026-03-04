@@ -14,6 +14,7 @@ import {
 } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { z } from "zod";
+import { MuiTelInput } from "mui-tel-input";
 
 import { Edit } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -896,19 +897,20 @@ const ProfilePage: React.FC<PageProps> = (props) => {
               onChange={handleProfileFieldChange("email")}
               fullWidth
             />
-            <TextField
-              label="phone country code"
-              variant="outlined"
-              value={profileFormData.phoneCountryCode}
-              onChange={handleProfileFieldChange("phoneCountryCode")}
-              fullWidth
-            />
-            <TextField
+            <MuiTelInput
               label="phone number"
-              variant="outlined"
-              value={profileFormData.phoneNumber}
-              onChange={handleProfileFieldChange("phoneNumber")}
+              value={`${profileFormData.phoneCountryCode}${profileFormData.phoneNumber}`}
+              onChange={(value, info) => {
+                setProfileFormData((prev) => ({
+                  ...prev,
+                  phoneNumber: info.nationalNumber || "",
+                  phoneCountryCode: info.countryCallingCode
+                    ? `+${info.countryCallingCode}`
+                    : "",
+                }));
+              }}
               fullWidth
+              variant="outlined"
             />
             <Button type="button" onClick={() => setIsEditingProfile(false)}>
               cancel
