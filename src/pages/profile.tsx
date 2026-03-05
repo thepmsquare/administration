@@ -15,6 +15,13 @@ import {
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { z } from "zod";
 import { MuiTelInput } from "mui-tel-input";
+import ReactCrop, {
+  Crop,
+  PixelCrop,
+  centerCrop,
+  makeAspectCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 
 import { Edit } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -166,6 +173,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   // view profile photo
   const [isPhotoBackdropVisible, setIsPhotoBackdropVisible] =
     React.useState(false);
+  // crop state
+  const [crop, setCrop] = React.useState<Crop>();
+  const [completedCrop, setCompletedCrop] = React.useState<PixelCrop>();
+  const imgRef = React.useRef<HTMLImageElement>(null);
 
   // functions
 
@@ -457,12 +468,16 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUserProfilePhotoUpdatePreviewURL(reader.result as string);
-        setOpenUserProfilePhotoUpdateDialog(true);
-      };
-      reader.readAsDataURL(file);
+      // Revoke any previous object URL to avoid memory leaks
+      if (userProfilePhotoUpdatePreviewURL) {
+        URL.revokeObjectURL(userProfilePhotoUpdatePreviewURL);
+      }
+      const objectUrl = URL.createObjectURL(file);
+      setUserProfilePhotoUpdatePreviewURL(objectUrl);
+      // Reset crop selection so it is re-computed on image load
+      setCrop(undefined);
+      setCompletedCrop(undefined);
+      setOpenUserProfilePhotoUpdateDialog(true);
     }
     // Reset input value to allow re-selecting the same file
     if (event.target) {
@@ -485,23 +500,61 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const confirmProfilePhotoUpdate = async () => {
-    if (!pageState) {
+    if (!pageState) return;
+    if (!imgRef.current || !completedCrop || !userProfilePhotoUpdatePreviewURL)
       return;
-    }
-    if (userProfilePhotoUpdatePreviewURL) {
-      await authenticationCommonBL.updateUserProfilePhotoV0(
-        pageState.user.access_token,
-        dataURLToFile(userProfilePhotoUpdatePreviewURL, "profile.jpg"),
-      );
-      changeSnackbarState({
-        isOpen: true,
-        message: "profile photo updated successfully.",
-        severity: "success",
+
+    // Draw cropped region to an off-screen canvas
+    const img = imgRef.current;
+    const canvas = document.createElement("canvas");
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(
+      img,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+
+    // Convert canvas to blob and upload
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      const croppedFile = new File([blob], "profile.jpg", {
+        type: "image/jpeg",
       });
-      setUserProfilePhotoURL(userProfilePhotoUpdatePreviewURL);
-    }
-    setUserProfilePhotoUpdatePreviewURL(null);
-    setOpenUserProfilePhotoUpdateDialog(false);
+      try {
+        await authenticationCommonBL.updateUserProfilePhotoV0(
+          pageState.user.access_token,
+          croppedFile,
+        );
+        const croppedDataUrl = canvas.toDataURL("image/jpeg");
+        changeSnackbarState({
+          isOpen: true,
+          message: "profile photo updated successfully.",
+          severity: "success",
+        });
+        setUserProfilePhotoURL(croppedDataUrl);
+      } catch (error) {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      } finally {
+        URL.revokeObjectURL(userProfilePhotoUpdatePreviewURL);
+        setUserProfilePhotoUpdatePreviewURL(null);
+        setOpenUserProfilePhotoUpdateDialog(false);
+      }
+    }, "image/jpeg");
   };
 
   const cancelProfilePhotoUpdate = () => {
@@ -1435,30 +1488,70 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           open={openUserProfilePhotoUpdateDialog}
           onClose={cancelProfilePhotoUpdate}
           aria-labelledby="update-user-profile-photo-dialog-title"
+          maxWidth="sm"
+          fullWidth
         >
           <DialogTitle id="update-user-profile-photo-dialog-title">
-            update profile photo?
+            crop profile photo
           </DialogTitle>
           <DialogContent
             sx={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              gap: 1.5,
+              pt: 1,
             }}
           >
+            <Typography variant="body2" color="text.secondary">
+              drag to adjust the crop area — the photo will be uploaded as a 1:1
+              square.
+            </Typography>
             {userProfilePhotoUpdatePreviewURL && (
-              <Avatar
-                src={userProfilePhotoUpdatePreviewURL}
-                alt="new user profile photo preview"
-              />
+              <ReactCrop
+                crop={crop}
+                onChange={(c) => setCrop(c)}
+                onComplete={(c) => setCompletedCrop(c)}
+                aspect={1}
+                circularCrop
+                keepSelection
+                style={{ maxHeight: "60vh", maxWidth: "100%" }}
+              >
+                <img
+                  ref={imgRef}
+                  src={userProfilePhotoUpdatePreviewURL}
+                  alt="crop preview"
+                  style={{ maxWidth: "100%", display: "block" }}
+                  onLoad={(e) => {
+                    const { naturalWidth: width, naturalHeight: height } =
+                      e.currentTarget;
+                    const initialCrop = centerCrop(
+                      makeAspectCrop(
+                        { unit: "%", width: 80 },
+                        1,
+                        width,
+                        height,
+                      ),
+                      width,
+                      height,
+                    );
+                    setCrop(initialCrop);
+                  }}
+                />
+              </ReactCrop>
             )}
           </DialogContent>
           <DialogActions>
             <Button onClick={cancelProfilePhotoUpdate} color="inherit">
               cancel
             </Button>
-            <Button onClick={confirmProfilePhotoUpdate} color="primary">
-              confirm update
+            <Button
+              onClick={confirmProfilePhotoUpdate}
+              color="primary"
+              variant="contained"
+              disabled={!completedCrop?.width || !completedCrop?.height}
+            >
+              crop &amp; upload
             </Button>
           </DialogActions>
         </Dialog>
