@@ -1,5 +1,7 @@
 import "../stylesheets/index.css";
 
+import squareLogo from "../images/square.svg";
+
 import { HeadFC, Link, PageProps } from "gatsby";
 import * as React from "react";
 import { GetAllGreetingsV0Response } from "squareadministration";
@@ -131,6 +133,11 @@ const IndexPage: React.FC<PageProps> = (props) => {
       ) : (
         <div className="index-guest">
           <div className="index-guest-text-container">
+            <img
+              src={squareLogo}
+              alt="Square logo"
+              className="index-guest-logo"
+            />
             <Typography variant="h1" className="index-guest-title">
               {brandConfig.appName}
             </Typography>

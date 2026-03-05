@@ -24,6 +24,12 @@
   max-width: 800px;
 }
 
+.index-guest-logo {
+  width: 72px;
+  height: auto;
+  margin: 0 auto;
+}
+
 .index-guest-button-group {
   display: flex;
   flex-direction: column;
