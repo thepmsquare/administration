@@ -1,4 +1,5 @@
 import { Link, navigate } from "gatsby";
+import squareLogo from "../images/square.svg";
 import * as React from "react";
 import { AlertDialog } from "squarecomponents";
 import ThemeToggleIconButton from "squarecomponents/components/ThemeToggleIconButton";
@@ -54,7 +55,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     navigate("/profile", { state: profileState });
   };
   const handleNonUserMenuOpen = (
-    event: React.MouseEvent<HTMLButtonElement>
+    event: React.MouseEvent<HTMLButtonElement>,
   ) => {
     setNonUserMenuAnchor(event.currentTarget);
   };
@@ -82,7 +83,21 @@ export default function CustomAppBar(props: CustomAppBarProps) {
       <Toolbar sx={{ gap: "1rem" }}>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           <Tooltip title="home">
-            <Link to="/">{brandConfig.appName}</Link>
+            <Link
+              to="/"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+              }}
+            >
+              <img
+                src={squareLogo}
+                alt="Square logo"
+                style={{ width: "1em", height: "1em", display: "block" }}
+              />
+              {brandConfig.appName}
+            </Link>
           </Tooltip>
         </Typography>
 
