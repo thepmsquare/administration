@@ -20,6 +20,28 @@ import uiConfig from "../config/ui";
 import { ThemeState, User } from "../types/Common";
 import { authenticationCommonBL } from "../utils/initialiser";
 import CustomAppBar from "./CustomAppBar";
+import OfflineScreen from "./OfflineScreen";
+import ServerDownScreen from "./ServerDownScreen";
+import squareConfig from "../config/square";
+
+const PING_INTERVAL_MS = 30_000;
+
+async function pingServer(url: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5_000);
+  try {
+    await fetch(url, {
+      method: "HEAD",
+      mode: "no-cors",
+      signal: controller.signal,
+    });
+    return true;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 const isBrowser = typeof window !== "undefined";
 
@@ -60,6 +82,10 @@ const Page: React.FC<Props> = ({
   isExternalUserProfilePhotoLoading,
 }) => {
   const [themeState, changeThemeState] = React.useState(getInitialThemeState);
+  const [isOnline, setIsOnline] = React.useState<boolean>(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
+  const [serverOk, setServerOk] = React.useState<boolean>(true);
   const [internalUserProfilePhotoURL, setInternalUserProfilePhotoURL] =
     React.useState<string | null>(null);
   const [
@@ -89,6 +115,37 @@ const Page: React.FC<Props> = ({
     },
     [],
   );
+
+  // Internet connectivity
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Server connectivity
+  const checkServers = React.useCallback(async () => {
+    if (!navigator.onLine) {
+      setServerOk(false);
+      return;
+    }
+    const results = await Promise.all([
+      pingServer(squareConfig.administrationBLBaseURL),
+      pingServer(squareConfig.commonBLBaseURL),
+    ]);
+    setServerOk(results.every(Boolean));
+  }, []);
+
+  React.useEffect(() => {
+    checkServers();
+    const id = setInterval(checkServers, PING_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [checkServers]);
 
   React.useEffect(() => {
     if (isControlled) {
@@ -253,7 +310,10 @@ const Page: React.FC<Props> = ({
     <ThemeProvider theme={currentTheme}>
       <StyledEngineProvider injectFirst>
         <CssBaseline />
-        <Box className="main-container">
+        <Box
+          className="main-container"
+          sx={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}
+        >
           <CustomAppBar
             user={user}
             nullifyPageStateFunction={nullifyPageStateFunction}
@@ -263,7 +323,11 @@ const Page: React.FC<Props> = ({
             isUserProfilePhotoLoading={isUserProfilePhotoLoading}
             userProfilePhotoURL={userProfilePhotoURL}
           />
-          {isLoading ? (
+          {!isOnline ? (
+            <OfflineScreen />
+          ) : !serverOk ? (
+            <ServerDownScreen onRetry={checkServers} />
+          ) : isLoading ? (
             <Box className="loading-screen">
               <CircularProgress />
             </Box>

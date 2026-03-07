@@ -3,7 +3,6 @@ import squareLogo from "../images/square.svg";
 import * as React from "react";
 import { AlertDialog } from "squarecomponents";
 import ThemeToggleIconButton from "squarecomponents/components/ThemeToggleIconButton";
-import ConnectivityIndicator from "./ConnectivityIndicator";
 
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import {
@@ -102,7 +101,6 @@ export default function CustomAppBar(props: CustomAppBarProps) {
           </Tooltip>
         </Typography>
 
-        <ConnectivityIndicator />
         <ThemeToggleIconButton
           color="inherit"
           themeState={props.themeState}
