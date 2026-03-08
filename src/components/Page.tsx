@@ -61,12 +61,20 @@ type Props = {
 
 const getInitialThemeState = (): ThemeState => {
   if (!isBrowser) return uiConfig.defaultThemeState;
+  
+  // Use the theme set by the blocking script if available
+  if ((window as any).__theme) {
+    return (window as any).__theme;
+  }
+
   const storedTheme = window.localStorage.getItem(localStorageKeysConfig.theme);
   if (storedTheme !== null) return storedTheme === "dark" ? "dark" : "light";
-  window.localStorage.setItem(
-    localStorageKeysConfig.theme,
-    uiConfig.defaultThemeState,
-  );
+  
+  // Check system preference if no stored theme
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+
   return uiConfig.defaultThemeState;
 };
 
@@ -111,10 +119,22 @@ const Page: React.FC<Props> = ({
           localStorageKeysConfig.theme,
           newThemeState,
         );
+        document.documentElement.setAttribute("data-theme", newThemeState);
       }
     },
     [],
   );
+
+  // Sync theme across tabs
+  React.useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === localStorageKeysConfig.theme && e.newValue) {
+        changeThemeState(e.newValue as ThemeState);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // Internet connectivity
   React.useEffect(() => {
