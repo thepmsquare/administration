@@ -1,6 +1,6 @@
 import BrandConfig from "../types/config/Brand";
 
 const brandConfig: BrandConfig = {
-  appName: "administration",
+  appName: process.env.GATSBY_APP_NAME || "administration",
 };
 export default brandConfig;
