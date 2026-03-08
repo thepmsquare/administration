@@ -30,7 +30,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-image-crop": "^11.0.10",
-    "squareadministration": "^5.1.0",
+    "squareadministration": "^5.1.1",
     "squarecommonblhelper": "^11.2.1",
     "squarecommons": "^2.5.0",
     "squarecomponents": "^2.0.2"
