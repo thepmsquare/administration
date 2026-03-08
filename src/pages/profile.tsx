@@ -627,6 +627,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         severity: "success",
       });
 
+      getUserDetails();
+
       setIsEditingProfile(false);
     } catch (error) {
       changeSnackbarState({
