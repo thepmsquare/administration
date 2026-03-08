@@ -35,6 +35,7 @@ import {
   authenticationAdministrationBL,
   authenticationCommonBL,
 } from "../utils/initialiser";
+import squareConfig from "../config/square";
 import { useAuth } from "../utils/auth";
 
 export const Head: HeadFC = () => (
@@ -457,7 +458,14 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 0.5 }}>
                     This account has no active recovery methods set up. Please
-                    contact support.
+                    contact support at{" "}
+                    <a
+                      href={`mailto:${squareConfig.supportEmail}`}
+                      style={{ color: "inherit", fontWeight: 700 }}
+                    >
+                      {squareConfig.supportEmail}
+                    </a>
+                    .
                   </Typography>
                 </Alert>
               ) : (
