@@ -203,6 +203,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         pageState.user.access_token,
         deleteAccountPassword,
       );
+      setDeleteAccountPassword("");
       setAuthUser(null);
       setIsDeleteAccountLoading(false);
       navigate("/login");
@@ -301,6 +302,9 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: "password updated successfully.",
         severity: "success",
       });
+      setUpdatePasswordOldPassword("");
+      setUpdatePasswordNewPassword("");
+      setUpdatePasswordConfirmPassword("");
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
@@ -438,6 +442,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         pageState.user.access_token,
         removeAppPassword,
       );
+      setRemoveAppPassword("");
       setAuthUser(null);
       setIsRemoveAppLoading(false);
       navigate("/login");

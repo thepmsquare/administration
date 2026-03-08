@@ -264,6 +264,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       });
 
       await navigate("/", { state: indexState! });
+      setEmailResetNewPassword("");
+      setEmailResetPasswordCodeInput("");
     } catch (e) {
       if (isMountedRef.current) {
         changeSnackbarState({
@@ -301,6 +303,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       });
 
       await navigate("/", { state: indexState! });
+      setBackupCodeResetNewPassword("");
+      setBackupCodeResetPasswordCodeInput("");
     } catch (e) {
       if (isMountedRef.current) {
         changeSnackbarState({

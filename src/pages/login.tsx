@@ -51,6 +51,7 @@ const LoginPage: React.FC<PageProps> = () => {
       });
 
       await navigate("/", { state: indexState });
+      changePassword("");
     } catch (error) {
       changePassword("");
       changeSnackbarState({

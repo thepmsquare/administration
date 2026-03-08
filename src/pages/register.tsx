@@ -62,6 +62,9 @@ const RegisterPage: React.FC<PageProps> = () => {
         },
       });
       await navigate("/", { state: indexPageState });
+      changePassword("");
+      changeConfirmPassword("");
+      changeAdminPassword("");
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
