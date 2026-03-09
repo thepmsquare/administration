@@ -24,6 +24,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { MuiOtpInput } from "mui-one-time-password-input";
 import EditIcon from "@mui/icons-material/Edit";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import VpnKeyOutlinedIcon from "@mui/icons-material/VpnKeyOutlined";
@@ -535,15 +536,17 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                         onSubmit={handleEmailRecoverySubmit}
                         className="common-form"
                       >
-                        <TextField
-                          label="reset code"
+                        <MuiOtpInput
                           value={emailResetPasswordCodeInput}
-                          onChange={(e) => {
-                            setEmailResetPasswordCodeInput(e.target.value);
+                          onChange={(value) => {
+                            setEmailResetPasswordCodeInput(value);
                           }}
-                          required
-                          fullWidth
-                          size="small"
+                          length={squareConfig.resetPasswordOTPLength}
+                          TextFieldsProps={{
+                            label: "reset code",
+                            size: "small",
+                            required: true,
+                          }}
                         />
                         <PasswordInput
                           value={emailResetNewPassword}
@@ -614,15 +617,17 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                         onSubmit={handleBackupCodesRecoverySubmit}
                         className="common-form"
                       >
-                        <TextField
-                          label="backup code"
+                        <MuiOtpInput
                           value={backupCodeResetPasswordCodeInput}
-                          onChange={(e) => {
-                            setBackupCodeResetPasswordCodeInput(e.target.value);
+                          onChange={(value) => {
+                            setBackupCodeResetPasswordCodeInput(value);
                           }}
-                          required
-                          fullWidth
-                          size="small"
+                          length={squareConfig.resetPasswordOTPLength}
+                          TextFieldsProps={{
+                            label: "backup code",
+                            size: "small",
+                            required: true,
+                          }}
                         />
                         <PasswordInput
                           value={backupCodeResetNewPassword}

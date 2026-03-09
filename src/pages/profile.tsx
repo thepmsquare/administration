@@ -60,7 +60,9 @@ import {
   authenticationAdministrationBL,
   authenticationCommonBL,
 } from "../utils/initialiser";
+import squareConfig from "../config/square";
 import { useAuth } from "../utils/auth";
+import { MuiOtpInput } from "mui-one-time-password-input";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | profile</title>
@@ -1162,13 +1164,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                     onSubmit={handleEmailVerificationSubmit}
                     className="common-form"
                   >
-                    <TextField
-                      label="verification code"
-                      required
-                      fullWidth
-                      size="small"
+                    <MuiOtpInput
                       value={emailVerificationCode}
-                      onChange={(e) => setEmailVerificationCode(e.target.value)}
+                      onChange={(value) => setEmailVerificationCode(value)}
+                      length={squareConfig.emailVerificationOTPLength}
+                      TextFieldsProps={{
+                        label: "verification code",
+                        size: "small",
+                        required: true,
+                      }}
                     />
                     <div className="profile-form-actions">
                       <Button type="submit" variant="contained">
