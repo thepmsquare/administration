@@ -1164,12 +1164,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                     onSubmit={handleEmailVerificationSubmit}
                     className="common-form"
                   >
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      verification code
+                    </Typography>
                     <MuiOtpInput
                       value={emailVerificationCode}
                       onChange={(value) => setEmailVerificationCode(value)}
                       length={squareConfig.emailVerificationOTPLength}
                       TextFieldsProps={{
-                        label: "verification code",
                         size: "small",
                         required: true,
                       }}

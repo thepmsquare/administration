@@ -536,6 +536,9 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                         onSubmit={handleEmailRecoverySubmit}
                         className="common-form"
                       >
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          reset code
+                        </Typography>
                         <MuiOtpInput
                           value={emailResetPasswordCodeInput}
                           onChange={(value) => {
@@ -543,7 +546,6 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           }}
                           length={squareConfig.resetPasswordOTPLength}
                           TextFieldsProps={{
-                            label: "reset code",
                             size: "small",
                             required: true,
                           }}
@@ -617,17 +619,15 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                         onSubmit={handleBackupCodesRecoverySubmit}
                         className="common-form"
                       >
-                        <MuiOtpInput
+                        <TextField
+                          label="backup code"
                           value={backupCodeResetPasswordCodeInput}
-                          onChange={(value) => {
-                            setBackupCodeResetPasswordCodeInput(value);
+                          onChange={(e) => {
+                            setBackupCodeResetPasswordCodeInput(e.target.value);
                           }}
-                          length={squareConfig.resetPasswordOTPLength}
-                          TextFieldsProps={{
-                            label: "backup code",
-                            size: "small",
-                            required: true,
-                          }}
+                          required
+                          fullWidth
+                          size="small"
                         />
                         <PasswordInput
                           value={backupCodeResetNewPassword}
