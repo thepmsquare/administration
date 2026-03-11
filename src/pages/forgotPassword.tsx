@@ -604,7 +604,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                         </Typography>
                       </div>
 
-                      {backupCodeDetails && (
+                      {backupCodeDetails && backupCodeDetails.available > 0 ? (
                         <Alert severity="info" sx={{ mb: 2 }}>
                           <strong>{backupCodeDetails.available}</strong> of{" "}
                           <strong>{backupCodeDetails.total}</strong> codes
@@ -612,6 +612,11 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           {new Date(
                             backupCodeDetails.generated_at,
                           ).toLocaleDateString()}
+                        </Alert>
+                      ) : (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                          no backup codes available. please use another recovery
+                          method.
                         </Alert>
                       )}
 
@@ -628,6 +633,10 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           required
                           fullWidth
                           size="small"
+                          disabled={
+                            !backupCodeDetails ||
+                            backupCodeDetails.available === 0
+                          }
                         />
                         <PasswordInput
                           value={backupCodeResetNewPassword}
@@ -638,7 +647,12 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           uniqueIdForARIA="backup-code-new-password"
                           variant="outlined"
                           fullWidth
-                          others={{ required: true }}
+                          others={{
+                            required: true,
+                            disabled:
+                              !backupCodeDetails ||
+                              backupCodeDetails.available === 0,
+                          }}
                         />
                         <FormControlLabel
                           control={
@@ -650,15 +664,34 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                                 );
                               }}
                               size="small"
+                              disabled={
+                                !backupCodeDetails ||
+                                backupCodeDetails.available === 0
+                              }
                             />
                           }
                           label={
-                            <Typography variant="body2">
+                            <Typography
+                              variant="body2"
+                              color={
+                                !backupCodeDetails ||
+                                backupCodeDetails.available === 0
+                                  ? "text.disabled"
+                                  : "text.primary"
+                              }
+                            >
                               log out other sessions
                             </Typography>
                           }
                         />
-                        <Button type="submit" variant="contained">
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          disabled={
+                            !backupCodeDetails ||
+                            backupCodeDetails.available === 0
+                          }
+                        >
                           reset password
                         </Button>
                       </form>
