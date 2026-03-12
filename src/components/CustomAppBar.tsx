@@ -29,11 +29,13 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     React.useState<null | HTMLElement>(null);
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] =
     React.useState<boolean>(false);
+  const [isLogoutLoading, setIsLogoutLoading] = React.useState<boolean>(false);
   const handleLogout = async () => {
     try {
       if (!props.user) {
         return;
       }
+      setIsLogoutLoading(true);
       await authenticationAdministrationBL.logoutV0();
       if (!props.nullifyPageStateFunction) {
         return;
@@ -45,6 +47,8 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsLogoutLoading(false);
     }
   };
   const handleProfileNavigation = () => {
@@ -74,8 +78,8 @@ export default function CustomAppBar(props: CustomAppBarProps) {
   const handleLogoutMenuClose = () => {
     setIsLogoutAlertOpen(false);
   };
-  const handleLogoutMenuSuccess = () => {
-    handleLogout();
+  const handleLogoutMenuSuccess = async () => {
+    await handleLogout();
     setIsLogoutAlertOpen(false);
   };
   return (
@@ -171,6 +175,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         title="confirm log out."
         handleSuccess={handleLogoutMenuSuccess}
         confirmButtonColor="error"
+        isLoading={isLogoutLoading}
       />
     </AppBar>
   );

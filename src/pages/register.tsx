@@ -5,7 +5,7 @@ import * as React from "react";
 import { PasswordInput, UsernameInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Button, Typography } from "@mui/material";
+import { Button, CircularProgress, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -133,7 +133,16 @@ const RegisterPage: React.FC<PageProps> = () => {
           <Button color="inherit" disabled={isSubmitting}>
             <Link to="/">cancel</Link>
           </Button>
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isSubmitting}
+            startIcon={
+              isSubmitting ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : undefined
+            }
+          >
             {isSubmitting ? "submitting..." : "submit"}
           </Button>
         </div>

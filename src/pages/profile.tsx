@@ -172,6 +172,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     openUserProfilePhotoRemoveDialog,
     setOpenUserProfilePhotoRemoveDialog,
   ] = React.useState(false);
+  // additional loading states
+  const [isLoggingOut, setIsLoggingOut] = React.useState<boolean>(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = React.useState<boolean>(false);
+  const [isVerifyingEmail, setIsVerifyingEmail] = React.useState<boolean>(false);
+  const [isTogglingRecovery, setIsTogglingRecovery] = React.useState<boolean>(false);
+  const [isGeneratingBackupCodes, setIsGeneratingBackupCodes] = React.useState<boolean>(false);
   // view profile photo
   const [isPhotoBackdropVisible, setIsPhotoBackdropVisible] =
     React.useState(false);
@@ -365,13 +371,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       if (userDetailsResponse instanceof Blob && userDetailsResponse.size > 0) {
         setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
       }
-      setIsUserProfilePhotoLoading(false);
     } catch (error) {
       changeSnackbarState({
         isOpen: true,
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsUserProfilePhotoLoading(false);
     }
   };
 
@@ -380,6 +387,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
+      setIsLoggingOut(true);
       await authenticationCommonBL.logoutAppsV0(pageState.user.access_token, [
         app_name,
       ]);
@@ -392,6 +400,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -400,6 +410,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
+      setIsLoggingOut(true);
       await authenticationCommonBL.logoutAllV0(pageState.user.access_token);
       setAuthUser(null);
       setPageState(null);
@@ -410,6 +421,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -539,6 +552,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         type: "image/jpeg",
       });
       try {
+        setIsUserProfilePhotoLoading(true);
         await authenticationCommonBL.updateUserProfilePhotoV0(
           pageState.user.access_token,
           croppedFile,
@@ -560,6 +574,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         URL.revokeObjectURL(userProfilePhotoUpdatePreviewURL);
         setUserProfilePhotoUpdatePreviewURL(null);
         setOpenUserProfilePhotoUpdateDialog(false);
+        setIsUserProfilePhotoLoading(false);
       }
     }, "image/jpeg");
   };
@@ -573,18 +588,29 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     if (!pageState) {
       return;
     }
-    await authenticationCommonBL.updateUserProfilePhotoV0(
-      pageState.user.access_token,
-      undefined,
-    );
-    changeSnackbarState({
-      isOpen: true,
-      message: "profile photo removed successfully.",
-      severity: "success",
-    });
-    setUserProfilePhotoURL(null);
-    setUserProfilePhotoUpdatePreviewURL(null);
-    setOpenUserProfilePhotoRemoveDialog(false);
+    try {
+      setIsUserProfilePhotoLoading(true);
+      await authenticationCommonBL.updateUserProfilePhotoV0(
+        pageState.user.access_token,
+        undefined,
+      );
+      changeSnackbarState({
+        isOpen: true,
+        message: "profile photo removed successfully.",
+        severity: "success",
+      });
+      setUserProfilePhotoURL(null);
+      setUserProfilePhotoUpdatePreviewURL(null);
+      setOpenUserProfilePhotoRemoveDialog(false);
+    } catch (error) {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as Error).message,
+        severity: "error",
+      });
+    } finally {
+      setIsUserProfilePhotoLoading(false);
+    }
   };
 
   const cancelProfilePhotoRemove = () => {
@@ -603,6 +629,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     }
 
     try {
+      setIsUpdatingProfile(true);
       const response = await authenticationCommonBL.updateProfileDetailsV0(
         pageState.user.access_token,
         profileFormData.firstName || undefined,
@@ -638,6 +665,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -646,6 +675,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
+      setIsVerifyingEmail(true);
       await authenticationCommonBL.sendVerificationEmailV0(
         pageState.user.access_token,
       );
@@ -680,6 +710,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsVerifyingEmail(false);
     }
   };
 
@@ -689,6 +721,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
+      setIsVerifyingEmail(true);
       await authenticationCommonBL.validateEmailVerificationCodeV0(
         pageState.user.access_token,
         emailVerificationCode,
@@ -708,6 +741,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsVerifyingEmail(false);
     }
   };
 
@@ -719,6 +754,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
+      setIsTogglingRecovery(true);
       let recoveryMethodsToRemove: RecoveryMethodEnum[] = [];
       let recoveryMethodsToAdd: RecoveryMethodEnum[] = [];
       if (isActiveCurrently) {
@@ -746,6 +782,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsTogglingRecovery(false);
     }
   };
 
@@ -754,6 +792,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       return;
     }
     try {
+      setIsGeneratingBackupCodes(true);
       const response =
         await authenticationCommonBL.generateAccountBackupCodesV0(
           pageState.user.access_token,
@@ -766,6 +805,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: (error as Error).message,
         severity: "error",
       });
+    } finally {
+      setIsGeneratingBackupCodes(false);
     }
   };
   const handleAccountRecoveryBackupCodesCopy = async () => {
@@ -986,6 +1027,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 onChange={handleProfileFieldChange("firstName")}
                 fullWidth
                 size="small"
+                disabled={isUpdatingProfile}
               />
               <TextField
                 label="last name"
@@ -994,6 +1036,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 onChange={handleProfileFieldChange("lastName")}
                 fullWidth
                 size="small"
+                disabled={isUpdatingProfile}
               />
               <TextField
                 label="email"
@@ -1003,6 +1046,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 onChange={handleProfileFieldChange("email")}
                 fullWidth
                 size="small"
+                disabled={isUpdatingProfile}
               />
               <MuiTelInput
                 label="phone number"
@@ -1019,16 +1063,28 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 fullWidth
                 variant="outlined"
                 size="small"
+                disabled={isUpdatingProfile}
               />
               <div className="profile-form-actions">
-                <Button variant="contained" color="primary" type="submit">
-                  save changes
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  startIcon={
+                    isUpdatingProfile ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : undefined
+                  }
+                >
+                  {isUpdatingProfile ? "saving…" : "save changes"}
                 </Button>
                 <Button
                   variant="text"
                   color="inherit"
                   type="button"
                   onClick={() => setIsEditingProfile(false)}
+                  disabled={isUpdatingProfile}
                 >
                   cancel
                 </Button>
@@ -1152,13 +1208,20 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                   )}
                   <Button
                     onClick={handleSendVerificationEmail}
-                    disabled={isInCooldown}
+                    disabled={isInCooldown || isVerifyingEmail}
                     variant="outlined"
                     size="small"
+                    startIcon={
+                      isVerifyingEmail ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : undefined
+                    }
                   >
-                    {isInCooldown
-                      ? `resend in ${formatTime(remainingCooldown)}`
-                      : "resend verification email"}
+                    {isVerifyingEmail
+                      ? "sending…"
+                      : isInCooldown
+                        ? `resend in ${formatTime(remainingCooldown)}`
+                        : "resend verification email"}
                   </Button>
                   <form
                     onSubmit={handleEmailVerificationSubmit}
@@ -1174,11 +1237,21 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                       TextFieldsProps={{
                         size: "small",
                         required: true,
+                        disabled: isVerifyingEmail,
                       }}
                     />
                     <div className="profile-form-actions">
-                      <Button type="submit" variant="contained">
-                        submit code
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={isVerifyingEmail || !emailVerificationCode}
+                        startIcon={
+                          isVerifyingEmail ? (
+                            <CircularProgress size={16} color="inherit" />
+                          ) : undefined
+                        }
+                      >
+                        {isVerifyingEmail ? "verifying…" : "submit code"}
                       </Button>
                     </div>
                   </form>
@@ -1194,11 +1267,16 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                       onClick={handleSendVerificationEmail}
                       variant="outlined"
                       size="small"
+                      disabled={isVerifyingEmail}
                       startIcon={
-                        <MarkEmailUnreadOutlinedIcon fontSize="small" />
+                        isVerifyingEmail ? (
+                          <CircularProgress size={16} color="inherit" />
+                        ) : (
+                          <MarkEmailUnreadOutlinedIcon fontSize="small" />
+                        )
                       }
                     >
-                      send verification email
+                      {isVerifyingEmail ? "sending…" : "send verification email"}
                     </Button>
                   </div>
                 </>
@@ -1249,14 +1327,24 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                     size="small"
                     variant="outlined"
                     color={isActive ? "error" : "primary"}
+                    disabled={isTogglingRecovery}
                     onClick={() =>
                       handleAccountRecoveryToggle(
                         name as RecoveryMethodEnum,
                         isActive,
                       )
                     }
+                    startIcon={
+                      isTogglingRecovery ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : undefined
+                    }
                   >
-                    {isActive ? "disable" : "enable"}
+                    {isTogglingRecovery
+                      ? "updating…"
+                      : isActive
+                        ? "disable"
+                        : "enable"}
                   </Button>
                 </Box>
               ),
@@ -1279,10 +1367,18 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                   variant="outlined"
                   size="small"
                   onClick={handleGenerateAccountRecoveryBackupCodes}
+                  disabled={isGeneratingBackupCodes}
+                  startIcon={
+                    isGeneratingBackupCodes ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : undefined
+                  }
                 >
-                  {userDetails.backup_code_details
-                    ? "regenerate backup codes"
-                    : "generate backup codes"}
+                  {isGeneratingBackupCodes
+                    ? "generating…"
+                    : userDetails.backup_code_details
+                      ? "regenerate backup codes"
+                      : "generate backup codes"}
                 </Button>
               </div>
             </>
@@ -1377,6 +1473,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
               variant="outlined"
               size="small"
               onClick={() => setIsLogoutAllDialogOpen(true)}
+              disabled={isLoggingOut}
             >
               logout from all apps
             </Button>
@@ -1491,8 +1588,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 color="primary"
                 type="submit"
                 disabled={isUpdateUsernameLoading}
+                startIcon={
+                  isUpdateUsernameLoading ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : undefined
+                }
               >
-                {isUpdateUsernameLoading ? <CircularProgress /> : "confirm"}
+                {isUpdateUsernameLoading ? "confirming…" : "confirm"}
               </Button>
             </DialogActions>
           </form>
@@ -1562,9 +1664,18 @@ const ProfilePage: React.FC<PageProps> = (props) => {
               onClick={confirmProfilePhotoUpdate}
               color="primary"
               variant="contained"
-              disabled={!completedCrop?.width || !completedCrop?.height}
+              disabled={
+                isUserProfilePhotoLoading ||
+                !completedCrop?.width ||
+                !completedCrop?.height
+              }
+              startIcon={
+                isUserProfilePhotoLoading ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : undefined
+              }
             >
-              crop &amp; upload
+              {isUserProfilePhotoLoading ? "uploading…" : "crop & upload"}
             </Button>
           </DialogActions>
         </Dialog>
@@ -1582,6 +1693,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           handleSuccess={() => logoutFromApp(logoutAppName as string)}
           title={`log out all devices from ${logoutAppName}`}
           confirmButtonColor="error"
+          isLoading={isLoggingOut}
         />
         <AlertDialog
           open={isLogoutAllDialogOpen}
@@ -1589,6 +1701,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           handleSuccess={logoutAll}
           title="log out all devices for all apps"
           confirmButtonColor="error"
+          isLoading={isLoggingOut}
         />
         <AlertDialog
           open={isRemoveAppDialogOpen}
@@ -1604,7 +1717,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           handleSuccess={confirmProfilePhotoRemove}
           title={`remove profile photo?`}
           confirmButtonColor="error"
-          // isLoading={isRemoveAppLoading}
+          isLoading={isUserProfilePhotoLoading}
         />
         {userProfilePhotoURL && (
           <Backdrop

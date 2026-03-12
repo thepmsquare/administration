@@ -246,6 +246,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const handleEmailRecoverySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsFetchingRecovery(true);
     try {
       const recoveryMethodsResponse =
         await authenticationAdministrationBL.resetPasswordAndLoginUsingResetEmailCodeV0(
@@ -285,6 +286,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   const handleBackupCodesRecoverySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsFetchingRecovery(true);
     try {
       const recoveryMethodsResponse =
         await authenticationAdministrationBL.resetPasswordAndLoginUsingBackupCodeV0(
@@ -548,6 +550,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           TextFieldsProps={{
                             size: "small",
                             required: true,
+                            disabled: isFetchingRecovery,
                           }}
                         />
                         <PasswordInput
@@ -559,7 +562,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           uniqueIdForARIA="email-recovery-new-password"
                           variant="outlined"
                           fullWidth
-                          others={{ required: true }}
+                          others={{ required: true, disabled: isFetchingRecovery }}
                         />
                         <FormControlLabel
                           control={
@@ -571,6 +574,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                                 );
                               }}
                               size="small"
+                              disabled={isFetchingRecovery}
                             />
                           }
                           label={
@@ -579,8 +583,17 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                             </Typography>
                           }
                         />
-                        <Button type="submit" variant="contained">
-                          reset password
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          disabled={isFetchingRecovery}
+                          startIcon={
+                            isFetchingRecovery ? (
+                              <CircularProgress size={16} color="inherit" />
+                            ) : undefined
+                          }
+                        >
+                          {isFetchingRecovery ? "resetting…" : "reset password"}
                         </Button>
                       </form>
                     </Paper>
@@ -634,6 +647,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           fullWidth
                           size="small"
                           disabled={
+                            isFetchingRecovery ||
                             !backupCodeDetails ||
                             backupCodeDetails.available === 0
                           }
@@ -650,6 +664,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           others={{
                             required: true,
                             disabled:
+                              isFetchingRecovery ||
                               !backupCodeDetails ||
                               backupCodeDetails.available === 0,
                           }}
@@ -665,6 +680,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                               }}
                               size="small"
                               disabled={
+                                isFetchingRecovery ||
                                 !backupCodeDetails ||
                                 backupCodeDetails.available === 0
                               }
@@ -674,6 +690,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                             <Typography
                               variant="body2"
                               color={
+                                isFetchingRecovery ||
                                 !backupCodeDetails ||
                                 backupCodeDetails.available === 0
                                   ? "text.disabled"
@@ -688,11 +705,17 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           type="submit"
                           variant="contained"
                           disabled={
+                            isFetchingRecovery ||
                             !backupCodeDetails ||
                             backupCodeDetails.available === 0
                           }
+                          startIcon={
+                            isFetchingRecovery ? (
+                              <CircularProgress size={16} color="inherit" />
+                            ) : undefined
+                          }
                         >
-                          reset password
+                          {isFetchingRecovery ? "resetting…" : "reset password"}
                         </Button>
                       </form>
                     </Paper>
