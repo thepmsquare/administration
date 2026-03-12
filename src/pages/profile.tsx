@@ -1234,10 +1234,16 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                       value={emailVerificationCode}
                       onChange={(value) => setEmailVerificationCode(value)}
                       length={squareConfig.emailVerificationOTPLength}
+                      gap={1}
                       TextFieldsProps={{
                         size: "small",
                         required: true,
                         disabled: isVerifyingEmail,
+                        sx: {
+                          "& .MuiInputBase-input": {
+                            padding: "8px 4px",
+                          },
+                        },
                       }}
                     />
                     <div className="profile-form-actions">

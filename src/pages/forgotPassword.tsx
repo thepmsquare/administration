@@ -538,7 +538,11 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                         onSubmit={handleEmailRecoverySubmit}
                         className="common-form"
                       >
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 1 }}
+                        >
                           reset code
                         </Typography>
                         <MuiOtpInput
@@ -547,10 +551,16 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                             setEmailResetPasswordCodeInput(value);
                           }}
                           length={squareConfig.resetPasswordOTPLength}
+                          gap={1}
                           TextFieldsProps={{
                             size: "small",
                             required: true,
                             disabled: isFetchingRecovery,
+                            sx: {
+                              "& .MuiInputBase-input": {
+                                padding: "8px 4px",
+                              },
+                            },
                           }}
                         />
                         <PasswordInput
@@ -562,7 +572,10 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           uniqueIdForARIA="email-recovery-new-password"
                           variant="outlined"
                           fullWidth
-                          others={{ required: true, disabled: isFetchingRecovery }}
+                          others={{
+                            required: true,
+                            disabled: isFetchingRecovery,
+                          }}
                         />
                         <FormControlLabel
                           control={
