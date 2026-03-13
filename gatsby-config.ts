@@ -1,5 +1,5 @@
 import type { GatsbyConfig } from "gatsby";
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 
 dotenv.config({
   path: `.env.${process.env.NODE_ENV}`,
@@ -22,12 +22,19 @@ const config: GatsbyConfig = {
       options: {
         icon: "src/images/square.svg",
         name: "administration",
-        icon_purpose: {
-          purpose: "any purpose"
+        short_name: "admin",
+        lang: "en",
+        start_url: "/administration/",
+        background_color: "#000000",
+        theme_color: "#00ffff",
+        display: "standalone",
+        icon_options: {
+          purpose: `any maskable`,
         },
+        description: "administration portal for square services.",
       },
     },
-    
+    "gatsby-plugin-offline",
   ],
 };
 
