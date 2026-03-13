@@ -24,7 +24,6 @@ const config: GatsbyConfig = {
         name: "administration",
         short_name: "admin",
         lang: "en",
-        start_url: "/administration/",
         background_color: "#000000",
         theme_color: "#00ffff",
         display: "standalone",
