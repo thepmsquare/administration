@@ -21,8 +21,13 @@ const config: GatsbyConfig = {
       resolve: "gatsby-plugin-manifest",
       options: {
         icon: "src/images/square.svg",
+        name: "administration",
+        icon_purpose: {
+          purpose: "any purpose"
+        },
       },
     },
+    
   ],
 };
 
