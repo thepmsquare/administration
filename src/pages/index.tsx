@@ -15,6 +15,8 @@ import brandConfig from "../config/brand";
 import { IndexState, IndexStateZ } from "../types/pages/Index";
 import { coreAdministrationBL } from "../utils/initialiser";
 import { useAuth } from "../utils/auth";
+import { useServerCheck } from "../context/serverCheck";
+import { isNetworkError } from "../utils/networkError";
 
 export const Head: HeadFC = () => <title>{brandConfig.appName}</title>;
 
@@ -37,7 +39,8 @@ const IndexPage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
-  const { user, isLoading, setUser: setAuthUser } = useAuth(state?.user);
+  const triggerServerCheck = useServerCheck();
+  const { user, isLoading, setUser: setAuthUser } = useAuth(state?.user, {}, triggerServerCheck);
   const [greetings, changeGreetings] = React.useState<
     GetAllGreetingsV0Response["data"]["main"]
   >([]);
@@ -67,11 +70,15 @@ const IndexPage: React.FC<PageProps> = (props) => {
       changeGreetingsCount(response.data.total_count);
     } catch (error) {
       console.error("Error fetching greetings:", error);
-      changeSnackbarState({
-        isOpen: true,
-        message: "Failed to load greetings.",
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: "Failed to load greetings.",
+          severity: "error",
+        });
+      }
       changeGreetings([]);
       changeGreetingsCount(0);
     } finally {

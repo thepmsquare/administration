@@ -21,8 +21,11 @@ import brandConfig from "../config/brand";
 import { CustomAppBarProps } from "../types/components/CustomAppBar";
 import { ProfileStateZ } from "../types/pages/Profile";
 import { authenticationAdministrationBL } from "../utils/initialiser";
+import { useServerCheck } from "../context/serverCheck";
+import { isNetworkError } from "../utils/networkError";
 
 export default function CustomAppBar(props: CustomAppBarProps) {
+  const triggerServerCheck = useServerCheck();
   const [nonUserMenuAnchor, setNonUserMenuAnchor] =
     React.useState<null | HTMLElement>(null);
   const [userMenuAnchor, setUserMenuAnchor] =
@@ -42,11 +45,15 @@ export default function CustomAppBar(props: CustomAppBarProps) {
       }
       props.nullifyPageStateFunction();
     } catch (error) {
-      props.changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        props.changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsLogoutLoading(false);
     }

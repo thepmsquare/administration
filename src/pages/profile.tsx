@@ -63,6 +63,8 @@ import {
 import squareConfig from "../config/square";
 import { useAuth } from "../utils/auth";
 import { MuiOtpInput } from "mui-one-time-password-input";
+import { useServerCheck } from "../context/serverCheck";
+import { isNetworkError } from "../utils/networkError";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | profile</title>
@@ -83,11 +85,12 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
+  const triggerServerCheck = useServerCheck();
   const {
     user,
     isLoading,
     setUser: setAuthUser,
-  } = useAuth(state?.user, { redirectIfLoggedOut: "/login" });
+  } = useAuth(state?.user, { redirectIfLoggedOut: "/login" }, triggerServerCheck);
   const [pageState, setPageState] = React.useState<ProfileState | null>(state);
   // delete account
   const [deleteAccountPassword, setDeleteAccountPassword] =
@@ -216,11 +219,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsDeleteAccountLoading(false);
       navigate("/login");
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
       setIsDeleteAccountLoading(false);
       closeDeleteAccountDialog();
     }
@@ -257,11 +264,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       };
       setPageState(newState);
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
       setIsUpdateUsernameLoading(false);
       setIsUpdateUsernameDialogOpen(false);
     }
@@ -314,11 +325,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setUpdatePasswordNewPassword("");
       setUpdatePasswordConfirmPassword("");
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
       setIsUpdatePasswordLoading(false);
     }
   };
@@ -349,11 +364,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         setRemainingCooldown(remaining);
       }
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     }
   };
 
@@ -372,11 +391,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
       }
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsUserProfilePhotoLoading(false);
     }
@@ -395,11 +418,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setPageState(null);
       setIsLogoutAppsDialogOpen(false);
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsLoggingOut(false);
     }
@@ -416,11 +443,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setPageState(null);
       closeLogoutAllDialog();
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsLoggingOut(false);
     }
@@ -462,11 +493,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsRemoveAppLoading(false);
       navigate("/login");
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
       setIsRemoveAppLoading(false);
       closeRemoveAppDialog();
     }
@@ -565,11 +600,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         });
         setUserProfilePhotoURL(croppedDataUrl);
       } catch (error) {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
+        if (isNetworkError(error)) {
+          triggerServerCheck();
+        } else {
+          changeSnackbarState({
+            isOpen: true,
+            message: (error as Error).message,
+            severity: "error",
+          });
+        }
       } finally {
         URL.revokeObjectURL(userProfilePhotoUpdatePreviewURL);
         setUserProfilePhotoUpdatePreviewURL(null);
@@ -603,11 +642,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setUserProfilePhotoUpdatePreviewURL(null);
       setOpenUserProfilePhotoRemoveDialog(false);
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsUserProfilePhotoLoading(false);
     }
@@ -660,11 +703,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
       setIsEditingProfile(false);
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -705,11 +752,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         severity: "success",
       });
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsVerifyingEmail(false);
     }
@@ -736,11 +787,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         severity: "success",
       });
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsVerifyingEmail(false);
     }
@@ -777,11 +832,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         severity: "success",
       });
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsTogglingRecovery(false);
     }
@@ -800,11 +859,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setAccountRecoveryBackupCodes(response.data.main.backup_codes);
       setIsAccountRecoveryBackupCodesDialogOpen(true);
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       setIsGeneratingBackupCodes(false);
     }

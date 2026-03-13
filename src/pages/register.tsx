@@ -15,6 +15,8 @@ import {
   authenticationCommonBL,
 } from "../utils/initialiser";
 import { useAuth } from "../utils/auth";
+import { useServerCheck } from "../context/serverCheck";
+import { isNetworkError } from "../utils/networkError";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | register</title>
@@ -28,7 +30,8 @@ const RegisterPage: React.FC<PageProps> = () => {
       message: "",
       severity: "error",
     });
-  const { isLoading } = useAuth(null, { redirectIfLoggedIn: "/" });
+  const triggerServerCheck = useServerCheck();
+  const { isLoading } = useAuth(null, { redirectIfLoggedIn: "/" }, triggerServerCheck);
   const [isSubmitting, changeIsSubmitting] = React.useState<boolean>(false);
   const [username, changeUsername] = React.useState<string>("");
   const [password, changePassword] = React.useState<string>("");
@@ -66,11 +69,15 @@ const RegisterPage: React.FC<PageProps> = () => {
       changeConfirmPassword("");
       changeAdminPassword("");
     } catch (error) {
-      changeSnackbarState({
-        isOpen: true,
-        message: (error as Error).message,
-        severity: "error",
-      });
+      if (isNetworkError(error)) {
+        triggerServerCheck();
+      } else {
+        changeSnackbarState({
+          isOpen: true,
+          message: (error as Error).message,
+          severity: "error",
+        });
+      }
     } finally {
       changeIsSubmitting(false);
     }

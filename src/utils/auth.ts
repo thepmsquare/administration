@@ -8,6 +8,7 @@ import {
   authenticationAdministrationBL,
   authenticationCommonBL,
 } from "./initialiser";
+import { isNetworkError } from "./networkError";
 
 /**
  * A hook to handle authentication status checks and redirections.
@@ -19,6 +20,7 @@ import {
 export const useAuth = (
   initialUser?: User | null,
   options: UseAuthOptions = {},
+  onNetworkError?: () => void,
 ) => {
   const { redirectIfLoggedIn, redirectIfLoggedOut } = options;
   const [user, setUser] = React.useState<User | null>(initialUser || null);
@@ -80,6 +82,10 @@ export const useAuth = (
       if (isMounted.current) {
         setError(e as Error);
         setUser(null);
+      }
+
+      if (isNetworkError(e)) {
+        onNetworkError?.();
       }
 
       // 5. Handle redirect if logged out

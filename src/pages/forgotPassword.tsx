@@ -38,6 +38,8 @@ import {
 } from "../utils/initialiser";
 import squareConfig from "../config/square";
 import { useAuth } from "../utils/auth";
+import { useServerCheck } from "../context/serverCheck";
+import { isNetworkError } from "../utils/networkError";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | forgot password</title>
@@ -59,7 +61,8 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       message: "",
       severity: "error",
     });
-  const { isLoading } = useAuth(null, { redirectIfLoggedIn: "/" });
+  const triggerServerCheck = useServerCheck();
+  const { isLoading } = useAuth(null, { redirectIfLoggedIn: "/" }, triggerServerCheck);
   const [isFetchingRecovery, setIsFetchingRecovery] =
     React.useState<boolean>(false);
   const [recoveryMethods, setRecoveryMethods] = React.useState<z.infer<
@@ -140,13 +143,17 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       }
     } catch (e) {
       if (isMountedRef.current) {
-        const msg = (e as Error).message;
-        setLookupError(msg);
-        changeSnackbarState({
-          isOpen: true,
-          message: msg,
-          severity: "error",
-        });
+        if (isNetworkError(e)) {
+          triggerServerCheck();
+        } else {
+          const msg = (e as Error).message;
+          setLookupError(msg);
+          changeSnackbarState({
+            isOpen: true,
+            message: msg,
+            severity: "error",
+          });
+        }
       }
     } finally {
       if (isMountedRef.current) {
@@ -230,11 +237,15 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       }
     } catch (e) {
       if (isMountedRef.current) {
-        changeSnackbarState({
-          isOpen: true,
-          message: (e as Error).message,
-          severity: "error",
-        });
+        if (isNetworkError(e)) {
+          triggerServerCheck();
+        } else {
+          changeSnackbarState({
+            isOpen: true,
+            message: (e as Error).message,
+            severity: "error",
+          });
+        }
       }
     } finally {
       if (isMountedRef.current) {
@@ -270,11 +281,15 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       setEmailResetPasswordCodeInput("");
     } catch (e) {
       if (isMountedRef.current) {
-        changeSnackbarState({
-          isOpen: true,
-          message: (e as Error).message,
-          severity: "error",
-        });
+        if (isNetworkError(e)) {
+          triggerServerCheck();
+        } else {
+          changeSnackbarState({
+            isOpen: true,
+            message: (e as Error).message,
+            severity: "error",
+          });
+        }
       }
     } finally {
       if (isMountedRef.current) {
@@ -310,11 +325,15 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       setBackupCodeResetPasswordCodeInput("");
     } catch (e) {
       if (isMountedRef.current) {
-        changeSnackbarState({
-          isOpen: true,
-          message: (e as Error).message,
-          severity: "error",
-        });
+        if (isNetworkError(e)) {
+          triggerServerCheck();
+        } else {
+          changeSnackbarState({
+            isOpen: true,
+            message: (e as Error).message,
+            severity: "error",
+          });
+        }
       }
     } finally {
       if (isMountedRef.current) {

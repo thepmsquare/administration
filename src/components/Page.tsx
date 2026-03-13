@@ -23,8 +23,8 @@ import CustomAppBar from "./CustomAppBar";
 import OfflineScreen from "./OfflineScreen";
 import ServerDownScreen from "./ServerDownScreen";
 import squareConfig from "../config/square";
-
-const PING_INTERVAL_MS = 30_000;
+import { ServerCheckContext } from "../context/serverCheck";
+import { isNetworkError } from "../utils/networkError";
 
 async function pingServer(url: string): Promise<boolean> {
   const controller = new AbortController();
@@ -163,8 +163,6 @@ const Page: React.FC<Props> = ({
 
   React.useEffect(() => {
     checkServers();
-    const id = setInterval(checkServers, PING_INTERVAL_MS);
-    return () => clearInterval(id);
   }, [checkServers]);
 
   React.useEffect(() => {
@@ -202,15 +200,19 @@ const Page: React.FC<Props> = ({
       } catch (error) {
         if (abortController.signal.aborted) return;
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "failed to load profile photo";
-        changeSnackbarState({
-          isOpen: true,
-          message: errorMessage,
-          severity: "error",
-        });
+        if (isNetworkError(error)) {
+          checkServers();
+        } else {
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : "failed to load profile photo";
+          changeSnackbarState({
+            isOpen: true,
+            message: errorMessage,
+            severity: "error",
+          });
+        }
         setInternalUserProfilePhotoURL(null);
         internalUserProfilePhotoURLRef.current = null;
       } finally {
@@ -327,6 +329,7 @@ const Page: React.FC<Props> = ({
   );
 
   return (
+    <ServerCheckContext.Provider value={checkServers}>
     <ThemeProvider theme={currentTheme}>
       <StyledEngineProvider injectFirst>
         <CssBaseline />
@@ -368,6 +371,7 @@ const Page: React.FC<Props> = ({
         </Box>
       </StyledEngineProvider>
     </ThemeProvider>
+    </ServerCheckContext.Provider>
   );
 };
 
