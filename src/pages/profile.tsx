@@ -998,7 +998,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         </Typography>
 
         {/* ---- Hero card: avatar + username ---- */}
-        <Paper variant="outlined" className="profile-hero-card" elevation={3}>
+        <Paper
+          variant="outlined"
+          className="profile-hero-card"
+          elevation={3}
+          component="section"
+          aria-label="user overview"
+        >
           <div className="profile-avatar-wrapper">
             {isUserProfilePhotoLoading ? (
               <Avatar className="profile-avatar-large">
@@ -1011,6 +1017,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                   alt={pageState?.user.username}
                   src={userProfilePhotoURL}
                   onClick={() => setIsPhotoBackdropVisible(true)}
+                  style={{ cursor: "pointer" }}
                 />
               </Tooltip>
             ) : (
@@ -1035,12 +1042,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             </Tooltip>
           </div>
 
-          <div className="profile-photo-actions">
+          <div className="profile-photo-actions" role="group" aria-label="profile photo actions">
             <Button
               startIcon={<PhotoCameraIcon />}
               onClick={triggerFileInput}
               variant="outlined"
               size="small"
+              aria-label="update profile photo"
             >
               update photo
             </Button>
@@ -1051,6 +1059,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                 color="error"
                 variant="outlined"
                 size="small"
+                aria-label="remove profile photo"
               >
                 remove photo
               </Button>
@@ -1068,14 +1077,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         />
 
         {/* ---- Profile details section ---- */}
-        <Paper variant="outlined" className="profile-section-card">
+        <Paper
+          variant="outlined"
+          className="profile-section-card"
+          component="section"
+          aria-labelledby="profile-details-title"
+        >
           <div className="profile-section-header">
             <AccountCircleOutlinedIcon
               fontSize="small"
               color="primary"
               aria-hidden="true"
             />
-            <Typography variant="h6" component="h2">
+            <Typography variant="h6" component="h2" id="profile-details-title">
               profile details
             </Typography>
           </div>
@@ -1240,14 +1254,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         {/* ---- Email verification section (only when unverified) ---- */}
         {userDetails?.profile.user_profile_email &&
           !userDetails?.profile.user_profile_email_verified && (
-            <Paper variant="outlined" className="profile-section-card">
+            <Paper
+              variant="outlined"
+              className="profile-section-card"
+              component="section"
+              aria-labelledby="verify-email-title"
+            >
               <div className="profile-section-header">
                 <MarkEmailUnreadOutlinedIcon
                   fontSize="small"
                   color="warning"
                   aria-hidden="true"
                 />
-                <Typography variant="h6" component="h2">
+                <Typography variant="h6" component="h2" id="verify-email-title">
                   verify email
                 </Typography>
               </div>
@@ -1302,6 +1321,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
                         size: "small",
                         required: true,
                         disabled: isVerifyingEmail,
+                        autoComplete: "one-time-code",
                         sx: {
                           "& .MuiInputBase-input": {
                             padding: "8px 4px",
@@ -1353,14 +1373,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             </Paper>
           )}
         {/* ---- Account recovery section ---- */}
-        <Paper variant="outlined" className="profile-section-card">
+        <Paper
+          variant="outlined"
+          className="profile-section-card"
+          component="section"
+          aria-labelledby="account-recovery-title"
+        >
           <div className="profile-section-header">
             <ShieldOutlinedIcon
               fontSize="small"
               color="primary"
               aria-hidden="true"
             />
-            <Typography variant="h6" component="h2">
+            <Typography variant="h6" component="h2" id="account-recovery-title">
               account recovery
             </Typography>
           </div>
@@ -1454,25 +1479,43 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           )}
         </Paper>
         {/* ---- Update password section ---- */}
-        <Paper variant="outlined" className="profile-section-card">
+        <Paper
+          variant="outlined"
+          className="profile-section-card"
+          component="section"
+          aria-labelledby="update-password-title"
+        >
           <div className="profile-section-header">
             <LockOutlinedIcon
               fontSize="small"
               color="primary"
               aria-hidden="true"
             />
-            <Typography variant="h6" component="h2">
+            <Typography variant="h6" component="h2" id="update-password-title">
               update password
             </Typography>
           </div>
           <Divider />
           <form onSubmit={updatePassword} className="common-form">
+            {/* hidden username for browser password managers */}
+            <input
+              type="text"
+              name="username"
+              value={pageState?.user.username || ""}
+              autoComplete="username"
+              style={{ display: "none" }}
+              readOnly
+            />
             <PasswordInput
               value={updatePasswordOldPassword}
               onChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
               label="current password"
               uniqueIdForARIA="update-password-old"
-              others={{ required: true, disabled: isUpdatePasswordLoading }}
+              autoComplete="current-password"
+              others={{
+                required: true,
+                disabled: isUpdatePasswordLoading,
+              }}
               variant="outlined"
               fullWidth
             />
@@ -1481,7 +1524,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
               onChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
               label="new password"
               uniqueIdForARIA="update-password-new"
-              others={{ required: true, disabled: isUpdatePasswordLoading }}
+              autoComplete="new-password"
+              others={{
+                required: true,
+                disabled: isUpdatePasswordLoading,
+              }}
               variant="outlined"
               fullWidth
             />
@@ -1490,7 +1537,11 @@ const ProfilePage: React.FC<PageProps> = (props) => {
               onChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
               label="confirm new password"
               uniqueIdForARIA="update-password-confirm"
-              others={{ required: true, disabled: isUpdatePasswordLoading }}
+              autoComplete="new-password"
+              others={{
+                required: true,
+                disabled: isUpdatePasswordLoading,
+              }}
               variant="outlined"
               fullWidth
             />
@@ -1513,14 +1564,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         </Paper>
 
         {/* ---- Sessions section ---- */}
-        <Paper variant="outlined" className="profile-sessions-card">
+        <Paper
+          variant="outlined"
+          className="profile-sessions-card"
+          component="section"
+          aria-labelledby="active-sessions-title"
+        >
           <div className="profile-section-header">
             <DevicesOutlinedIcon
               fontSize="small"
               color="primary"
               aria-hidden="true"
             />
-            <Typography variant="h6" component="h2">
+            <Typography variant="h6" component="h2" id="active-sessions-title">
               active sessions
             </Typography>
           </div>
@@ -1550,14 +1606,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         </Paper>
 
         {/* ---- Danger zone ---- */}
-        <Paper variant="outlined" className="profile-danger-section">
+        <Paper
+          variant="outlined"
+          className="profile-danger-section"
+          component="section"
+          aria-labelledby="danger-zone-title"
+        >
           <div className="profile-section-header">
             <DeleteOutlineIcon
               fontSize="small"
               color="error"
               aria-hidden="true"
             />
-            <Typography variant="h6" component="h2" color="error">
+            <Typography variant="h6" component="h2" color="error" id="danger-zone-title">
               danger zone
             </Typography>
           </div>

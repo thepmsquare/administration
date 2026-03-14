@@ -44,10 +44,13 @@ export default function ServerDownScreen({ onRetry }: ServerDownScreenProps) {
           backgroundColor: "action.hover",
         }}
       >
-        <CloudOffIcon sx={{ fontSize: 52, color: "text.secondary" }} />
+        <CloudOffIcon
+          sx={{ fontSize: 52, color: "text.secondary" }}
+          aria-hidden="true"
+        />
       </Box>
 
-      <Box sx={{ maxWidth: 360 }}>
+      <Box sx={{ maxWidth: 360 }} role="alert" aria-live="assertive">
         <Typography variant="h5" fontWeight={600} gutterBottom>
           servers are unreachable
         </Typography>

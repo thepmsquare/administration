@@ -99,14 +99,22 @@ const RegisterPage: React.FC<PageProps> = () => {
       <Typography variant="h4" component="h1">
         register
       </Typography>
-      <form className="common-form" onSubmit={handleRegister}>
+      <form
+        className="common-form"
+        onSubmit={handleRegister}
+        aria-label="registration form"
+      >
         <UsernameInput
           value={username}
           onChange={(e) => changeUsername(e.target.value)}
           label="username"
           uniqueIdForARIA="register-username"
           variant="outlined"
-          others={{ required: true, disabled: isSubmitting }}
+          autocomplete="username"
+          others={{
+            required: true,
+            disabled: isSubmitting,
+          }}
         />
         <PasswordInput
           value={password}
@@ -114,7 +122,11 @@ const RegisterPage: React.FC<PageProps> = () => {
           uniqueIdForARIA="register-password"
           label="password"
           variant="outlined"
-          others={{ required: true, disabled: isSubmitting }}
+          autoComplete="new-password"
+          others={{
+            required: true,
+            disabled: isSubmitting,
+          }}
         />
         <PasswordInput
           value={confirmPassword}
@@ -122,6 +134,7 @@ const RegisterPage: React.FC<PageProps> = () => {
           uniqueIdForARIA="confirm-register-password"
           label="confirm password"
           variant="outlined"
+          autoComplete="new-password"
           others={{
             required: true,
             disabled: isSubmitting,
@@ -134,7 +147,11 @@ const RegisterPage: React.FC<PageProps> = () => {
           uniqueIdForARIA="register-admin-password"
           label="admin password"
           variant="outlined"
-          others={{ required: true, disabled: isSubmitting }}
+          autoComplete="current-password"
+          others={{
+            required: true,
+            disabled: isSubmitting,
+          }}
         />
         <div className="register-form-action">
           <Button color="inherit" disabled={isSubmitting}>

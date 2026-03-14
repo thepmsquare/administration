@@ -88,7 +88,11 @@ const LoginPage: React.FC<PageProps> = () => {
       <Typography variant="h4" component="h1">
         login
       </Typography>
-      <form className="common-form" onSubmit={handleLogin}>
+      <form
+        className="common-form"
+        onSubmit={handleLogin}
+        aria-label="login form"
+      >
         <UsernameInput
           value={username}
           onChange={(e) => changeUsername(e.target.value)}
@@ -107,9 +111,9 @@ const LoginPage: React.FC<PageProps> = () => {
           uniqueIdForARIA="login-password"
           label="password"
           variant="outlined"
+          autoComplete="current-password"
           others={{
             required: true,
-            autoComplete: "current-password",
             disabled: isSubmitting,
           }}
         />

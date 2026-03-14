@@ -90,7 +90,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
     setIsLogoutAlertOpen(false);
   };
   return (
-    <AppBar position="sticky">
+    <AppBar position="sticky" role="banner">
       <Toolbar sx={{ gap: "1rem" }}>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           <Tooltip title="home">
@@ -101,6 +101,7 @@ export default function CustomAppBar(props: CustomAppBarProps) {
                 alignItems: "center",
                 gap: "0.5rem",
               }}
+              aria-label="home"
             >
               <img
                 src={squareLogo}
@@ -116,14 +117,22 @@ export default function CustomAppBar(props: CustomAppBarProps) {
           color="inherit"
           themeState={props.themeState}
           customChangeThemeState={props.customChangeThemeState}
+          aria-label="toggle theme"
         />
         {props.user ? (
           <>
             <Tooltip title="account options">
-              <IconButton onClick={handleUserMenuOpen}>
+              <IconButton
+                onClick={handleUserMenuOpen}
+                aria-label="account options"
+                aria-controls={userMenuAnchor ? "basic-menu-logged-in" : undefined}
+                aria-haspopup="true"
+                aria-expanded={userMenuAnchor ? "true" : undefined}
+                id="user-menu-button"
+              >
                 {props.isUserProfilePhotoLoading ? (
                   <Avatar>
-                    <CircularProgress />
+                    <CircularProgress size={24} />
                   </Avatar>
                 ) : props.userProfilePhotoURL ? (
                   <Avatar
@@ -140,8 +149,10 @@ export default function CustomAppBar(props: CustomAppBarProps) {
               anchorEl={userMenuAnchor}
               open={Boolean(userMenuAnchor)}
               onClose={handleUserMenuClose}
-              MenuListProps={{
-                "aria-labelledby": "basic-button",
+              slotProps={{
+                list: {
+                  "aria-labelledby": "user-menu-button",
+                },
               }}
             >
               <MenuItem color="inherit" onClick={handleProfileNavigation}>
@@ -153,7 +164,17 @@ export default function CustomAppBar(props: CustomAppBarProps) {
         ) : (
           <>
             <Tooltip title="account options">
-              <IconButton color="inherit" onClick={handleNonUserMenuOpen}>
+              <IconButton
+                color="inherit"
+                onClick={handleNonUserMenuOpen}
+                aria-label="account options"
+                aria-controls={
+                  nonUserMenuAnchor ? "basic-menu-logged-out" : undefined
+                }
+                aria-haspopup="true"
+                aria-expanded={nonUserMenuAnchor ? "true" : undefined}
+                id="non-user-menu-button"
+              >
                 <AccountBoxIcon />
               </IconButton>
             </Tooltip>
@@ -162,8 +183,10 @@ export default function CustomAppBar(props: CustomAppBarProps) {
               anchorEl={nonUserMenuAnchor}
               open={Boolean(nonUserMenuAnchor)}
               onClose={handleNonUserMenuClose}
-              MenuListProps={{
-                "aria-labelledby": "basic-button",
+              slotProps={{
+                list: {
+                  "aria-labelledby": "non-user-menu-button",
+                },
               }}
             >
               <Link to="/register">

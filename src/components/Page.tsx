@@ -351,7 +351,7 @@ const Page: React.FC<Props> = ({
           ) : !serverOk ? (
             <ServerDownScreen onRetry={checkServers} />
           ) : isLoading ? (
-            <Box className="loading-screen">
+            <Box className="loading-screen" aria-busy="true" aria-live="polite">
               <CircularProgress />
             </Box>
           ) : (
@@ -359,6 +359,7 @@ const Page: React.FC<Props> = ({
               <Paper
                 className={className ? `parent ${className}` : "parent"}
                 square
+                role="main"
               >
                 {children}
               </Paper>

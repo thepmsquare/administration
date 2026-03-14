@@ -139,7 +139,11 @@ const IndexPage: React.FC<PageProps> = (props) => {
         </>
       ) : (
         <div className="index-guest">
-          <div className="index-guest-text-container">
+          <div
+            className="index-guest-text-container"
+            role="complementary"
+            aria-label="welcome message"
+          >
             <img
               src={squareLogo}
               alt="Square logo"
@@ -156,7 +160,11 @@ const IndexPage: React.FC<PageProps> = (props) => {
               services exclusively for administrators.
             </Typography>
           </div>
-          <div className="index-guest-button-group">
+          <div
+            className="index-guest-button-group"
+            role="group"
+            aria-label="authentication actions"
+          >
             <Link to="/login">
               <Button variant="contained" size="large" fullWidth>
                 login

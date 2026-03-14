@@ -39,10 +39,13 @@ export default function OfflineScreen() {
             backgroundColor: "action.hover",
           }}
         >
-          <WifiOffIcon sx={{ fontSize: 52, color: "text.secondary" }} />
+          <WifiOffIcon
+            sx={{ fontSize: 52, color: "text.secondary" }}
+            aria-hidden="true"
+          />
         </Box>
 
-        <Box sx={{ maxWidth: 360 }}>
+        <Box sx={{ maxWidth: 360 }} role="alert" aria-live="assertive">
           <Typography variant="h5" fontWeight={600} gutterBottom>
             you're offline
           </Typography>

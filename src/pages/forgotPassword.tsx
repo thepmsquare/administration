@@ -412,7 +412,11 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                 label="username"
                 uniqueIdForARIA="forgot-password-username-input"
                 variant="outlined"
-                others={{ required: true, disabled: isFetchingRecovery }}
+                autocomplete="username"
+                others={{
+                  required: true,
+                  disabled: isFetchingRecovery,
+                }}
               />
 
               {/* Persistent lookup error */}
@@ -556,6 +560,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                       <form
                         onSubmit={handleEmailRecoverySubmit}
                         className="common-form"
+                        aria-label="email recovery form"
                       >
                         <Typography
                           variant="body2"
@@ -571,10 +576,12 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           }}
                           length={squareConfig.resetPasswordOTPLength}
                           gap={1}
+                          autoFocus
                           TextFieldsProps={{
                             size: "small",
                             required: true,
                             disabled: isFetchingRecovery,
+                            autoComplete: "one-time-code",
                             sx: {
                               "& .MuiInputBase-input": {
                                 padding: "8px 4px",
@@ -591,6 +598,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           uniqueIdForARIA="email-recovery-new-password"
                           variant="outlined"
                           fullWidth
+                          autoComplete="new-password"
                           others={{
                             required: true,
                             disabled: isFetchingRecovery,
@@ -668,6 +676,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                       <form
                         onSubmit={handleBackupCodesRecoverySubmit}
                         className="common-form"
+                        aria-label="backup code recovery form"
                       >
                         <TextField
                           label="backup code"
@@ -678,6 +687,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           required
                           fullWidth
                           size="small"
+                          autoComplete="one-time-code"
                           disabled={
                             isFetchingRecovery ||
                             !backupCodeDetails ||
@@ -693,6 +703,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
                           uniqueIdForARIA="backup-code-new-password"
                           variant="outlined"
                           fullWidth
+                          autoComplete="new-password"
                           others={{
                             required: true,
                             disabled:
