@@ -23,6 +23,7 @@ import CustomAppBar from "./CustomAppBar";
 import OfflineScreen from "./OfflineScreen";
 import ServerDownScreen from "./ServerDownScreen";
 import squareConfig from "../config/square";
+import brandConfig from "../config/brand";
 import { ServerCheckContext } from "../context/serverCheck";
 import { isNetworkError } from "../utils/networkError";
 
@@ -61,7 +62,7 @@ type Props = {
 
 const getInitialThemeState = (): ThemeState => {
   if (!isBrowser) return uiConfig.defaultThemeState;
-  
+
   // Use the theme set by the blocking script if available
   if ((window as any).__theme) {
     return (window as any).__theme;
@@ -69,7 +70,7 @@ const getInitialThemeState = (): ThemeState => {
 
   const storedTheme = window.localStorage.getItem(localStorageKeysConfig.theme);
   if (storedTheme !== null) return storedTheme === "dark" ? "dark" : "light";
-  
+
   // Check system preference if no stored theme
   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
     return "dark";
@@ -238,64 +239,74 @@ const Page: React.FC<Props> = ({
     () =>
       createTheme({
         typography: {
-          fontFamily: "Outfit Variable, sans-serif",
+          fontFamily: brandConfig.primaryFont,
 
           h1: {
-            fontFamily: "Outfit Variable, sans-serif",
             fontSize: "clamp(2.5rem, 8vw, 4.5rem)",
-            fontWeight: 700,
+            fontWeight: 800,
             lineHeight: 1.1,
           },
 
           h2: {
-            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "clamp(2rem, 6vw, 3rem)",
+            fontWeight: 700,
+            lineHeight: 1.2,
           },
 
           h3: {
-            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "clamp(1.75rem, 5vw, 2.25rem)",
+            fontWeight: 700,
+            lineHeight: 1.2,
           },
 
           h4: {
-            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "clamp(1.5rem, 4vw, 1.75rem)",
+            fontWeight: 600,
+            lineHeight: 1.3,
           },
 
           h5: {
-            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "clamp(1.25rem, 3vw, 1.5rem)",
+            fontWeight: 600,
+            lineHeight: 1.4,
           },
 
           h6: {
-            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "clamp(1rem, 2vw, 1.25rem)",
+            fontWeight: 500,
+            lineHeight: 1.4,
           },
 
           body1: {
-            fontFamily: "Fraunces Variable, serif",
-            fontSize: "clamp(1rem, 2vw, 1.25rem)",
+            fontSize: "clamp(1rem, 1.2vw, 1.125rem)",
+            lineHeight: 1.6,
+            fontWeight: 400,
           },
 
           body2: {
-            fontFamily: "Fraunces Variable, serif",
+            fontSize: "0.875rem",
+            lineHeight: 1.5,
+            fontWeight: 400,
           },
 
           button: {
-            fontFamily: "Outfit Variable, sans-serif",
             textTransform: "none",
             fontWeight: 500,
+            letterSpacing: "0.02em",
           },
           caption: {
-            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "0.75rem",
+            lineHeight: 1.2,
+            fontWeight: 400,
           },
           overline: {
-            fontFamily: "Outfit Variable, sans-serif",
+            fontSize: "0.75rem",
+            letterSpacing: "0.15em",
+            fontWeight: 700,
+            lineHeight: 1.2,
           },
         },
         components: {
-          MuiMenuItem: {
-            styleOverrides: {
-              root: {
-                fontFamily: "Outfit Variable, sans-serif",
-              },
-            },
-          },
           MuiPaper: {
             defaultProps: {
               elevation: 0,
@@ -330,48 +341,57 @@ const Page: React.FC<Props> = ({
 
   return (
     <ServerCheckContext.Provider value={checkServers}>
-    <ThemeProvider theme={currentTheme}>
-      <StyledEngineProvider injectFirst>
-        <CssBaseline />
-        <Box
-          className="main-container"
-          sx={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}
-        >
-          <CustomAppBar
-            user={user}
-            nullifyPageStateFunction={nullifyPageStateFunction}
-            changeSnackbarState={changeSnackbarState}
-            themeState={themeState}
-            customChangeThemeState={customChangeThemeState}
-            isUserProfilePhotoLoading={isUserProfilePhotoLoading}
-            userProfilePhotoURL={userProfilePhotoURL}
-          />
-          {!isOnline ? (
-            <OfflineScreen />
-          ) : !serverOk ? (
-            <ServerDownScreen onRetry={checkServers} />
-          ) : isLoading ? (
-            <Box className="loading-screen" aria-busy="true" aria-live="polite">
-              <CircularProgress />
-            </Box>
-          ) : (
-            <>
-              <Paper
-                className={className ? `parent ${className}` : "parent"}
-                square
-                role="main"
+      <ThemeProvider theme={currentTheme}>
+        <StyledEngineProvider injectFirst>
+          <CssBaseline />
+          <Box
+            className="main-container"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "100dvh",
+              "--accent-font": brandConfig.accentFont,
+            }}
+          >
+            <CustomAppBar
+              user={user}
+              nullifyPageStateFunction={nullifyPageStateFunction}
+              changeSnackbarState={changeSnackbarState}
+              themeState={themeState}
+              customChangeThemeState={customChangeThemeState}
+              isUserProfilePhotoLoading={isUserProfilePhotoLoading}
+              userProfilePhotoURL={userProfilePhotoURL}
+            />
+            {!isOnline ? (
+              <OfflineScreen />
+            ) : !serverOk ? (
+              <ServerDownScreen onRetry={checkServers} />
+            ) : isLoading ? (
+              <Box
+                className="loading-screen"
+                aria-busy="true"
+                aria-live="polite"
               >
-                {children}
-              </Paper>
-              <CustomSnackbar
-                snackbarState={snackbarState}
-                changeSnackbarState={changeSnackbarState}
-              />
-            </>
-          )}
-        </Box>
-      </StyledEngineProvider>
-    </ThemeProvider>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <>
+                <Paper
+                  className={className ? `parent ${className}` : "parent"}
+                  square
+                  role="main"
+                >
+                  {children}
+                </Paper>
+                <CustomSnackbar
+                  snackbarState={snackbarState}
+                  changeSnackbarState={changeSnackbarState}
+                />
+              </>
+            )}
+          </Box>
+        </StyledEngineProvider>
+      </ThemeProvider>
     </ServerCheckContext.Provider>
   );
 };

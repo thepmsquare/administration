@@ -40,7 +40,11 @@ const IndexPage: React.FC<PageProps> = (props) => {
       severity: "error",
     });
   const triggerServerCheck = useServerCheck();
-  const { user, isLoading, setUser: setAuthUser } = useAuth(state?.user, {}, triggerServerCheck);
+  const {
+    user,
+    isLoading,
+    setUser: setAuthUser,
+  } = useAuth(state?.user, {}, triggerServerCheck);
   const [greetings, changeGreetings] = React.useState<
     GetAllGreetingsV0Response["data"]["main"]
   >([]);
@@ -152,7 +156,10 @@ const IndexPage: React.FC<PageProps> = (props) => {
             <Typography variant="h1" className="index-guest-title">
               {brandConfig.appName}
             </Typography>
-            <Typography variant="body1" className="index-guest-subtitle">
+            <Typography
+              variant="body1"
+              className="index-guest-subtitle accent-font"
+            >
               simple control center managing{" "}
               <Typography color="primary" component="span" variant="inherit">
                 square

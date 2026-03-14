@@ -28,3 +28,7 @@ a {
   flex-direction: column;
   gap: 1rem;
 }
+
+.accent-font {
+  font-family: var(--accent-font) !important;
+}
