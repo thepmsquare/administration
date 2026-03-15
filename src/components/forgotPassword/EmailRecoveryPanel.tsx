@@ -101,11 +101,7 @@ const EmailRecoveryPanel: React.FC<Props> = ({
         className="common-form"
         aria-label="email recovery form"
       >
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mb: 1 }}
-        >
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
           reset code
         </Typography>
         <MuiOtpInput
@@ -113,7 +109,6 @@ const EmailRecoveryPanel: React.FC<Props> = ({
           onChange={onCodeChange}
           length={squareConfig.resetPasswordOTPLength}
           gap={1}
-          autoFocus
           TextFieldsProps={{
             size: "small",
             required: true,
