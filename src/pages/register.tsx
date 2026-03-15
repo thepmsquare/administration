@@ -159,7 +159,7 @@ const RegisterPage: React.FC<PageProps> = () => {
           </Button>
           <Button
             type="submit"
-            variant="contained"
+            variant={"contained" as any}
             disabled={isSubmitting}
             startIcon={
               isSubmitting ? (

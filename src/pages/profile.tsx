@@ -8,48 +8,23 @@ import {
 } from "squarecommonblhelper";
 import {
   AlertDialog,
-  PaginatedTable,
-  PasswordInput,
   UsernameInput,
 } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 import { z } from "zod";
-import { MuiTelInput } from "mui-tel-input";
-import ReactCrop, {
+import {
   Crop,
   PixelCrop,
-  centerCrop,
-  makeAspectCrop,
 } from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
 
-import { Edit } from "@mui/icons-material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
-import DevicesOutlinedIcon from "@mui/icons-material/DevicesOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import MarkEmailUnreadOutlinedIcon from "@mui/icons-material/MarkEmailUnreadOutlined";
 import {
-  Alert,
-  Avatar,
   Backdrop,
-  Box,
   Button,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
-  Grid,
-  IconButton,
-  Paper,
-  TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 
@@ -60,11 +35,19 @@ import {
   authenticationAdministrationBL,
   authenticationCommonBL,
 } from "../utils/initialiser";
-import squareConfig from "../config/square";
 import { useAuth } from "../utils/auth";
-import { MuiOtpInput } from "mui-one-time-password-input";
 import { useServerCheck } from "../context/serverCheck";
 import { isNetworkError } from "../utils/networkError";
+
+import ProfileHeroCard from "../components/profile/ProfileHeroCard";
+import ProfileDetailsSection from "../components/profile/ProfileDetailsSection";
+import EmailVerificationSection from "../components/profile/EmailVerificationSection";
+import AccountRecoverySection from "../components/profile/AccountRecoverySection";
+import UpdatePasswordSection from "../components/profile/UpdatePasswordSection";
+import ActiveSessionsSection from "../components/profile/ActiveSessionsSection";
+import DangerZoneSection from "../components/profile/DangerZoneSection";
+import ProfilePhotoUpdateDialog from "../components/profile/ProfilePhotoUpdateDialog";
+import BackupCodesDialog from "../components/profile/BackupCodesDialog";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | profile</title>
@@ -78,7 +61,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   } catch {
     state = null;
   }
-  // state
+
+  // ── auth ──────────────────────────────────────────────────────────────────
   const [snackbarState, changeSnackbarState] =
     React.useState<CustomSnackbarStateType>({
       isOpen: false,
@@ -92,7 +76,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setUser: setAuthUser,
   } = useAuth(state?.user, { redirectIfLoggedOut: "/login" }, triggerServerCheck);
   const [pageState, setPageState] = React.useState<ProfileState | null>(state);
-  // delete account
+
+  // ── delete account ────────────────────────────────────────────────────────
   const [deleteAccountPassword, setDeleteAccountPassword] =
     React.useState<string>("");
   const [isDeleteAccountLoading, setIsDeleteAccountLoading] =
@@ -100,13 +85,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
     React.useState<boolean>(false);
 
-  // remove app
+  // ── remove app ────────────────────────────────────────────────────────────
   const [removeAppPassword, setRemoveAppPassword] = React.useState<string>("");
   const [isRemoveAppLoading, setIsRemoveAppLoading] =
     React.useState<boolean>(false);
   const [isRemoveAppDialogOpen, setIsRemoveAppDialogOpen] =
     React.useState<boolean>(false);
-  // misc profile details
+
+  // ── profile details ───────────────────────────────────────────────────────
   const [isEditingProfile, setIsEditingProfile] =
     React.useState<boolean>(false);
   const [profileFormData, setProfileFormData] = React.useState({
@@ -123,21 +109,24 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   );
   const [expiresAt, setExpiresAt] = React.useState<string | null>(null);
   const [remainingCooldown, setRemainingCooldown] = React.useState<number>(0);
-  // recovery methods
+
+  // ── account recovery ──────────────────────────────────────────────────────
   const [accountRecoveryBackupCodes, setAccountRecoveryBackupCodes] =
     React.useState<string[]>([]);
   const [
     isAccountRecoveryBackupCodesDialogOpen,
     setIsAccountRecoveryBackupCodesDialogOpen,
   ] = React.useState<boolean>(false);
-  // update username
+
+  // ── update username ───────────────────────────────────────────────────────
   const [updateUsernameNewUsername, setUpdateUsernameNewUsername] =
     React.useState<string>(state ? state.user.username : "");
   const [isUpdateUsernameLoading, setIsUpdateUsernameLoading] =
     React.useState<boolean>(false);
   const [isUpdateUsernameDialogOpen, setIsUpdateUsernameDialogOpen] =
     React.useState<boolean>(false);
-  //update password
+
+  // ── update password ───────────────────────────────────────────────────────
   const [updatePasswordOldPassword, setUpdatePasswordOldPassword] =
     React.useState<string>("");
   const [updatePasswordNewPassword, setUpdatePasswordNewPassword] =
@@ -146,7 +135,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     React.useState<string>("");
   const [isUpdatePasswordLoading, setIsUpdatePasswordLoading] =
     React.useState<boolean>(false);
-  // user details
+
+  // ── user details ──────────────────────────────────────────────────────────
   const [userDetails, setUserDetails] = React.useState<z.infer<
     typeof GetUserDetailsV0ResponseZ.shape.data.shape.main
   > | null>(null);
@@ -155,14 +145,17 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   >(null);
   const [isUserProfilePhotoLoading, setIsUserProfilePhotoLoading] =
     React.useState<boolean>(false);
-  // logout apps
+
+  // ── logout apps ───────────────────────────────────────────────────────────
   const [isLogoutAppsDialogOpen, setIsLogoutAppsDialogOpen] =
     React.useState<boolean>(false);
   const [logoutAppName, setLogoutAppName] = React.useState<string | null>(null);
-  // logout all
+
+  // ── logout all ────────────────────────────────────────────────────────────
   const [isLogoutAllDialogOpen, setIsLogoutAllDialogOpen] =
     React.useState<boolean>(false);
-  //profile photo update
+
+  // ── profile photo update ──────────────────────────────────────────────────
   const [
     userProfilePhotoUpdatePreviewURL,
     setUserProfilePhotoUpdatePreviewURL,
@@ -175,39 +168,70 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     openUserProfilePhotoRemoveDialog,
     setOpenUserProfilePhotoRemoveDialog,
   ] = React.useState(false);
-  // additional loading states
+
+  // ── misc loading ──────────────────────────────────────────────────────────
   const [isLoggingOut, setIsLoggingOut] = React.useState<boolean>(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = React.useState<boolean>(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = React.useState<boolean>(false);
   const [isTogglingRecovery, setIsTogglingRecovery] = React.useState<boolean>(false);
   const [isGeneratingBackupCodes, setIsGeneratingBackupCodes] = React.useState<boolean>(false);
-  // view profile photo
+
+  // ── photo backdrop ────────────────────────────────────────────────────────
   const [isPhotoBackdropVisible, setIsPhotoBackdropVisible] =
     React.useState(false);
-  // crop state
+
+  // ── crop state ────────────────────────────────────────────────────────────
   const [crop, setCrop] = React.useState<Crop>();
   const [completedCrop, setCompletedCrop] = React.useState<PixelCrop>();
   const imgRef = React.useRef<HTMLImageElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // functions
+  // ── helpers ───────────────────────────────────────────────────────────────
+  const calculateRemainingCooldown = (cooldownResetAt: string): number => {
+    const cooldownTime = new Date(cooldownResetAt).getTime();
+    const now = Date.now();
+    const remaining = Math.max(0, Math.ceil((cooldownTime - now) / 1000));
+    return remaining;
+  };
 
+  const formatTime = (seconds: number): string => {
+    if (seconds <= 0) return "0s";
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+    return `${remainingSeconds}s`;
+  };
+
+  const isInCooldown = !!(cooldownResetAt && remainingCooldown > 0);
+
+  const showError = (error: unknown) => {
+    if (isNetworkError(error)) {
+      triggerServerCheck();
+    } else {
+      changeSnackbarState({
+        isOpen: true,
+        message: (error as Error).message,
+        severity: "error",
+      });
+    }
+  };
+
+  // ── api functions ─────────────────────────────────────────────────────────
   const openDeleteAccountDialog = (e: React.FormEvent) => {
     e.preventDefault();
     setIsDeleteAccountDialogOpen(true);
   };
 
   const closeDeleteAccountDialog = () => {
-    if (isDeleteAccountLoading) {
-      return;
-    }
+    if (isDeleteAccountLoading) return;
     setIsDeleteAccountLoading(false);
     setIsDeleteAccountDialogOpen(false);
   };
 
   const deleteAccount = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsDeleteAccountLoading(true);
       await authenticationCommonBL.deleteUserV0(
@@ -219,15 +243,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsDeleteAccountLoading(false);
       navigate("/login");
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
       setIsDeleteAccountLoading(false);
       closeDeleteAccountDialog();
     }
@@ -235,9 +251,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   const updateUsername = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     if (updateUsernameNewUsername === pageState.user.username) {
       changeSnackbarState({
         isOpen: true,
@@ -259,20 +273,9 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         message: "Username updated successfully.",
         severity: "success",
       });
-      const newState = {
-        user: { ...pageState.user, username: updateUsernameNewUsername },
-      };
-      setPageState(newState);
+      setPageState({ user: { ...pageState.user, username: updateUsernameNewUsername } });
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
       setIsUpdateUsernameLoading(false);
       setIsUpdateUsernameDialogOpen(false);
     }
@@ -280,32 +283,14 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   const updatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageState) {
-      return;
-    }
-    if (!updatePasswordNewPassword) {
-      return;
-    }
-    if (!updatePasswordOldPassword) {
-      return;
-    }
-    if (!updatePasswordConfirmPassword) {
-      return;
-    }
+    if (!pageState) return;
+    if (!updatePasswordNewPassword || !updatePasswordOldPassword || !updatePasswordConfirmPassword) return;
     if (updatePasswordNewPassword !== updatePasswordConfirmPassword) {
-      changeSnackbarState({
-        isOpen: true,
-        message: "confirmation of desired password failed.",
-        severity: "error",
-      });
+      changeSnackbarState({ isOpen: true, message: "confirmation of desired password failed.", severity: "error" });
       return;
     }
     if (updatePasswordNewPassword === updatePasswordOldPassword) {
-      changeSnackbarState({
-        isOpen: true,
-        message: "desired password is same as the existing password.",
-        severity: "error",
-      });
+      changeSnackbarState({ isOpen: true, message: "desired password is same as the existing password.", severity: "error" });
       return;
     }
     try {
@@ -316,153 +301,78 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         updatePasswordNewPassword,
       );
       setIsUpdatePasswordLoading(false);
-      changeSnackbarState({
-        isOpen: true,
-        message: "password updated successfully.",
-        severity: "success",
-      });
+      changeSnackbarState({ isOpen: true, message: "password updated successfully.", severity: "success" });
       setUpdatePasswordOldPassword("");
       setUpdatePasswordNewPassword("");
       setUpdatePasswordConfirmPassword("");
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
       setIsUpdatePasswordLoading(false);
     }
   };
 
   const getUserDetails = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         pageState.user.access_token,
       );
-
       setUserDetails(userDetailsResponse.data.main);
       if (userDetailsResponse.data.main.email_verification_details) {
-        setCooldownResetAt(
-          userDetailsResponse.data.main.email_verification_details
-            .cooldown_reset_at,
-        );
-        setExpiresAt(
-          userDetailsResponse.data.main.email_verification_details.expires_at,
-        );
-        // Calculate initial remaining time
-        const remaining = calculateRemainingCooldown(
-          userDetailsResponse.data.main.email_verification_details
-            .cooldown_reset_at,
-        );
-        setRemainingCooldown(remaining);
+        setCooldownResetAt(userDetailsResponse.data.main.email_verification_details.cooldown_reset_at);
+        setExpiresAt(userDetailsResponse.data.main.email_verification_details.expires_at);
+        setRemainingCooldown(calculateRemainingCooldown(userDetailsResponse.data.main.email_verification_details.cooldown_reset_at));
       }
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     }
   };
 
   const getUserProfilePhoto = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsUserProfilePhotoLoading(true);
-      const userDetailsResponse =
-        await authenticationCommonBL.getUserProfilePhotoV0(
-          pageState.user.access_token,
-        );
-
+      const userDetailsResponse = await authenticationCommonBL.getUserProfilePhotoV0(
+        pageState.user.access_token,
+      );
       if (userDetailsResponse instanceof Blob && userDetailsResponse.size > 0) {
         setUserProfilePhotoURL(URL.createObjectURL(userDetailsResponse));
       }
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsUserProfilePhotoLoading(false);
     }
   };
 
   const logoutFromApp = async (app_name: string) => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsLoggingOut(true);
-      await authenticationCommonBL.logoutAppsV0(pageState.user.access_token, [
-        app_name,
-      ]);
+      await authenticationCommonBL.logoutAppsV0(pageState.user.access_token, [app_name]);
       setAuthUser(null);
       setPageState(null);
       setIsLogoutAppsDialogOpen(false);
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsLoggingOut(false);
     }
   };
 
   const logoutAll = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsLoggingOut(true);
       await authenticationCommonBL.logoutAllV0(pageState.user.access_token);
       setAuthUser(null);
       setPageState(null);
-      closeLogoutAllDialog();
+      setIsLogoutAllDialogOpen(false);
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsLoggingOut(false);
     }
-  };
-
-  const closeLogoutAppsDialog = () => {
-    setIsLogoutAppsDialogOpen(false);
-  };
-
-  const closeLogoutAllDialog = () => {
-    setIsLogoutAllDialogOpen(false);
   };
 
   const openRemoveAppDialog = (e: React.FormEvent) => {
@@ -471,17 +381,13 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const closeRemoveAppDialog = () => {
-    if (isRemoveAppLoading) {
-      return;
-    }
+    if (isRemoveAppLoading) return;
     setIsRemoveAppLoading(false);
     setIsRemoveAppDialogOpen(false);
   };
 
   const removeApp = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsRemoveAppLoading(true);
       await authenticationAdministrationBL.removeAppForSelfV0(
@@ -493,26 +399,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsRemoveAppLoading(false);
       navigate("/login");
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
       setIsRemoveAppLoading(false);
       closeRemoveAppDialog();
     }
-  };
-
-  const handleUpdateUsernameDialogOpen = () => {
-    setIsUpdateUsernameDialogOpen(true);
-  };
-
-  const handleUpdateUsernameDialogClose = () => {
-    setIsUpdateUsernameDialogOpen(false);
   };
 
   const nullifyPageState = () => {
@@ -523,43 +413,23 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Revoke any previous object URL to avoid memory leaks
       if (userProfilePhotoUpdatePreviewURL) {
         URL.revokeObjectURL(userProfilePhotoUpdatePreviewURL);
       }
-      const objectUrl = URL.createObjectURL(file);
-      setUserProfilePhotoUpdatePreviewURL(objectUrl);
-      // Reset crop selection so it is re-computed on image load
+      setUserProfilePhotoUpdatePreviewURL(URL.createObjectURL(file));
       setCrop(undefined);
       setCompletedCrop(undefined);
       setOpenUserProfilePhotoUpdateDialog(true);
     }
-    // Reset input value to allow re-selecting the same file
-    if (event.target) {
-      event.target.value = "";
-    }
+    if (event.target) event.target.value = "";
   };
 
-  const dataURLToFile = (dataUrl: string, filename: string): File => {
-    const arr = dataUrl.split(",");
-    const mime = arr[0].match(/:(.*?);/)?.[1] || "application/octet-stream";
-    const bstr = atob(arr[1]);
-    const n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
-    return new File([u8arr], filename, { type: mime });
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  const triggerFileInput = () => fileInputRef.current?.click();
 
   const confirmProfilePhotoUpdate = async () => {
     if (!pageState) return;
-    if (!imgRef.current || !completedCrop || !userProfilePhotoUpdatePreviewURL)
-      return;
+    if (!imgRef.current || !completedCrop || !userProfilePhotoUpdatePreviewURL) return;
 
-    // Draw cropped region to an off-screen canvas
     const img = imgRef.current;
     const canvas = document.createElement("canvas");
     const scaleX = img.naturalWidth / img.width;
@@ -580,35 +450,19 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       canvas.height,
     );
 
-    // Convert canvas to blob and upload
     canvas.toBlob(async (blob) => {
       if (!blob) return;
-      const croppedFile = new File([blob], "profile.jpg", {
-        type: "image/jpeg",
-      });
+      const croppedFile = new File([blob], "profile.jpg", { type: "image/jpeg" });
       try {
         setIsUserProfilePhotoLoading(true);
         await authenticationCommonBL.updateUserProfilePhotoV0(
           pageState.user.access_token,
           croppedFile,
         );
-        const croppedDataUrl = canvas.toDataURL("image/jpeg");
-        changeSnackbarState({
-          isOpen: true,
-          message: "profile photo updated successfully.",
-          severity: "success",
-        });
-        setUserProfilePhotoURL(croppedDataUrl);
+        changeSnackbarState({ isOpen: true, message: "profile photo updated successfully.", severity: "success" });
+        setUserProfilePhotoURL(canvas.toDataURL("image/jpeg"));
       } catch (error) {
-        if (isNetworkError(error)) {
-          triggerServerCheck();
-        } else {
-          changeSnackbarState({
-            isOpen: true,
-            message: (error as Error).message,
-            severity: "error",
-          });
-        }
+        showError(error);
       } finally {
         URL.revokeObjectURL(userProfilePhotoUpdatePreviewURL);
         setUserProfilePhotoUpdatePreviewURL(null);
@@ -624,53 +478,40 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const confirmProfilePhotoRemove = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsUserProfilePhotoLoading(true);
       await authenticationCommonBL.updateUserProfilePhotoV0(
         pageState.user.access_token,
         undefined,
       );
-      changeSnackbarState({
-        isOpen: true,
-        message: "profile photo removed successfully.",
-        severity: "success",
-      });
+      changeSnackbarState({ isOpen: true, message: "profile photo removed successfully.", severity: "success" });
       setUserProfilePhotoURL(null);
       setUserProfilePhotoUpdatePreviewURL(null);
       setOpenUserProfilePhotoRemoveDialog(false);
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsUserProfilePhotoLoading(false);
     }
-  };
-
-  const cancelProfilePhotoRemove = () => {
-    setOpenUserProfilePhotoRemoveDialog(false);
   };
 
   const handleProfileFieldChange =
     (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setProfileFormData((prev) => ({ ...prev, [field]: e.target.value }));
     };
+
+  const handlePhoneChange = (_: string, info: { nationalNumber?: string | null; countryCallingCode?: string | null }) => {
+    setProfileFormData((prev) => ({
+      ...prev,
+      phoneNumber: info.nationalNumber || "",
+      phoneCountryCode: info.countryCallingCode ? `+${info.countryCallingCode}` : "",
+    }));
+  };
+
   const handleProfileFieldSave = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!pageState) {
-      return;
-    }
-
+    if (!pageState) return;
     try {
       setIsUpdatingProfile(true);
       const response = await authenticationCommonBL.updateProfileDetailsV0(
@@ -681,86 +522,34 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         profileFormData.phoneCountryCode || undefined,
         profileFormData.phoneNumber || undefined,
       );
-
       if (response.data.main) {
-        setUserDetails((prev) =>
-          prev
-            ? {
-                ...prev,
-                profile: response.data.main,
-              }
-            : null,
-        );
+        setUserDetails((prev) => prev ? { ...prev, profile: response.data.main } : null);
       }
-
-      changeSnackbarState({
-        isOpen: true,
-        message: "Profile updated successfully.",
-        severity: "success",
-      });
-
+      changeSnackbarState({ isOpen: true, message: "Profile updated successfully.", severity: "success" });
       getUserDetails();
-
       setIsEditingProfile(false);
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsUpdatingProfile(false);
     }
   };
 
   const handleSendVerificationEmail = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsVerifyingEmail(true);
-      await authenticationCommonBL.sendVerificationEmailV0(
-        pageState.user.access_token,
-      );
-      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token,
-      );
-
+      await authenticationCommonBL.sendVerificationEmailV0(pageState.user.access_token);
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(pageState.user.access_token);
       setUserDetails(userDetailsResponse.data.main);
       if (userDetailsResponse.data.main.email_verification_details) {
-        setCooldownResetAt(
-          userDetailsResponse.data.main.email_verification_details
-            .cooldown_reset_at,
-        );
-        setExpiresAt(
-          userDetailsResponse.data.main.email_verification_details.expires_at,
-        );
-        const remaining = calculateRemainingCooldown(
-          userDetailsResponse.data.main.email_verification_details
-            .cooldown_reset_at,
-        );
-        setRemainingCooldown(remaining);
+        setCooldownResetAt(userDetailsResponse.data.main.email_verification_details.cooldown_reset_at);
+        setExpiresAt(userDetailsResponse.data.main.email_verification_details.expires_at);
+        setRemainingCooldown(calculateRemainingCooldown(userDetailsResponse.data.main.email_verification_details.cooldown_reset_at));
       }
-
-      changeSnackbarState({
-        isOpen: true,
-        message: "verification email sent successfully.",
-        severity: "success",
-      });
+      changeSnackbarState({ isOpen: true, message: "verification email sent successfully.", severity: "success" });
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsVerifyingEmail(false);
     }
@@ -768,34 +557,18 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   const handleEmailVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsVerifyingEmail(true);
       await authenticationCommonBL.validateEmailVerificationCodeV0(
         pageState.user.access_token,
         emailVerificationCode,
       );
-      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token,
-      );
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(pageState.user.access_token);
       setUserDetails(userDetailsResponse.data.main);
-      changeSnackbarState({
-        isOpen: true,
-        message: "email verified successfully.",
-        severity: "success",
-      });
+      changeSnackbarState({ isOpen: true, message: "email verified successfully.", severity: "success" });
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsVerifyingEmail(false);
     }
@@ -805,108 +578,67 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     method: RecoveryMethodEnum,
     isActiveCurrently: boolean,
   ) => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsTogglingRecovery(true);
-      let recoveryMethodsToRemove: RecoveryMethodEnum[] = [];
-      let recoveryMethodsToAdd: RecoveryMethodEnum[] = [];
-      if (isActiveCurrently) {
-        recoveryMethodsToRemove = [method];
-      } else {
-        recoveryMethodsToAdd = [method];
-      }
+      const recoveryMethodsToRemove: RecoveryMethodEnum[] = isActiveCurrently ? [method] : [];
+      const recoveryMethodsToAdd: RecoveryMethodEnum[] = isActiveCurrently ? [] : [method];
       await authenticationCommonBL.updateUserRecoveryMethodsV0(
         pageState.user.access_token,
         recoveryMethodsToAdd,
         recoveryMethodsToRemove,
       );
-      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token,
-      );
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(pageState.user.access_token);
       setUserDetails(userDetailsResponse.data.main);
-      changeSnackbarState({
-        isOpen: true,
-        message: `account recovery method ${method} toggled successfully.`,
-        severity: "success",
-      });
+      changeSnackbarState({ isOpen: true, message: `account recovery method ${method} toggled successfully.`, severity: "success" });
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsTogglingRecovery(false);
     }
   };
 
   const handleGenerateAccountRecoveryBackupCodes = async () => {
-    if (!pageState) {
-      return;
-    }
+    if (!pageState) return;
     try {
       setIsGeneratingBackupCodes(true);
-      const response =
-        await authenticationCommonBL.generateAccountBackupCodesV0(
-          pageState.user.access_token,
-        );
+      const response = await authenticationCommonBL.generateAccountBackupCodesV0(pageState.user.access_token);
       setAccountRecoveryBackupCodes(response.data.main.backup_codes);
       setIsAccountRecoveryBackupCodesDialogOpen(true);
     } catch (error) {
-      if (isNetworkError(error)) {
-        triggerServerCheck();
-      } else {
-        changeSnackbarState({
-          isOpen: true,
-          message: (error as Error).message,
-          severity: "error",
-        });
-      }
+      showError(error);
     } finally {
       setIsGeneratingBackupCodes(false);
     }
   };
+
   const handleAccountRecoveryBackupCodesCopy = async () => {
-    const text = accountRecoveryBackupCodes.join("\n");
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(accountRecoveryBackupCodes.join("\n"));
   };
+
   const handleAccountRecoveryBackupCodesDialogClose = async () => {
     if (pageState) {
-      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
-        pageState.user.access_token,
-      );
+      const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(pageState.user.access_token);
       setUserDetails(userDetailsResponse.data.main);
     }
     setIsAccountRecoveryBackupCodesDialogOpen(false);
     setAccountRecoveryBackupCodes([]);
   };
+
   const handleAccountRecoveryBackupCodesDownload = () => {
     const text = accountRecoveryBackupCodes.join("\n");
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
     a.download = `${userDetails?.username ? userDetails.username + "-" : ""}account-recovery-backup-codes.txt`;
     a.style.display = "none";
-
     document.body.appendChild(a);
     a.click();
-
-    // Clean up after a short delay
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
   };
-  // useEffect
 
+  // ── effects ───────────────────────────────────────────────────────────────
   React.useEffect(() => {
     if (user) {
       setPageState({ user });
@@ -917,69 +649,38 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   React.useEffect(() => {
     return () => {
-      if (userProfilePhotoURL) {
-        URL.revokeObjectURL(userProfilePhotoURL);
-      }
+      if (userProfilePhotoURL) URL.revokeObjectURL(userProfilePhotoURL);
     };
   }, [userProfilePhotoURL]);
 
   React.useEffect(() => {
     if (!cooldownResetAt) return;
-
     const interval = setInterval(() => {
       const remaining = calculateRemainingCooldown(cooldownResetAt);
       setRemainingCooldown(remaining);
-
-      if (remaining <= 0) {
-        setCooldownResetAt(null);
-        clearInterval(interval);
-      }
+      if (remaining <= 0) { setCooldownResetAt(null); clearInterval(interval); }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [cooldownResetAt]);
 
-  // misc
-  const sessionTableData = userDetails?.sessions.map((row) => {
-    return {
-      "app name": row.app_name,
-      "number of sessions": row.active_sessions,
-      logout: (
-        <Button
-          color="error"
-          onClick={() => {
-            setIsLogoutAppsDialogOpen(true);
-            setLogoutAppName(row.app_name);
-          }}
-        >
-          logout
-        </Button>
-      ),
-    };
-  });
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  // ── derived ───────────────────────────────────────────────────────────────
+  const sessionTableData = userDetails?.sessions.map((row) => ({
+    "app name": row.app_name,
+    "number of sessions": row.active_sessions,
+    logout: (
+      <Button
+        color="error"
+        onClick={() => {
+          setIsLogoutAppsDialogOpen(true);
+          setLogoutAppName(row.app_name);
+        }}
+      >
+        logout
+      </Button>
+    ),
+  }));
 
-  const calculateRemainingCooldown = (cooldownResetAt: string): number => {
-    const cooldownTime = new Date(cooldownResetAt).getTime();
-    const now = Date.now();
-    const remaining = Math.max(0, Math.ceil((cooldownTime - now) / 1000));
-    return remaining;
-  };
-
-  const formatTime = (seconds: number): string => {
-    if (seconds <= 0) return "0s";
-
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-
-    if (minutes > 0) {
-      return `${minutes}m ${remainingSeconds}s`;
-    }
-    return `${remainingSeconds}s`;
-  };
-
-  const isInCooldown = !!(cooldownResetAt && remainingCooldown > 0);
-
+  // ── render ────────────────────────────────────────────────────────────────
   return (
     <Page
       user={pageState?.user}
@@ -992,706 +693,98 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       isExternalUserProfilePhotoLoading={isUserProfilePhotoLoading}
     >
       <div className="profile-outer">
-        {/* Page title */}
         <Typography variant="h4" component="h1" className="profile-title">
           profile
         </Typography>
 
-        {/* ---- Hero card: avatar + username ---- */}
-        <Paper
-          variant="outlined"
-          className="profile-hero-card"
-          elevation={3}
-          component="section"
-          aria-label="user overview"
-        >
-          <div className="profile-avatar-wrapper">
-            {isUserProfilePhotoLoading ? (
-              <Avatar className="profile-avatar-large">
-                <CircularProgress size={32} />
-              </Avatar>
-            ) : userProfilePhotoURL ? (
-              <Tooltip title="View photo">
-                <Avatar
-                  className="profile-avatar-large"
-                  alt={pageState?.user.username}
-                  src={userProfilePhotoURL}
-                  onClick={() => setIsPhotoBackdropVisible(true)}
-                  style={{ cursor: "pointer" }}
-                />
-              </Tooltip>
-            ) : (
-              <Avatar className="profile-avatar-large">
-                {pageState?.user.username?.charAt(0).toUpperCase()}
-              </Avatar>
-            )}
-          </div>
-
-          <div className="profile-username-row">
-            <Typography variant="h6" component="span" fontWeight={600}>
-              {pageState?.user.username}
-            </Typography>
-            <Tooltip title="Change username">
-              <IconButton
-                size="small"
-                onClick={handleUpdateUsernameDialogOpen}
-                aria-label="change username"
-              >
-                <Edit fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </div>
-
-          <div className="profile-photo-actions" role="group" aria-label="profile photo actions">
-            <Button
-              startIcon={<PhotoCameraIcon />}
-              onClick={triggerFileInput}
-              variant="outlined"
-              size="small"
-              aria-label="update profile photo"
-            >
-              update photo
-            </Button>
-            {userProfilePhotoURL && (
-              <Button
-                startIcon={<DeleteIcon />}
-                onClick={() => setOpenUserProfilePhotoRemoveDialog(true)}
-                color="error"
-                variant="outlined"
-                size="small"
-                aria-label="remove profile photo"
-              >
-                remove photo
-              </Button>
-            )}
-          </div>
-        </Paper>
-
-        <input
-          type="file"
-          accept="image/jpeg, image/png"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-          aria-hidden="true"
+        <ProfileHeroCard
+          username={pageState?.user.username}
+          userProfilePhotoURL={userProfilePhotoURL}
+          isUserProfilePhotoLoading={isUserProfilePhotoLoading}
+          onOpenPhotoBackdrop={() => setIsPhotoBackdropVisible(true)}
+          onTriggerFileInput={triggerFileInput}
+          onRemovePhotoDialogOpen={() => setOpenUserProfilePhotoRemoveDialog(true)}
+          onUpdateUsernameDialogOpen={() => setIsUpdateUsernameDialogOpen(true)}
+          fileInputRef={fileInputRef}
+          onFileChange={handleFileChange}
         />
 
-        {/* ---- Profile details section ---- */}
-        <Paper
-          variant="outlined"
-          className="profile-section-card"
-          component="section"
-          aria-labelledby="profile-details-title"
-        >
-          <div className="profile-section-header">
-            <AccountCircleOutlinedIcon
-              fontSize="small"
-              color="primary"
-              aria-hidden="true"
-            />
-            <Typography variant="h6" component="h2" id="profile-details-title">
-              profile details
-            </Typography>
-          </div>
-          <Divider />
+        <ProfileDetailsSection
+          userDetails={userDetails}
+          isEditingProfile={isEditingProfile}
+          profileFormData={profileFormData}
+          isUpdatingProfile={isUpdatingProfile}
+          onProfileFieldChange={handleProfileFieldChange}
+          onPhoneChange={handlePhoneChange}
+          onProfileFieldSave={handleProfileFieldSave}
+          onEditStart={() => {
+            setProfileFormData({
+              firstName: userDetails?.profile.user_profile_first_name || "",
+              lastName: userDetails?.profile.user_profile_last_name || "",
+              email: userDetails?.profile.user_profile_email || "",
+              phoneNumber: userDetails?.profile.user_profile_phone_number || "",
+              phoneCountryCode: userDetails?.profile.user_profile_phone_number_country_code || "",
+            });
+            setIsEditingProfile(true);
+          }}
+          onEditCancel={() => setIsEditingProfile(false)}
+        />
 
-          {isEditingProfile ? (
-            <form onSubmit={handleProfileFieldSave} className="common-form">
-              <TextField
-                label="first name"
-                variant="outlined"
-                value={profileFormData.firstName}
-                onChange={handleProfileFieldChange("firstName")}
-                fullWidth
-                size="small"
-                disabled={isUpdatingProfile}
-              />
-              <TextField
-                label="last name"
-                variant="outlined"
-                value={profileFormData.lastName}
-                onChange={handleProfileFieldChange("lastName")}
-                fullWidth
-                size="small"
-                disabled={isUpdatingProfile}
-              />
-              <TextField
-                label="email"
-                variant="outlined"
-                type="email"
-                value={profileFormData.email}
-                onChange={handleProfileFieldChange("email")}
-                fullWidth
-                size="small"
-                disabled={isUpdatingProfile}
-              />
-              <MuiTelInput
-                label="phone number"
-                value={`${profileFormData.phoneCountryCode}${profileFormData.phoneNumber}`}
-                onChange={(value, info) => {
-                  setProfileFormData((prev) => ({
-                    ...prev,
-                    phoneNumber: info.nationalNumber || "",
-                    phoneCountryCode: info.countryCallingCode
-                      ? `+${info.countryCallingCode}`
-                      : "",
-                  }));
-                }}
-                fullWidth
-                variant="outlined"
-                size="small"
-                disabled={isUpdatingProfile}
-              />
-              <div className="profile-form-actions">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  type="submit"
-                  disabled={isUpdatingProfile}
-                  startIcon={
-                    isUpdatingProfile ? (
-                      <CircularProgress size={16} color="inherit" />
-                    ) : undefined
-                  }
-                >
-                  {isUpdatingProfile ? "saving…" : "save changes"}
-                </Button>
-                <Button
-                  variant="text"
-                  color="inherit"
-                  type="button"
-                  onClick={() => setIsEditingProfile(false)}
-                  disabled={isUpdatingProfile}
-                >
-                  cancel
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
-                <div className="profile-info-row">
-                  <Typography variant="body2" color="text.secondary">
-                    name
-                  </Typography>
-                  <Typography variant="body1">
-                    {`${userDetails?.profile.user_profile_first_name || ""} ${
-                      userDetails?.profile.user_profile_last_name || ""
-                    }`.trim() || "—"}
-                  </Typography>
-                </div>
-                <div className="profile-info-row">
-                  <Typography variant="body2" color="text.secondary">
-                    email
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Typography variant="body1">
-                      {userDetails?.profile.user_profile_email || "—"}
-                    </Typography>
-                    {!!userDetails?.profile.user_profile_email && (
-                      <Chip
-                        size="small"
-                        label={
-                          userDetails?.profile.user_profile_email_verified
-                            ? "verified"
-                            : "not verified"
-                        }
-                        color={
-                          userDetails?.profile.user_profile_email_verified
-                            ? "success"
-                            : "warning"
-                        }
-                        variant="outlined"
-                      />
-                    )}
-                  </Box>
-                </div>
-                <div className="profile-info-row">
-                  <Typography variant="body2" color="text.secondary">
-                    phone
-                  </Typography>
-                  <Typography variant="body1">
-                    {userDetails?.profile.user_profile_phone_number
-                      ? `${userDetails.profile.user_profile_phone_number_country_code}${userDetails.profile.user_profile_phone_number}`
-                      : "—"}
-                  </Typography>
-                </div>
-              </Box>
-              <div>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<Edit fontSize="small" />}
-                  onClick={() => {
-                    setProfileFormData({
-                      firstName:
-                        userDetails?.profile.user_profile_first_name || "",
-                      lastName:
-                        userDetails?.profile.user_profile_last_name || "",
-                      email: userDetails?.profile.user_profile_email || "",
-                      phoneNumber:
-                        userDetails?.profile.user_profile_phone_number || "",
-                      phoneCountryCode:
-                        userDetails?.profile
-                          .user_profile_phone_number_country_code || "",
-                    });
-                    setIsEditingProfile(true);
-                  }}
-                >
-                  edit details
-                </Button>
-              </div>
-            </>
-          )}
-        </Paper>
-        {/* ---- Email verification section (only when unverified) ---- */}
-        {userDetails?.profile.user_profile_email &&
-          !userDetails?.profile.user_profile_email_verified && (
-            <Paper
-              variant="outlined"
-              className="profile-section-card"
-              component="section"
-              aria-labelledby="verify-email-title"
-            >
-              <div className="profile-section-header">
-                <MarkEmailUnreadOutlinedIcon
-                  fontSize="small"
-                  color="warning"
-                  aria-hidden="true"
-                />
-                <Typography variant="h6" component="h2" id="verify-email-title">
-                  verify email
-                </Typography>
-              </div>
-              <Divider />
-              {userDetails.email_verification_details ? (
-                <>
-                  {isInCooldown && (
-                    <Alert severity="info">
-                      A code was recently sent. You can request another in{" "}
-                      <strong>{formatTime(remainingCooldown)}</strong>.
-                    </Alert>
-                  )}
-                  {expiresAt && (
-                    <Alert severity="warning">
-                      Your code expires at{" "}
-                      <strong>
-                        {new Date(expiresAt).toLocaleTimeString()}
-                      </strong>
-                      .
-                    </Alert>
-                  )}
-                  <Button
-                    onClick={handleSendVerificationEmail}
-                    disabled={isInCooldown || isVerifyingEmail}
-                    variant="outlined"
-                    size="small"
-                    startIcon={
-                      isVerifyingEmail ? (
-                        <CircularProgress size={16} color="inherit" />
-                      ) : undefined
-                    }
-                  >
-                    {isVerifyingEmail
-                      ? "sending…"
-                      : isInCooldown
-                        ? `resend in ${formatTime(remainingCooldown)}`
-                        : "resend verification email"}
-                  </Button>
-                  <form
-                    onSubmit={handleEmailVerificationSubmit}
-                    className="common-form"
-                  >
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                      verification code
-                    </Typography>
-                    <MuiOtpInput
-                      value={emailVerificationCode}
-                      onChange={(value) => setEmailVerificationCode(value)}
-                      length={squareConfig.emailVerificationOTPLength}
-                      gap={1}
-                      TextFieldsProps={{
-                        size: "small",
-                        required: true,
-                        disabled: isVerifyingEmail,
-                        autoComplete: "one-time-code",
-                        sx: {
-                          "& .MuiInputBase-input": {
-                            padding: "8px 4px",
-                          },
-                        },
-                      }}
-                    />
-                    <div className="profile-form-actions">
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        disabled={isVerifyingEmail || !emailVerificationCode}
-                        startIcon={
-                          isVerifyingEmail ? (
-                            <CircularProgress size={16} color="inherit" />
-                          ) : undefined
-                        }
-                      >
-                        {isVerifyingEmail ? "verifying…" : "submit code"}
-                      </Button>
-                    </div>
-                  </form>
-                </>
-              ) : (
-                <>
-                  <Typography variant="body2" color="text.secondary">
-                    Your email address is not yet verified. Send a verification
-                    code to confirm your email.
-                  </Typography>
-                  <div>
-                    <Button
-                      onClick={handleSendVerificationEmail}
-                      variant="outlined"
-                      size="small"
-                      disabled={isVerifyingEmail}
-                      startIcon={
-                        isVerifyingEmail ? (
-                          <CircularProgress size={16} color="inherit" />
-                        ) : (
-                          <MarkEmailUnreadOutlinedIcon fontSize="small" />
-                        )
-                      }
-                    >
-                      {isVerifyingEmail ? "sending…" : "send verification email"}
-                    </Button>
-                  </div>
-                </>
-              )}
-            </Paper>
-          )}
-        {/* ---- Account recovery section ---- */}
-        <Paper
-          variant="outlined"
-          className="profile-section-card"
-          component="section"
-          aria-labelledby="account-recovery-title"
-        >
-          <div className="profile-section-header">
-            <ShieldOutlinedIcon
-              fontSize="small"
-              color="primary"
-              aria-hidden="true"
-            />
-            <Typography variant="h6" component="h2" id="account-recovery-title">
-              account recovery
-            </Typography>
-          </div>
-          <Divider />
-          {userDetails &&
-            Object.entries(userDetails.recovery_methods).map(
-              ([name, isActive], index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 1,
-                    py: 0.5,
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography
-                      variant="body1"
-                      sx={{ textTransform: "lowercase" }}
-                    >
-                      {name.replace(/_/g, " ")}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={isActive ? "active" : "inactive"}
-                      color={isActive ? "success" : "default"}
-                      variant="outlined"
-                    />
-                  </Box>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color={isActive ? "error" : "primary"}
-                    disabled={isTogglingRecovery}
-                    onClick={() =>
-                      handleAccountRecoveryToggle(
-                        name as RecoveryMethodEnum,
-                        isActive,
-                      )
-                    }
-                    startIcon={
-                      isTogglingRecovery ? (
-                        <CircularProgress size={16} color="inherit" />
-                      ) : undefined
-                    }
-                  >
-                    {isTogglingRecovery
-                      ? "updating…"
-                      : isActive
-                        ? "disable"
-                        : "enable"}
-                  </Button>
-                </Box>
-              ),
-            )}
-          {userDetails && userDetails.recovery_methods.BACKUP_CODE && (
-            <>
-              <Divider />
-              {userDetails.backup_code_details && (
-                <Alert severity="info" sx={{ mt: 0.5 }}>
-                  <strong>{userDetails.backup_code_details.available}</strong>{" "}
-                  of <strong>{userDetails.backup_code_details.total}</strong>{" "}
-                  codes remaining · generated on{" "}
-                  {new Date(
-                    userDetails.backup_code_details.generated_at,
-                  ).toLocaleDateString()}
-                </Alert>
-              )}
-              <div>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleGenerateAccountRecoveryBackupCodes}
-                  disabled={isGeneratingBackupCodes}
-                  startIcon={
-                    isGeneratingBackupCodes ? (
-                      <CircularProgress size={16} color="inherit" />
-                    ) : undefined
-                  }
-                >
-                  {isGeneratingBackupCodes
-                    ? "generating…"
-                    : userDetails.backup_code_details
-                      ? "regenerate backup codes"
-                      : "generate backup codes"}
-                </Button>
-              </div>
-            </>
-          )}
-        </Paper>
-        {/* ---- Update password section ---- */}
-        <Paper
-          variant="outlined"
-          className="profile-section-card"
-          component="section"
-          aria-labelledby="update-password-title"
-        >
-          <div className="profile-section-header">
-            <LockOutlinedIcon
-              fontSize="small"
-              color="primary"
-              aria-hidden="true"
-            />
-            <Typography variant="h6" component="h2" id="update-password-title">
-              update password
-            </Typography>
-          </div>
-          <Divider />
-          <form onSubmit={updatePassword} className="common-form">
-            {/* hidden username for browser password managers */}
-            <input
-              type="text"
-              name="username"
-              value={pageState?.user.username || ""}
-              autoComplete="username"
-              style={{ display: "none" }}
-              readOnly
-            />
-            <PasswordInput
-              value={updatePasswordOldPassword}
-              onChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
-              label="current password"
-              uniqueIdForARIA="update-password-old"
-              autoComplete="current-password"
-              others={{
-                required: true,
-                disabled: isUpdatePasswordLoading,
-              }}
-              variant="outlined"
-              fullWidth
-            />
-            <PasswordInput
-              value={updatePasswordNewPassword}
-              onChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
-              label="new password"
-              uniqueIdForARIA="update-password-new"
-              autoComplete="new-password"
-              others={{
-                required: true,
-                disabled: isUpdatePasswordLoading,
-              }}
-              variant="outlined"
-              fullWidth
-            />
-            <PasswordInput
-              value={updatePasswordConfirmPassword}
-              onChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
-              label="confirm new password"
-              uniqueIdForARIA="update-password-confirm"
-              autoComplete="new-password"
-              others={{
-                required: true,
-                disabled: isUpdatePasswordLoading,
-              }}
-              variant="outlined"
-              fullWidth
-            />
-            <div className="profile-form-actions">
-              <Button
-                color="primary"
-                variant="contained"
-                type="submit"
-                disabled={isUpdatePasswordLoading}
-                startIcon={
-                  isUpdatePasswordLoading ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : undefined
-                }
-              >
-                {isUpdatePasswordLoading ? "updating…" : "update password"}
-              </Button>
-            </div>
-          </form>
-        </Paper>
+        <EmailVerificationSection
+          userDetails={userDetails}
+          emailVerificationCode={emailVerificationCode}
+          isVerifyingEmail={isVerifyingEmail}
+          isInCooldown={isInCooldown}
+          remainingCooldown={remainingCooldown}
+          expiresAt={expiresAt}
+          onEmailVerificationCodeChange={setEmailVerificationCode}
+          onSendVerificationEmail={handleSendVerificationEmail}
+          onEmailVerificationSubmit={handleEmailVerificationSubmit}
+          formatTime={formatTime}
+        />
 
-        {/* ---- Sessions section ---- */}
-        <Paper
-          variant="outlined"
-          className="profile-sessions-card"
-          component="section"
-          aria-labelledby="active-sessions-title"
-        >
-          <div className="profile-section-header">
-            <DevicesOutlinedIcon
-              fontSize="small"
-              color="primary"
-              aria-hidden="true"
-            />
-            <Typography variant="h6" component="h2" id="active-sessions-title">
-              active sessions
-            </Typography>
-          </div>
-          <Divider />
-          <PaginatedTable
-            rows={sessionTableData || []}
-            tableAriaLabel="your active sessions across apps"
-            currentPageNumber={1}
-            handlePageChange={() => {}}
-            totalRowsCount={userDetails?.sessions.length || 0}
-            isLoading={userDetails ? false : true}
-            pageSize={userDetails?.sessions.length || 0}
-            caption="your active sessions across apps"
-            hidePaginationOnSinglePage={true}
-          />
-          <div>
-            <Button
-              color="error"
-              variant="outlined"
-              size="small"
-              onClick={() => setIsLogoutAllDialogOpen(true)}
-              disabled={isLoggingOut}
-            >
-              logout from all apps
-            </Button>
-          </div>
-        </Paper>
+        <AccountRecoverySection
+          userDetails={userDetails}
+          isTogglingRecovery={isTogglingRecovery}
+          isGeneratingBackupCodes={isGeneratingBackupCodes}
+          onRecoveryToggle={handleAccountRecoveryToggle}
+          onGenerateBackupCodes={handleGenerateAccountRecoveryBackupCodes}
+        />
 
-        {/* ---- Danger zone ---- */}
-        <Paper
-          variant="outlined"
-          className="profile-danger-section"
-          component="section"
-          aria-labelledby="danger-zone-title"
-        >
-          <div className="profile-section-header">
-            <DeleteOutlineIcon
-              fontSize="small"
-              color="error"
-              aria-hidden="true"
-            />
-            <Typography variant="h6" component="h2" color="error" id="danger-zone-title">
-              danger zone
-            </Typography>
-          </div>
-          <Divider />
+        <UpdatePasswordSection
+          username={pageState?.user.username}
+          oldPassword={updatePasswordOldPassword}
+          newPassword={updatePasswordNewPassword}
+          confirmPassword={updatePasswordConfirmPassword}
+          isLoading={isUpdatePasswordLoading}
+          onOldPasswordChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
+          onNewPasswordChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
+          onConfirmPasswordChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
+          onSubmit={updatePassword}
+        />
 
-          <Typography variant="body2" color="text.secondary" fontWeight={500}>
-            delete {brandConfig.appName} account
-          </Typography>
-          <form onSubmit={openRemoveAppDialog} className="common-form">
-            <PasswordInput
-              value={removeAppPassword}
-              onChange={(e) => setRemoveAppPassword(e.target.value)}
-              label="password"
-              uniqueIdForARIA="remove-app-password"
-              others={{ required: true, disabled: isRemoveAppLoading }}
-              variant="outlined"
-              fullWidth
-            />
-            <div className="profile-form-actions">
-              <Button
-                color="error"
-                variant="outlined"
-                type="submit"
-                disabled={isRemoveAppLoading}
-                startIcon={
-                  isRemoveAppLoading ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : undefined
-                }
-              >
-                {isRemoveAppLoading
-                  ? "deleting…"
-                  : `delete ${brandConfig.appName} account`}
-              </Button>
-            </div>
-          </form>
+        <ActiveSessionsSection
+          userDetails={userDetails}
+          sessionTableData={sessionTableData}
+          isLoggingOut={isLoggingOut}
+          onLogoutAllDialogOpen={() => setIsLogoutAllDialogOpen(true)}
+        />
 
-          <Divider />
+        <DangerZoneSection
+          removeAppPassword={removeAppPassword}
+          deleteAccountPassword={deleteAccountPassword}
+          isRemoveAppLoading={isRemoveAppLoading}
+          isDeleteAccountLoading={isDeleteAccountLoading}
+          onRemoveAppPasswordChange={(e) => setRemoveAppPassword(e.target.value)}
+          onDeleteAccountPasswordChange={(e) => setDeleteAccountPassword(e.target.value)}
+          onRemoveAppSubmit={openRemoveAppDialog}
+          onDeleteAccountSubmit={openDeleteAccountDialog}
+        />
 
-          <Typography variant="body2" color="text.secondary" fontWeight={500}>
-            delete account permanently
-          </Typography>
-          <form onSubmit={openDeleteAccountDialog} className="common-form">
-            <PasswordInput
-              value={deleteAccountPassword}
-              onChange={(e) => setDeleteAccountPassword(e.target.value)}
-              label="password"
-              uniqueIdForARIA="delete-account-password"
-              others={{ required: true, disabled: isDeleteAccountLoading }}
-              variant="outlined"
-              fullWidth
-            />
-            <div className="profile-form-actions">
-              <Button
-                color="error"
-                variant="contained"
-                type="submit"
-                disabled={isDeleteAccountLoading}
-                startIcon={
-                  isDeleteAccountLoading ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : undefined
-                }
-              >
-                {isDeleteAccountLoading ? "deleting…" : "delete account"}
-              </Button>
-            </div>
-          </form>
-        </Paper>
-
+        {/* ── Dialogs ──────────────────────────────────────────────────── */}
         <Dialog
           open={isUpdateUsernameDialogOpen}
-          onClose={handleUpdateUsernameDialogClose}
+          onClose={() => setIsUpdateUsernameDialogOpen(false)}
           aria-labelledby="update-username-dialog"
         >
           <form onSubmit={updateUsername}>
@@ -1707,8 +800,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
               />
             </DialogContent>
             <DialogActions>
-              <Button
-                onClick={handleUpdateUsernameDialogClose}
+              <Button variant={"contained" as any} onClick={() => setIsUpdateUsernameDialogOpen(false)}
                 disabled={isUpdateUsernameLoading}
                 color="inherit"
               >
@@ -1729,86 +821,21 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             </DialogActions>
           </form>
         </Dialog>
-        <Dialog
+
+        <ProfilePhotoUpdateDialog
           open={openUserProfilePhotoUpdateDialog}
-          onClose={cancelProfilePhotoUpdate}
-          aria-labelledby="update-user-profile-photo-dialog-title"
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle id="update-user-profile-photo-dialog-title">
-            crop profile photo
-          </DialogTitle>
-          <DialogContent
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 1.5,
-              pt: 1,
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              drag to adjust the crop area — the photo will be uploaded as a 1:1
-              square.
-            </Typography>
-            {userProfilePhotoUpdatePreviewURL && (
-              <ReactCrop
-                crop={crop}
-                onChange={(c) => setCrop(c)}
-                onComplete={(c) => setCompletedCrop(c)}
-                aspect={1}
-                circularCrop
-                keepSelection
-                style={{ maxHeight: "60vh", maxWidth: "100%" }}
-              >
-                <img
-                  ref={imgRef}
-                  src={userProfilePhotoUpdatePreviewURL}
-                  alt="crop preview"
-                  style={{ maxWidth: "100%", display: "block" }}
-                  onLoad={(e) => {
-                    const { naturalWidth: width, naturalHeight: height } =
-                      e.currentTarget;
-                    const initialCrop = centerCrop(
-                      makeAspectCrop(
-                        { unit: "%", width: 80 },
-                        1,
-                        width,
-                        height,
-                      ),
-                      width,
-                      height,
-                    );
-                    setCrop(initialCrop);
-                  }}
-                />
-              </ReactCrop>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={cancelProfilePhotoUpdate} color="inherit">
-              cancel
-            </Button>
-            <Button
-              onClick={confirmProfilePhotoUpdate}
-              color="primary"
-              variant="contained"
-              disabled={
-                isUserProfilePhotoLoading ||
-                !completedCrop?.width ||
-                !completedCrop?.height
-              }
-              startIcon={
-                isUserProfilePhotoLoading ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : undefined
-              }
-            >
-              {isUserProfilePhotoLoading ? "uploading…" : "crop & upload"}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          previewURL={userProfilePhotoUpdatePreviewURL}
+          isLoading={isUserProfilePhotoLoading}
+          crop={crop}
+          completedCrop={completedCrop}
+          imgRef={imgRef}
+          onCropChange={setCrop}
+          onCropComplete={setCompletedCrop}
+          onSetCrop={setCrop}
+          onConfirm={confirmProfilePhotoUpdate}
+          onCancel={cancelProfilePhotoUpdate}
+        />
+
         <AlertDialog
           open={isDeleteAccountDialogOpen}
           handleClose={closeDeleteAccountDialog}
@@ -1819,7 +846,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         />
         <AlertDialog
           open={isLogoutAppsDialogOpen}
-          handleClose={closeLogoutAppsDialog}
+          handleClose={() => setIsLogoutAppsDialogOpen(false)}
           handleSuccess={() => logoutFromApp(logoutAppName as string)}
           title={`log out all devices from ${logoutAppName}`}
           confirmButtonColor="error"
@@ -1827,7 +854,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         />
         <AlertDialog
           open={isLogoutAllDialogOpen}
-          handleClose={closeLogoutAllDialog}
+          handleClose={() => setIsLogoutAllDialogOpen(false)}
           handleSuccess={logoutAll}
           title="log out all devices for all apps"
           confirmButtonColor="error"
@@ -1843,12 +870,22 @@ const ProfilePage: React.FC<PageProps> = (props) => {
         />
         <AlertDialog
           open={openUserProfilePhotoRemoveDialog}
-          handleClose={cancelProfilePhotoRemove}
+          handleClose={() => setOpenUserProfilePhotoRemoveDialog(false)}
           handleSuccess={confirmProfilePhotoRemove}
-          title={`remove profile photo?`}
+          title="remove profile photo?"
           confirmButtonColor="error"
           isLoading={isUserProfilePhotoLoading}
         />
+
+        <BackupCodesDialog
+          open={isAccountRecoveryBackupCodesDialogOpen}
+          backupCodes={accountRecoveryBackupCodes}
+          username={userDetails?.username}
+          onCopy={handleAccountRecoveryBackupCodesCopy}
+          onDownload={handleAccountRecoveryBackupCodesDownload}
+          onClose={handleAccountRecoveryBackupCodesDialogClose}
+        />
+
         {userProfilePhotoURL && (
           <Backdrop
             sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
@@ -1858,55 +895,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             <img
               src={userProfilePhotoURL}
               alt="Profile photo"
-              style={{
-                width: "85%",
-                height: "85%",
-                objectFit: "contain",
-              }}
+              style={{ width: "85%", height: "85%", objectFit: "contain" }}
             />
           </Backdrop>
         )}
-        <Dialog open={isAccountRecoveryBackupCodesDialogOpen}>
-          <DialogTitle>account recovery backup codes</DialogTitle>
-          <DialogContent dividers>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              save these backup codes in a secure place. each code can be used
-              once if you forget your password.
-            </Typography>
-
-            <Grid container spacing={1}>
-              {accountRecoveryBackupCodes.map((code) => (
-                <Grid key={code}>
-                  <Paper
-                    variant="outlined"
-                    sx={{
-                      py: 1,
-                      textAlign: "center",
-                      fontFamily: "monospace",
-                      fontSize: 14,
-                    }}
-                  >
-                    {code}
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleAccountRecoveryBackupCodesCopy}>
-              copy all
-            </Button>
-            <Button onClick={handleAccountRecoveryBackupCodesDownload}>
-              download
-            </Button>
-            <Button
-              onClick={handleAccountRecoveryBackupCodesDialogClose}
-              variant="contained"
-            >
-              done
-            </Button>
-          </DialogActions>
-        </Dialog>
       </div>
     </Page>
   );

@@ -173,7 +173,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
             aria-label="authentication actions"
           >
             <Link to="/login">
-              <Button variant="contained" size="large" fullWidth>
+              <Button variant={"contained" as any} size="large" fullWidth>
                 login
               </Button>
             </Link>

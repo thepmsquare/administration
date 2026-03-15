@@ -12,6 +12,7 @@ import brandConfig from "../config/brand";
 export const Head: HeadFC = () => (
   <title>not found | {brandConfig.appName}</title>
 );
+
 const NotFoundPage: React.FC<PageProps> = () => {
   // state
   const [snackbarState, changeSnackbarState] =
@@ -20,7 +21,7 @@ const NotFoundPage: React.FC<PageProps> = () => {
       message: "",
       severity: "error",
     });
-  // TODO: check for refresh token for navbar
+
   return (
     <Page
       className="not-found-page"
@@ -32,7 +33,7 @@ const NotFoundPage: React.FC<PageProps> = () => {
     >
       <h1>page not found</h1>
       <Link to="/">
-        <Button variant="contained">Go home</Button>
+        <Button variant={"contained" as any}>go home</Button>
       </Link>
     </Page>
   );
