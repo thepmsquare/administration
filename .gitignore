@@ -3,3 +3,10 @@ node_modules/
 public
 src/gatsby-types.d.ts
 .env.*
+coverage/
+*.log
+test_output.txt
+test_report.json
+test_report_utf8.json
+coverage_output.txt
+coverage_output_utf8.txt
