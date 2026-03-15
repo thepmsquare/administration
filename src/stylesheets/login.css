@@ -1,11 +1,55 @@
 .login-page {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  padding: clamp(1rem, 4vw, 3rem) 1rem;
+  min-height: calc(100vh - 64px);
 }
+
+.login-card {
+  width: 100%;
+  max-width: 480px;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border-radius: 16px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.login-title {
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem !important;
+}
+
 .login-form-action {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-link-container {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.auth-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+  color: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.auth-link:hover {
+  opacity: 0.75;
+}
+
+.forgot-password-link {
+  display: block;
+  text-align: right;
+  margin-top: -0.5rem;
+  font-size: 0.875rem;
+  opacity: 0.85;
 }

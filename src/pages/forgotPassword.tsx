@@ -163,7 +163,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
       if (remaining > 0) {
         changeSnackbarState({
           isOpen: true,
-          message: `Please wait ${formatTime(remaining)} before requesting another code.`,
+          message: `please wait ${formatTime(remaining)} before requesting another code.`,
           severity: "warning",
         });
         return;

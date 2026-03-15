@@ -5,7 +5,7 @@ import * as React from "react";
 import { PasswordInput, UsernameInput } from "squarecomponents";
 import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateType";
 
-import { Button, CircularProgress, Typography } from "@mui/material";
+import { Button, CircularProgress, Paper, Typography } from "@mui/material";
 
 import Page from "../components/Page";
 import brandConfig from "../config/brand";
@@ -85,64 +85,88 @@ const LoginPage: React.FC<PageProps> = () => {
       className="login-page"
       isLoading={isLoading}
     >
-      <Typography variant="h4" component="h1">
-        login
-      </Typography>
-      <form
-        className="common-form"
-        onSubmit={handleLogin}
-        aria-label="login form"
-      >
-        <UsernameInput
-          value={username}
-          onChange={(e) => changeUsername(e.target.value)}
-          label="username"
-          uniqueIdForARIA="login-username"
-          variant="outlined"
-          autocomplete="username"
-          others={{
-            required: true,
-            disabled: isSubmitting,
-          }}
-        />
-        <PasswordInput
-          value={password}
-          onChange={(e) => changePassword(e.target.value)}
-          uniqueIdForARIA="login-password"
-          label="password"
-          variant="outlined"
-          autoComplete="current-password"
-          others={{
-            required: true,
-            disabled: isSubmitting,
-          }}
-        />
-        <Button
-          color="inherit"
-          onClick={navigateToForgotPassword}
-          disabled={isSubmitting}
+      <Paper className="login-card" elevation={3}>
+        <Typography variant="h4" component="h1" className="login-title">
+          login
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+          log in to your existing account
+        </Typography>
+        <form
+          className="common-form"
+          onSubmit={handleLogin}
+          aria-label="login form"
         >
-          forgot password?
-        </Button>
+          <UsernameInput
+            value={username}
+            onChange={(e) => changeUsername(e.target.value)}
+            label="username"
+            uniqueIdForARIA="login-username"
+            variant="outlined"
+            autocomplete="username"
+            others={{
+              required: true,
+              disabled: isSubmitting,
+            }}
+          />
+          <PasswordInput
+            value={password}
+            onChange={(e) => changePassword(e.target.value)}
+            uniqueIdForARIA="login-password"
+            label="password"
+            variant="outlined"
+            autoComplete="current-password"
+            others={{
+              required: true,
+              disabled: isSubmitting,
+            }}
+          />
 
-        <div className="login-form-action">
-          <Button color="inherit" disabled={isSubmitting}>
-            <Link to="/">cancel</Link>
-          </Button>
-          <Button
-            type="submit"
-            variant={"contained" as any}
-            disabled={isSubmitting}
-            startIcon={
-              isSubmitting ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : undefined
-            }
+          <Link
+            to="/forgotPassword"
+            className="forgot-password-link auth-link"
+            onClick={(e) => {
+              if (username) {
+                e.preventDefault();
+                navigateToForgotPassword();
+              }
+            }}
           >
-            {isSubmitting ? "logging in..." : "submit"}
-          </Button>
+            forgot password?
+          </Link>
+
+          <div className="login-form-action">
+            <Button
+              color="inherit"
+              disabled={isSubmitting}
+              onClick={() => navigate("/")}
+            >
+              cancel
+            </Button>
+            <Button
+              type="submit"
+              variant={"contained" as any}
+              disabled={isSubmitting}
+              startIcon={
+                isSubmitting ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : undefined
+              }
+            >
+              {isSubmitting ? "logging in..." : "log in"}
+            </Button>
+          </div>
+        </form>
+
+        <div className="auth-link-container">
+          <Typography variant="body2" color="text.secondary">
+            don't have an account?{" "}
+            <Link to="/register" className="auth-link">
+              create an account
+            </Link>
+          </Typography>
         </div>
-      </form>
+      </Paper>
     </Page>
   );
 };
