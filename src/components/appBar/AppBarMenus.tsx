@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Link } from "gatsby";
+import "../../stylesheets/components/appBarMenus.css";
 import squareLogo from "../../images/square.svg";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import {
@@ -59,7 +60,6 @@ export const UserMenu: React.FC<UserMenuProps> = ({
         slotProps={{ list: { "aria-labelledby": "user-menu-button" } }}
       >
         <MenuItem
-          color="inherit"
           onClick={() => {
             setAnchor(null);
             onProfileNavigate();
@@ -68,6 +68,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
           profile
         </MenuItem>
         <MenuItem
+          className="logout-menu-item"
           onClick={() => {
             setAnchor(null);
             onLogoutOpen();

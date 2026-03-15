@@ -238,6 +238,7 @@ const Page: React.FC<Props> = ({
   const currentTheme = React.useMemo(
     () =>
       createMaterialYouTheme(themeState, undefined, {
+        cssVariables: true,
         typography: {
           fontFamily: brandConfig.primaryFont,
 
