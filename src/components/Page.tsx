@@ -10,10 +10,10 @@ import CustomSnackbarStateType from "squarecomponents/types/CustomSnackbarStateT
 import { Box, CircularProgress, Paper } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import {
+  createTheme,
   StyledEngineProvider,
   ThemeProvider,
 } from "@mui/material/styles";
-import { createMaterialYouTheme } from "mui-create-material-you-theme";
 
 import localStorageKeysConfig from "../config/localStorageKeys";
 import uiConfig from "../config/ui";
@@ -237,7 +237,7 @@ const Page: React.FC<Props> = ({
 
   const currentTheme = React.useMemo(
     () =>
-      createMaterialYouTheme(themeState, undefined, {
+      createTheme({
         cssVariables: true,
         typography: {
           fontFamily: brandConfig.primaryFont,
@@ -332,6 +332,9 @@ const Page: React.FC<Props> = ({
               },
             },
           },
+        },
+        palette: {
+          mode: themeState,
         },
       }),
     [themeState],
