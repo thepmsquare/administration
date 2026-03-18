@@ -174,7 +174,7 @@ const Page: React.FC<Props> = ({
     const abortController = new AbortController();
 
     const getUserProfilePhoto = async () => {
-      if (!user) {
+      if (!user || !user.access_token) {
         setInternalUserProfilePhotoURL(null);
         internalUserProfilePhotoURLRef.current = null;
         return;
