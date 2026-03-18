@@ -231,7 +231,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const deleteAccount = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsDeleteAccountLoading(true);
       await authenticationCommonBL.deleteUserV0(
@@ -251,7 +251,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   const updateUsername = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     if (updateUsernameNewUsername === pageState.user.username) {
       changeSnackbarState({
         isOpen: true,
@@ -283,7 +283,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   const updatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     if (!updatePasswordNewPassword || !updatePasswordOldPassword || !updatePasswordConfirmPassword) return;
     if (updatePasswordNewPassword !== updatePasswordConfirmPassword) {
       changeSnackbarState({ isOpen: true, message: "confirmation of desired password failed.", severity: "error" });
@@ -312,7 +312,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const getUserDetails = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(
         pageState.user.access_token,
@@ -329,7 +329,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const getUserProfilePhoto = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsUserProfilePhotoLoading(true);
       const userDetailsResponse = await authenticationCommonBL.getUserProfilePhotoV0(
@@ -346,7 +346,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const logoutFromApp = async (app_name: string) => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsLoggingOut(true);
       await authenticationCommonBL.logoutAppsV0(pageState.user.access_token, [app_name]);
@@ -361,7 +361,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const logoutAll = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsLoggingOut(true);
       await authenticationCommonBL.logoutAllV0(pageState.user.access_token);
@@ -387,7 +387,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const removeApp = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsRemoveAppLoading(true);
       await authenticationAdministrationBL.removeAppForSelfV0(
@@ -427,7 +427,8 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   const triggerFileInput = () => fileInputRef.current?.click();
 
   const confirmProfilePhotoUpdate = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
+    const accessToken = pageState.user.access_token;
     if (!imgRef.current || !completedCrop || !userProfilePhotoUpdatePreviewURL) return;
 
     const img = imgRef.current;
@@ -456,7 +457,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       try {
         setIsUserProfilePhotoLoading(true);
         await authenticationCommonBL.updateUserProfilePhotoV0(
-          pageState.user.access_token,
+          accessToken,
           croppedFile,
         );
         changeSnackbarState({ isOpen: true, message: "profile photo updated successfully.", severity: "success" });
@@ -478,7 +479,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const confirmProfilePhotoRemove = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsUserProfilePhotoLoading(true);
       await authenticationCommonBL.updateUserProfilePhotoV0(
@@ -511,7 +512,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   const handleProfileFieldSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsUpdatingProfile(true);
       const response = await authenticationCommonBL.updateProfileDetailsV0(
@@ -536,7 +537,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const handleSendVerificationEmail = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsVerifyingEmail(true);
       await authenticationCommonBL.sendVerificationEmailV0(pageState.user.access_token);
@@ -557,7 +558,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
 
   const handleEmailVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsVerifyingEmail(true);
       await authenticationCommonBL.validateEmailVerificationCodeV0(
@@ -578,7 +579,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     method: RecoveryMethodEnum,
     isActiveCurrently: boolean,
   ) => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsTogglingRecovery(true);
       const recoveryMethodsToRemove: RecoveryMethodEnum[] = isActiveCurrently ? [method] : [];
@@ -599,7 +600,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const handleGenerateAccountRecoveryBackupCodes = async () => {
-    if (!pageState) return;
+    if (!pageState || !pageState.user.access_token) return;
     try {
       setIsGeneratingBackupCodes(true);
       const response = await authenticationCommonBL.generateAccountBackupCodesV0(pageState.user.access_token);
@@ -617,7 +618,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
   };
 
   const handleAccountRecoveryBackupCodesDialogClose = async () => {
-    if (pageState) {
+    if (pageState && pageState.user.access_token) {
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(pageState.user.access_token);
       setUserDetails(userDetailsResponse.data.main);
     }

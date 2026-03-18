@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../utils/auth";
 import { useServerCheck } from "../context/serverCheck";
 import { isNetworkError } from "../utils/networkError";
+import squareConfig from "../config/square";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | register</title>
@@ -37,8 +38,68 @@ const RegisterPage: React.FC<PageProps> = () => {
   const [password, changePassword] = React.useState<string>("");
   const [confirmPassword, changeConfirmPassword] = React.useState<string>("");
   const [adminPassword, changeAdminPassword] = React.useState<string>("");
+  const googleButtonRef = React.useRef<HTMLDivElement>(null);
 
   // functions
+  const handleGoogleRegister = React.useCallback(
+    async (response: any) => {
+      if (isSubmitting) return;
+      changeIsSubmitting(true);
+      try {
+        const blResponse = await authenticationAdministrationBL.registerLoginGoogleV0(
+          response.credential
+        );
+
+        const indexPageState = IndexStateZ.parse({
+          user: {
+            ...blResponse["data"]["main"],
+          },
+        });
+        await navigate("/", { state: indexPageState });
+      } catch (error) {
+        if (isNetworkError(error)) {
+          triggerServerCheck();
+        } else {
+          changeSnackbarState({
+            isOpen: true,
+            message: (error as Error).message,
+            severity: "error",
+          });
+        }
+      } finally {
+        changeIsSubmitting(false);
+      }
+    },
+    [isSubmitting, triggerServerCheck]
+  );
+
+  React.useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      const google = (window as any).google;
+      if (google && googleButtonRef.current) {
+        google.accounts.id.initialize({
+          client_id: squareConfig.googleClientID,
+          callback: handleGoogleRegister,
+        });
+        google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "rectangular",
+          logo_alignment: "left",
+        });
+      }
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [handleGoogleRegister]);
 
   const handleRegister: React.FormEventHandler = async (e) => {
     e.preventDefault();
@@ -184,6 +245,12 @@ const RegisterPage: React.FC<PageProps> = () => {
             </Button>
           </div>
         </form>
+        <div className="google-register-container">
+          <div className="divider">
+            <span>or</span>
+          </div>
+          <div ref={googleButtonRef} className="google-button"></div>
+        </div>
 
         <div className="auth-link-container">
           <Typography variant="body2" color="text.secondary">

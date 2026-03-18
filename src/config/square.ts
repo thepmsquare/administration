@@ -15,5 +15,6 @@ const squareConfig: SquareConfig = {
   emailVerificationOTPLength: process.env.GATSBY_EMAIL_VERIFICATION_OTP_LENGTH
     ? parseInt(process.env.GATSBY_EMAIL_VERIFICATION_OTP_LENGTH)
     : 6,
+  googleClientID: process.env.GATSBY_GOOGLE_CLIENT_ID || "",
 };
 export default squareConfig;

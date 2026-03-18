@@ -56,7 +56,7 @@ const IndexPage: React.FC<PageProps> = (props) => {
 
   // functions
   const getGreetings = React.useCallback(async () => {
-    if (!user) {
+    if (!user || !user.access_token) {
       changeGreetings([]);
       changeGreetingsCount(0);
       return;

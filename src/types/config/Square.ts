@@ -6,6 +6,7 @@ const SquareConfigZ = z.strictObject({
   supportEmail: z.string(),
   resetPasswordOTPLength: z.number(),
   emailVerificationOTPLength: z.number(),
+  googleClientID: z.string(),
 });
 
 type SquareConfig = z.infer<typeof SquareConfigZ>;
