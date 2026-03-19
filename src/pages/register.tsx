@@ -33,6 +33,7 @@ const RegisterPage: React.FC<PageProps> = () => {
     });
   const triggerServerCheck = useServerCheck();
   const { isLoading } = useAuth(null, { redirectIfLoggedIn: "/" }, triggerServerCheck);
+  const [isGoogleVisible, setIsGoogleVisible] = React.useState<boolean>(false);
   const [isSubmitting, changeIsSubmitting] = React.useState<boolean>(false);
   const [username, changeUsername] = React.useState<string>("");
   const [password, changePassword] = React.useState<string>("");
@@ -77,18 +78,27 @@ const RegisterPage: React.FC<PageProps> = () => {
     const renderGoogleButton = () => {
       const google = (window as any).google;
       const theme = document.documentElement.getAttribute("data-theme") || "light";
+      if (!squareConfig.googleClientID) {
+        console.warn("[GSI_DEBUG]: google client id is missing from configuration.");
+        return;
+      }
       if (google && googleButtonRef.current) {
-        google.accounts.id.initialize({
-          client_id: squareConfig.googleClientID,
-          callback: handleGoogleRegister,
-        });
-        google.accounts.id.renderButton(googleButtonRef.current, {
-          theme: theme === "dark" ? "filled_black" : "outline",
-          size: "large",
-          text: "continue_with",
-          shape: "rectangular",
-          logo_alignment: "left",
-        });
+        try {
+          google.accounts.id.initialize({
+            client_id: squareConfig.googleClientID,
+            callback: handleGoogleRegister,
+          });
+          google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: theme === "dark" ? "filled_black" : "outline",
+            size: "large",
+            text: "continue_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+          });
+          setIsGoogleVisible(true);
+        } catch (error) {
+          console.error("[GSI_DEBUG]: failed to initialize or render google button:", error);
+        }
       }
     };
 
@@ -97,6 +107,9 @@ const RegisterPage: React.FC<PageProps> = () => {
     script.async = true;
     script.defer = true;
     script.onload = renderGoogleButton;
+    script.onerror = () => {
+      console.error("[GSI_DEBUG]: failed to load google identity services script. check your internet connection or adblocker.");
+    };
     document.body.appendChild(script);
 
     const observer = new MutationObserver((mutations) => {
@@ -116,7 +129,9 @@ const RegisterPage: React.FC<PageProps> = () => {
     });
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
       observer.disconnect();
     };
   }, [handleGoogleRegister]);
@@ -265,12 +280,14 @@ const RegisterPage: React.FC<PageProps> = () => {
             </Button>
           </div>
         </form>
-        <div className="google-register-container">
-          <div className="divider">
-            <span>or</span>
+        {isGoogleVisible && (
+          <div className="google-register-container">
+            <div className="divider">
+              <span>or</span>
+            </div>
+            <div ref={googleButtonRef} className="google-button"></div>
           </div>
-          <div ref={googleButtonRef} className="google-button"></div>
-        </div>
+        )}
 
         <div className="auth-link-container">
           <Typography variant="body2" color="text.secondary">
