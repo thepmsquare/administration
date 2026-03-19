@@ -74,19 +74,16 @@ const RegisterPage: React.FC<PageProps> = () => {
   );
 
   React.useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
+    const renderGoogleButton = () => {
       const google = (window as any).google;
+      const theme = document.documentElement.getAttribute("data-theme") || "light";
       if (google && googleButtonRef.current) {
         google.accounts.id.initialize({
           client_id: squareConfig.googleClientID,
           callback: handleGoogleRegister,
         });
         google.accounts.id.renderButton(googleButtonRef.current, {
-          theme: "outline",
+          theme: theme === "dark" ? "filled_black" : "outline",
           size: "large",
           text: "continue_with",
           shape: "rectangular",
@@ -94,10 +91,33 @@ const RegisterPage: React.FC<PageProps> = () => {
         });
       }
     };
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = renderGoogleButton;
     document.body.appendChild(script);
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "data-theme"
+        ) {
+          renderGoogleButton();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
 
     return () => {
       document.body.removeChild(script);
+      observer.disconnect();
     };
   }, [handleGoogleRegister]);
 
