@@ -65,14 +65,16 @@
   display: flex;
   align-items: center;
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: inherit;
+  opacity: 0.5;
 }
 
 .divider::before,
 .divider::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid currentColor;
+  opacity: 0.12;
 }
 
 .divider:not(:empty)::before {

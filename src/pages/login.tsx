@@ -36,11 +36,13 @@ const LoginPage: React.FC<PageProps> = () => {
   const [username, changeUsername] = React.useState<string>("");
   const [password, changePassword] = React.useState<string>("");
   const googleButtonRef = React.useRef<HTMLDivElement>(null);
+  const isSubmittingRef = React.useRef<boolean>(false);
 
   // functions
   const handleGoogleLogin = React.useCallback(
     async (response: any) => {
-      if (isSubmitting) return;
+      if (isSubmittingRef.current) return;
+      isSubmittingRef.current = true;
       changeIsSubmitting(true);
       try {
         const blResponse = await authenticationAdministrationBL.registerLoginGoogleV0(
@@ -65,78 +67,94 @@ const LoginPage: React.FC<PageProps> = () => {
           });
         }
       } finally {
+        isSubmittingRef.current = false;
         changeIsSubmitting(false);
       }
     },
-    [isSubmitting, triggerServerCheck]
+    [triggerServerCheck]
   );
 
-  React.useEffect(() => {
-    const renderGoogleButton = () => {
-      const google = (window as any).google;
-      const theme = document.documentElement.getAttribute("data-theme") || "light";
-      if (!squareConfig.googleClientID) {
-        console.warn("[GSI_DEBUG]: google client id is missing from configuration.");
-        return;
-      }
-      if (google && googleButtonRef.current) {
-        try {
-          google.accounts.id.initialize({
-            client_id: squareConfig.googleClientID,
-            callback: handleGoogleLogin,
-          });
-          google.accounts.id.renderButton(googleButtonRef.current, {
-            theme: theme === "dark" ? "filled_black" : "outline",
-            size: "large",
-            text: "continue_with",
-            shape: "rectangular",
-            logo_alignment: "left",
-          });
-          setIsGoogleVisible(true);
-        } catch (error) {
-          console.error("[GSI_DEBUG]: failed to initialize or render google button:", error);
-        }
-      }
-    };
+  const [isScriptLoaded, setIsScriptLoaded] = React.useState<boolean>(false);
 
+  const renderGoogleButton = React.useCallback(() => {
+    const google = (window as any).google;
+    const theme = document.documentElement.getAttribute("data-theme") || "light";
+    if (!squareConfig.googleClientID) {
+      console.warn("[GSI_DEBUG]: google client id is missing from configuration.");
+      return;
+    }
+    if (google && googleButtonRef.current) {
+      try {
+        google.accounts.id.initialize({
+          client_id: squareConfig.googleClientID,
+          callback: handleGoogleLogin,
+        });
+        google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: theme === "dark" ? "filled_black" : "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "rectangular",
+          logo_alignment: "left",
+        });
+        setIsGoogleVisible(true);
+      } catch (error) {
+        console.error("[GSI_DEBUG]: failed to initialize or render google button:", error);
+      }
+    }
+  }, [handleGoogleLogin]);
+
+  React.useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
-    script.onload = renderGoogleButton;
+    script.onload = () => {
+      console.log("[GSI_DEBUG]: GSI script loaded.");
+      setIsScriptLoaded(true);
+    };
     script.onerror = () => {
-      console.error("[GSI_DEBUG]: failed to load google identity services script. check your internet connection or adblocker.");
+      console.error("[GSI_DEBUG]: failed to load google identity services script.");
     };
     document.body.appendChild(script);
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (
-          mutation.type === "attributes" &&
-          mutation.attributeName === "data-theme"
-        ) {
-          renderGoogleButton();
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
 
     return () => {
       if (document.body.contains(script)) {
         document.body.removeChild(script);
       }
-      observer.disconnect();
     };
-  }, [handleGoogleLogin]);
+  }, []);
+
+  React.useEffect(() => {
+    if (!isLoading && isScriptLoaded) {
+      renderGoogleButton();
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (
+            mutation.type === "attributes" &&
+            mutation.attributeName === "data-theme"
+          ) {
+            renderGoogleButton();
+          }
+        });
+      });
+
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
+
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, [isLoading, isScriptLoaded, renderGoogleButton]);
 
   const handleLogin: React.FormEventHandler = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmittingRef.current) return;
 
+    isSubmittingRef.current = true;
     changeIsSubmitting(true);
     try {
       const response = await authenticationAdministrationBL.loginUsernameV0(
@@ -165,6 +183,7 @@ const LoginPage: React.FC<PageProps> = () => {
         });
       }
     } finally {
+      isSubmittingRef.current = false;
       changeIsSubmitting(false);
     }
   };
@@ -255,14 +274,15 @@ const LoginPage: React.FC<PageProps> = () => {
             </Button>
           </div>
         </form>
-        {isGoogleVisible && (
-          <div className="google-login-container">
-            <div className="divider">
-              <span>or</span>
-            </div>
-            <div ref={googleButtonRef} className="google-button"></div>
+        <div
+          className="google-login-container"
+          style={{ display: isGoogleVisible ? "flex" : "none" }}
+        >
+          <div className="divider">
+            <span>or</span>
           </div>
-        )}
+          <div ref={googleButtonRef} className="google-button"></div>
+        </div>
 
         <div className="auth-link-container">
           <Typography variant="body2" color="text.secondary">
