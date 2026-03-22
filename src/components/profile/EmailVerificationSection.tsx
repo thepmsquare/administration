@@ -28,6 +28,7 @@ type Props = {
   onSendVerificationEmail: () => void;
   onEmailVerificationSubmit: (e: React.FormEvent) => void;
   formatTime: (seconds: number) => string;
+  isGoogleOnly: boolean;
 };
 
 const EmailVerificationSection: React.FC<Props> = ({
@@ -41,8 +42,10 @@ const EmailVerificationSection: React.FC<Props> = ({
   onSendVerificationEmail,
   onEmailVerificationSubmit,
   formatTime,
+  isGoogleOnly,
 }) => {
   if (
+    isGoogleOnly ||
     !userDetails?.profile.user_profile_email ||
     userDetails?.profile.user_profile_email_verified
   ) {

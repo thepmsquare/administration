@@ -37,6 +37,7 @@ type Props = {
   onProfileFieldSave: (e: React.FormEvent) => void;
   onEditStart: () => void;
   onEditCancel: () => void;
+  isGoogleOnly: boolean;
 };
 
 const ProfileDetailsSection: React.FC<Props> = ({
@@ -49,6 +50,7 @@ const ProfileDetailsSection: React.FC<Props> = ({
   onProfileFieldSave,
   onEditStart,
   onEditCancel,
+  isGoogleOnly,
 }) => {
   return (
     <Paper
@@ -97,7 +99,8 @@ const ProfileDetailsSection: React.FC<Props> = ({
             onChange={onProfileFieldChange("email")}
             fullWidth
             size="small"
-            disabled={isUpdatingProfile}
+            disabled={isUpdatingProfile || isGoogleOnly}
+            helperText={isGoogleOnly ? "email cannot be changed for google accounts" : undefined}
           />
           <MuiTelInput
             label="phone number"

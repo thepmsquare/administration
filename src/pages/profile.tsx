@@ -48,6 +48,7 @@ import ActiveSessionsSection from "../components/profile/ActiveSessionsSection";
 import DangerZoneSection from "../components/profile/DangerZoneSection";
 import ProfilePhotoUpdateDialog from "../components/profile/ProfilePhotoUpdateDialog";
 import BackupCodesDialog from "../components/profile/BackupCodesDialog";
+import ConnectedAccountsSection from "../components/profile/ConnectedAccountsSection";
 
 export const Head: HeadFC = () => (
   <title>{brandConfig.appName} | profile</title>
@@ -659,10 +660,17 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     const interval = setInterval(() => {
       const remaining = calculateRemainingCooldown(cooldownResetAt);
       setRemainingCooldown(remaining);
-      if (remaining <= 0) { setCooldownResetAt(null); clearInterval(interval); }
+      if (remaining <= 0) {
+        setCooldownResetAt(null);
+        clearInterval(interval);
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [cooldownResetAt]);
+
+  const authProviders = userDetails?.auth_providers || [];
+  const isGoogleOnly = authProviders.includes("GOOGLE") && !authProviders.includes("SELF");
+  const hasSelfAuth = authProviders.includes("SELF");
 
   // ── derived ───────────────────────────────────────────────────────────────
   const sessionTableData = userDetails?.sessions.map((row) => ({
@@ -729,6 +737,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
             setIsEditingProfile(true);
           }}
           onEditCancel={() => setIsEditingProfile(false)}
+          isGoogleOnly={isGoogleOnly}
         />
 
         <EmailVerificationSection
@@ -742,27 +751,34 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           onSendVerificationEmail={handleSendVerificationEmail}
           onEmailVerificationSubmit={handleEmailVerificationSubmit}
           formatTime={formatTime}
+          isGoogleOnly={isGoogleOnly}
         />
 
-        <AccountRecoverySection
-          userDetails={userDetails}
-          isTogglingRecovery={isTogglingRecovery}
-          isGeneratingBackupCodes={isGeneratingBackupCodes}
-          onRecoveryToggle={handleAccountRecoveryToggle}
-          onGenerateBackupCodes={handleGenerateAccountRecoveryBackupCodes}
-        />
+        <ConnectedAccountsSection userDetails={userDetails} />
 
-        <UpdatePasswordSection
-          username={pageState?.user.username}
-          oldPassword={updatePasswordOldPassword}
-          newPassword={updatePasswordNewPassword}
-          confirmPassword={updatePasswordConfirmPassword}
-          isLoading={isUpdatePasswordLoading}
-          onOldPasswordChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
-          onNewPasswordChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
-          onConfirmPasswordChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
-          onSubmit={updatePassword}
-        />
+        {!isGoogleOnly && (
+          <AccountRecoverySection
+            userDetails={userDetails}
+            isTogglingRecovery={isTogglingRecovery}
+            isGeneratingBackupCodes={isGeneratingBackupCodes}
+            onRecoveryToggle={handleAccountRecoveryToggle}
+            onGenerateBackupCodes={handleGenerateAccountRecoveryBackupCodes}
+          />
+        )}
+
+        {hasSelfAuth && (
+          <UpdatePasswordSection
+            username={pageState?.user.username}
+            oldPassword={updatePasswordOldPassword}
+            newPassword={updatePasswordNewPassword}
+            confirmPassword={updatePasswordConfirmPassword}
+            isLoading={isUpdatePasswordLoading}
+            onOldPasswordChange={(e) => setUpdatePasswordOldPassword(e.target.value)}
+            onNewPasswordChange={(e) => setUpdatePasswordNewPassword(e.target.value)}
+            onConfirmPasswordChange={(e) => setUpdatePasswordConfirmPassword(e.target.value)}
+            onSubmit={updatePassword}
+          />
+        )}
 
         <ActiveSessionsSection
           userDetails={userDetails}
@@ -780,6 +796,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           onDeleteAccountPasswordChange={(e) => setDeleteAccountPassword(e.target.value)}
           onRemoveAppSubmit={openRemoveAppDialog}
           onDeleteAccountSubmit={openDeleteAccountDialog}
+          isGoogleOnly={isGoogleOnly}
         />
 
         {/* ── Dialogs ──────────────────────────────────────────────────── */}
