@@ -256,7 +256,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     if (updateUsernameNewUsername === pageState.user.username) {
       changeSnackbarState({
         isOpen: true,
-        message: "Username is same as current username.",
+        message: "username is same as current username.",
         severity: "error",
       });
       return;
@@ -271,7 +271,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       setIsUpdateUsernameDialogOpen(false);
       changeSnackbarState({
         isOpen: true,
-        message: "Username updated successfully.",
+        message: "username updated successfully.",
         severity: "success",
       });
       setPageState({ user: { ...pageState.user, username: updateUsernameNewUsername } });
@@ -527,7 +527,7 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       if (response.data.main) {
         setUserDetails((prev) => prev ? { ...prev, profile: response.data.main } : null);
       }
-      changeSnackbarState({ isOpen: true, message: "Profile updated successfully.", severity: "success" });
+      changeSnackbarState({ isOpen: true, message: "profile updated successfully.", severity: "success" });
       getUserDetails();
       setIsEditingProfile(false);
     } catch (error) {
@@ -541,7 +541,10 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     if (!pageState || !pageState.user.access_token) return;
     try {
       setIsVerifyingEmail(true);
-      await authenticationCommonBL.sendVerificationEmailV0(pageState.user.access_token);
+      await authenticationCommonBL.sendVerificationEmailV0(
+        pageState.user.access_token,
+        `${window.location.origin}/profile?verify=true`,
+      );
       const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(pageState.user.access_token);
       setUserDetails(userDetailsResponse.data.main);
       if (userDetailsResponse.data.main.email_verification_details) {
@@ -640,6 +643,29 @@ const ProfilePage: React.FC<PageProps> = (props) => {
     setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
   };
 
+  const handleLinkSelf = async (password: string) => {
+    if (!pageState || !pageState.user.access_token) return;
+    await authenticationCommonBL.addSelfAuthProviderV0(pageState.user.access_token, password);
+    changeSnackbarState({ isOpen: true, message: "password added as auth provider successfully.", severity: "success" });
+  };
+
+  const handleLinkGoogle = async (idToken: string) => {
+    if (!pageState || !pageState.user.access_token) return;
+    await authenticationCommonBL.addGoogleAuthProviderV0(pageState.user.access_token, idToken);
+    changeSnackbarState({ isOpen: true, message: "google account linked successfully.", severity: "success" });
+  };
+
+  const handleUnlinkProvider = async (provider: string) => {
+    if (!pageState || !pageState.user.access_token) return;
+    try {
+      await authenticationCommonBL.unlinkAuthProviderV0(pageState.user.access_token, provider);
+      changeSnackbarState({ isOpen: true, message: `${provider.toLowerCase()} account unlinked successfully.`, severity: "success" });
+      await getUserDetails();
+    } catch (error) {
+      showError(error);
+    }
+  };
+
   // ── effects ───────────────────────────────────────────────────────────────
   React.useEffect(() => {
     if (user) {
@@ -654,6 +680,36 @@ const ProfilePage: React.FC<PageProps> = (props) => {
       if (userProfilePhotoURL) URL.revokeObjectURL(userProfilePhotoURL);
     };
   }, [userProfilePhotoURL]);
+
+  React.useEffect(() => {
+    if (!userDetails || !pageState?.user.access_token) return;
+    const params = new URLSearchParams(window.location.search);
+    const isVerify = params.get("verify") === "true";
+    const code = params.get("code");
+
+    if (isVerify && code) {
+      setEmailVerificationCode(code);
+      // Automatically trigger verification if we have the code and are verifying
+      (async () => {
+        try {
+          setIsVerifyingEmail(true);
+          await authenticationCommonBL.validateEmailVerificationCodeV0(
+            pageState.user.access_token!,
+            code,
+          );
+          const userDetailsResponse = await authenticationCommonBL.getUserDetailsV0(pageState.user.access_token!);
+          setUserDetails(userDetailsResponse.data.main);
+          changeSnackbarState({ isOpen: true, message: "email verified successfully.", severity: "success" });
+          // Clear query params to avoid re-triggering
+          navigate("/profile", { replace: true });
+        } catch (error) {
+          showError(error);
+        } finally {
+          setIsVerifyingEmail(false);
+        }
+      })();
+    }
+  }, [userDetails, pageState?.user.access_token]);
 
   React.useEffect(() => {
     if (!cooldownResetAt) return;
@@ -754,7 +810,15 @@ const ProfilePage: React.FC<PageProps> = (props) => {
           isGoogleOnly={isGoogleOnly}
         />
 
-        <ConnectedAccountsSection userDetails={userDetails} />
+        <ConnectedAccountsSection
+          userDetails={userDetails}
+          accessToken={pageState?.user.access_token || null}
+          onRefresh={getUserDetails}
+          onLinkSelf={handleLinkSelf}
+          onLinkGoogle={handleLinkGoogle}
+          onUnlink={handleUnlinkProvider}
+          showError={showError}
+        />
 
         {!isGoogleOnly && (
           <AccountRecoverySection

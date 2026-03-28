@@ -171,14 +171,17 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     }
     setIsSendingEmail(true);
     try {
-      const response = await authenticationCommonBL.sendResetPasswordEmailV0(username);
+      const response = await authenticationCommonBL.sendResetPasswordEmailV0(
+        username,
+        `${window.location.origin}/forgotPassword?reset=true`,
+      );
       if (isMountedRef.current && response.data) {
         setCooldownResetAt(response.data.cooldown_reset_at);
         setExpiresAt(response.data.expires_at);
         setRemainingCooldown(calculateRemainingCooldown(response.data.cooldown_reset_at));
         changeSnackbarState({
           isOpen: true,
-          message: "Password reset email sent successfully. Check your inbox.",
+          message: "password reset email sent successfully. check your inbox.",
           severity: "success",
         });
       }
@@ -275,8 +278,22 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   }, [cooldownResetAt]);
 
   React.useEffect(() => {
-    if (stateUsername) getRecoveryMethods();
-    return () => { isMountedRef.current = false; };
+    const params = new URLSearchParams(window.location.search);
+    const isReset = params.get("reset") === "true";
+    const code = params.get("code");
+    const usernameParam = params.get("username");
+
+    if (isReset && code && usernameParam) {
+      setUsername(usernameParam);
+      setEmailResetPasswordCodeInput(code);
+      // Automatically fetch recovery methods if we have username and code
+      getRecoveryMethods();
+    } else if (stateUsername) {
+      getRecoveryMethods();
+    }
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // ── derived ───────────────────────────────────────────────────────────────
