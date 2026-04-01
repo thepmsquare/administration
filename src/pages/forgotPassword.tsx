@@ -173,7 +173,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
     try {
       const response = await authenticationCommonBL.sendResetPasswordEmailV0(
         username,
-        `${window.location.origin}/forgotPassword?reset=true`,
+        `${window.location.origin}/passwordRecovery`,
       );
       if (isMountedRef.current && response.data) {
         setCooldownResetAt(response.data.cooldown_reset_at);
@@ -278,17 +278,7 @@ const ForgotPasswordPage: React.FC<PageProps> = (props) => {
   }, [cooldownResetAt]);
 
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isReset = params.get("reset") === "true";
-    const code = params.get("code");
-    const usernameParam = params.get("username");
-
-    if (isReset && code && usernameParam) {
-      setUsername(usernameParam);
-      setEmailResetPasswordCodeInput(code);
-      // Automatically fetch recovery methods if we have username and code
-      getRecoveryMethods();
-    } else if (stateUsername) {
+    if (stateUsername) {
       getRecoveryMethods();
     }
     return () => {
