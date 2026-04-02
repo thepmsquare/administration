@@ -140,46 +140,30 @@ const ConnectedAccountsSection: React.FC<Props> = ({
         </Typography>
       </div>
       <Divider />
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          p: 2,
-        }}
-      >
+      <div className="connected-accounts-list">
         {AUTH_PROVIDERS.map((provider) => {
           const isLinked = providers.includes(provider.type);
           const Icon = provider.icon;
 
           return (
-            <Box
-              key={provider.type}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 2,
-                p: 1.5,
-                borderRadius: 1,
-                bgcolor: "action.hover",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <div key={provider.type} className="connected-provider-row">
+              <div className="connected-provider-info">
                 <Icon color={provider.color} />
-                <Typography variant="body1">{provider.label}</Typography>
+                <Typography variant="body1" className="connected-provider-label">
+                  {provider.label}
+                </Typography>
                 {isLinked && (
                   <Chip
                     label="linked"
                     size="small"
                     color="success"
                     variant="outlined"
-                    sx={{ height: 20, fontSize: "0.75rem" }}
+                    className="linked-chip"
                   />
                 )}
-              </Box>
+              </div>
 
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <div className="connected-provider-actions">
                 {isLinked ? (
                   <Tooltip title={providers.length <= 1 ? "at least one account must be linked" : "unlink account"}>
                     <span>
@@ -211,11 +195,11 @@ const ConnectedAccountsSection: React.FC<Props> = ({
                     )}
                   </>
                 )}
-              </Box>
-            </Box>
+              </div>
+            </div>
           );
         })}
-      </Box>
+      </div>
 
       {/* Link Self Modal */}
       <Dialog
@@ -227,27 +211,29 @@ const ConnectedAccountsSection: React.FC<Props> = ({
         <form onSubmit={handleLinkSelfSubmit}>
           <DialogTitle>link password</DialogTitle>
           <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" className="link-password-dialog-desc">
               add a password to your account to sign in with your username.
             </Typography>
-            <PasswordInput
-              label="new password"
-              value={linkSelfPassword}
-              onChange={(e) => setLinkSelfPassword(e.target.value)}
-              variant="outlined"
-              others={{ required: true, disabled: isLinking }}
-              uniqueIdForARIA="link-pass-new"
-            />
-            <PasswordInput
-              label="confirm password"
-              value={linkSelfConfirmPassword}
-              onChange={(e) => setLinkSelfConfirmPassword(e.target.value)}
-              variant="outlined"
-              others={{ required: true, disabled: isLinking }}
-              uniqueIdForARIA="link-pass-confirm"
-            />
+            <div className="common-form">
+              <PasswordInput
+                label="new password"
+                value={linkSelfPassword}
+                onChange={(e) => setLinkSelfPassword(e.target.value)}
+                variant="outlined"
+                others={{ required: true, disabled: isLinking }}
+                uniqueIdForARIA="link-pass-new"
+              />
+              <PasswordInput
+                label="confirm password"
+                value={linkSelfConfirmPassword}
+                onChange={(e) => setLinkSelfConfirmPassword(e.target.value)}
+                variant="outlined"
+                others={{ required: true, disabled: isLinking }}
+                uniqueIdForARIA="link-pass-confirm"
+              />
+            </div>
           </DialogContent>
-          <DialogActions>
+          <DialogActions className="link-password-dialog-actions">
             <Button onClick={() => setIsLinkSelfDialogOpen(false)} disabled={isLinking}>
               cancel
             </Button>

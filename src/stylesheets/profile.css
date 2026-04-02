@@ -123,3 +123,60 @@
     border-radius: 12px !important;
   }
 }
+
+/* ---- Connected Accounts ---- */
+.connected-accounts-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+  padding: 1rem 0 !important;
+}
+
+.connected-provider-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 1rem !important;
+  border-radius: 12px !important;
+  background-color: rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.connected-provider-row:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  transform: scale(1.005);
+}
+
+.connected-provider-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+}
+
+.connected-provider-label {
+  font-weight: 500 !important;
+  font-size: 0.95rem !important;
+}
+
+.linked-chip {
+  height: 20px !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+}
+
+.connected-provider-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+/* Dialog styles for password link */
+.link-password-dialog-desc {
+  margin-bottom: 1.5rem !important;
+}
+
+.link-password-dialog-actions {
+  padding: 1rem 1.5rem !important;
+}
