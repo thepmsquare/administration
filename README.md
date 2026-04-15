@@ -4,5 +4,5 @@ administration ui for my server.
 
 ## env
 
-- node v20.18.0
-- npm v10.9.0
+- node v24.14.1
+- pnpm

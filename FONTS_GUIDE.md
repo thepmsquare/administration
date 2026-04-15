@@ -23,13 +23,15 @@ const brandConfig: BrandConfig = {
 Follow these steps to replace an existing font or add a new one:
 
 ### 1. Install the Font Package
+
 The project uses [Fontsource](https://fontsource.org/) for self-hosting fonts. Install the variable or static version of the font you want.
 
 ```bash
-npm install @fontsource-variable/new-font-name
+pnpm install @fontsource-variable/new-font-name
 ```
 
 ### 2. Import the Font in `Page.tsx`
+
 Add the import statement at the top of `src/components/Page.tsx` to include the font files in the bundle.
 
 ```tsx
@@ -38,6 +40,7 @@ import "@fontsource-variable/new-font-name";
 ```
 
 ### 3. Update the Configuration
+
 Modify `src/config/brand.ts` to reference the new font family name.
 
 ```typescript
@@ -46,14 +49,17 @@ primaryFont: "New Font Name Variable, sans-serif",
 ```
 
 ### 4. (Optional) Update Types
+
 If you add any new configuration fields, ensure they are mirrored in `src/types/config/Brand.ts`.
 
 ## Usage in Components
 
 ### Automatic Theme Application
+
 Most components will automatically use the `primaryFont` defined in the MUI theme.
 
 ### Using the Accent Font
+
 To apply the accent font to a specific element, use the `.accent-font` CSS class:
 
 ```tsx
