@@ -9,7 +9,7 @@ module.exports = {
   },
   testPathIgnorePatterns: ["node_modules", "\\.cache", "<rootDir>.*/public"],
   transformIgnorePatterns: [
-    "node_modules/(?!(gatsby|gatsby-script|gatsby-link|squareadministration|squarecommonblhelper|squarecommons|squarecomponents)/)",
+    "node_modules/(?!(.pnpm/.*node_modules/)?(gatsby|gatsby-script|gatsby-link|squareadministration|squarecommonblhelper|squarecommons|squarecomponents)/)",
   ],
   globals: {
     __PATH_PREFIX__: "",
