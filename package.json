@@ -59,5 +59,15 @@
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.2"
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "gatsby",
+      "gatsby-cli",
+      "lmdb",
+      "@parcel/watcher",
+      "msgpackr-extract"
+    ]
+  }
 }
